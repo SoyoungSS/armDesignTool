@@ -1,0 +1,129 @@
+{
+  "schema_version": "1.0",
+  "input_mode": "standard",
+  "gravity_m_s2": [
+    0,
+    -9.81,
+    0
+  ],
+  "payload": {
+    "mass_kg": 2,
+    "com_in_tip_m": [
+      0,
+      0,
+      0
+    ]
+  },
+  "poses": [
+    {
+      "name": "horizontal",
+      "q": {
+        "J1": 0,
+        "J2": 0
+      }
+    },
+    {
+      "name": "folded",
+      "q": {
+        "J1": 0.4,
+        "J2": -1
+      }
+    }
+  ],
+  "search": {
+    "samples": 256,
+    "seed": 42,
+    "elite_count": 2,
+    "refine_sweeps": 4
+  },
+  "design_factor": 1.2,
+  "model": {
+    "name": "planar_two_link",
+    "joints": [
+      {
+        "name": "J1",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0,
+            0,
+            0
+          ],
+          "rpy_rad": [
+            0,
+            0,
+            0
+          ]
+        },
+        "axis": [
+          0,
+          0,
+          1
+        ],
+        "limits": [
+          -3.141592653589793,
+          3.141592653589793
+        ],
+        "components": [
+          {
+            "name": "link",
+            "mass_kg": 1,
+            "com_m": [
+              0.5,
+              0,
+              0
+            ]
+          }
+        ]
+      },
+      {
+        "name": "J2",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            1,
+            0,
+            0
+          ],
+          "rpy_rad": [
+            0,
+            0,
+            0
+          ]
+        },
+        "axis": [
+          0,
+          0,
+          1
+        ],
+        "limits": [
+          -3.141592653589793,
+          3.141592653589793
+        ],
+        "components": [
+          {
+            "name": "link",
+            "mass_kg": 1,
+            "com_m": [
+              0.5,
+              0,
+              0
+            ]
+          }
+        ]
+      }
+    ],
+    "tip": {
+      "xyz_m": [
+        1,
+        0,
+        0
+      ],
+      "rpy_rad": [
+        0,
+        0,
+        0
+      ]
+    }
+  }
+}

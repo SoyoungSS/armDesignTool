@@ -1,0 +1,105 @@
+{
+  "schema_version": "1.0",
+  "input_mode": "simple",
+  "simple": {
+    "name": "planar_two_link",
+    "base": {
+      "xyz_m": [
+        0,
+        0,
+        0
+      ],
+      "rpy_rad": [
+        0,
+        0,
+        0
+      ]
+    },
+    "segments": [
+      {
+        "name": "J1",
+        "axis": [
+          0,
+          0,
+          1
+        ],
+        "length_m": 1,
+        "direction": [
+          1,
+          0,
+          0
+        ],
+        "limits_rad": [
+          -3.141592653589793,
+          3.141592653589793
+        ],
+        "link_mass_kg": 1,
+        "link_com_m": [
+          0.5,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "J2",
+        "axis": [
+          0,
+          0,
+          1
+        ],
+        "length_m": 1,
+        "direction": [
+          1,
+          0,
+          0
+        ],
+        "limits_rad": [
+          -3.141592653589793,
+          3.141592653589793
+        ],
+        "link_mass_kg": 1,
+        "link_com_m": [
+          0.5,
+          0,
+          0
+        ]
+      }
+    ]
+  },
+  "gravity_m_s2": [
+    0,
+    -9.81,
+    0
+  ],
+  "payload": {
+    "mass_kg": 2,
+    "com_in_tip_m": [
+      0,
+      0,
+      0
+    ]
+  },
+  "poses": [
+    {
+      "name": "horizontal",
+      "q": {
+        "J1": 0,
+        "J2": 0
+      }
+    },
+    {
+      "name": "folded",
+      "q": {
+        "J1": 0.4,
+        "J2": -1
+      }
+    }
+  ],
+  "search": {
+    "samples": 256,
+    "seed": 42,
+    "elite_count": 2,
+    "refine_sweeps": 4
+  },
+  "design_factor": 1.2
+}

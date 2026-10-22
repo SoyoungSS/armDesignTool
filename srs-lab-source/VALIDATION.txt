@@ -1,0 +1,39 @@
+SRS Lab source export verification
+Site version: 9
+Source commit: 6500629d6156b9cf94d7cc43c394ba627bc1f4b7
+
+$ node --check dist/app.js
+exit_code: 0
+
+$ node --check dist/engine.js
+exit_code: 0
+
+$ node --check dist/scene3d.js
+exit_code: 0
+
+$ node --check dist/worksheet-critical-poses.js
+exit_code: 0
+
+$ node tests/engineering.cjs
+exit_code: 0
+PASS: analytic lever arm, FK/Jacobian, gravity potential, mass-matrix SPD, inverse-dynamics rest/energy, IK, validation, reproducibility and sizing bounds.
+
+$ node tests/variants.cjs
+exit_code: 0
+PASS: original ZYX numerical regression; YZX forward kinematics, Jacobian, gravity, inertia, inverse dynamics, IK, displayed axes, configuration-specific limits and version.
+
+$ node tests/custom-axes.cjs
+exit_code: 0
+PASS: XYZ template; signed/arbitrary custom axes; normalization/invalid input; zero-pose warnings; FK/Jacobian/gravity/inertia; 3D axis consistency; sign reversal equivalence.
+
+$ node tests/worksheet.cjs
+exit_code: 0
+PASS: worksheet preset matches statics skill at 14 poses; seven displayed axis centers equal FK; mass/limits/600mm span and known torques; malformed vectors rejected.
+
+$ node tests/ui-templates.cjs
+exit_code: 0
+PASS: report critical poses, recomputed signed torque, manual pose clearing and stale model rejection; worksheet views and 9 original views; perspective 3D geometry; joint vs camera drag; axis-ring rotation; angle/slider/pose sync; limits; zoom. Browser visual QA not performed.
+
+PASS: all 21 original tracked files match the deployed commit byte-for-byte.
+PASS: JSON files parse successfully.
+Browser end-to-end checks were not performed during source export.

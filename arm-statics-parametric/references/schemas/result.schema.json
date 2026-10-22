@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:arm-statics-parametric:result:1.0",
+  "title": "Parametric arm static analysis result",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "engine_version": {
+      "type": "string"
+    },
+    "input_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "normalized_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "input_snapshot": {
+      "type": "object"
+    },
+    "normalized_input": {
+      "type": "object"
+    },
+    "joint_names": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "poses": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 10000,
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "q",
+          "holding_load",
+          "components",
+          "contributions",
+          "tip_pose_in_base",
+          "joint_geometry",
+          "gravity_potential_J"
+        ]
+      }
+    },
+    "search": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "summary": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": {
+        "type": "object",
+        "required": [
+          "joint",
+          "unit",
+          "max_abs_checked",
+          "required_output",
+          "critical_pose",
+          "status"
+        ],
+        "properties": {
+          "unit": {
+            "enum": [
+              "Nm",
+              "N"
+            ]
+          },
+          "status": {
+            "enum": [
+              "not_sized",
+              "exceeds_capacity",
+              "capacity_conditions_unknown",
+              "satisfies_checked_cases"
+            ]
+          }
+        }
+      }
+    },
+    "scope": {
+      "type": "object",
+      "required": [
+        "global_optimum_proven",
+        "collision_checked",
+        "thermal_checked"
+      ],
+      "properties": {
+        "global_optimum_proven": {
+          "const": false
+        },
+        "collision_checked": {
+          "const": false
+        },
+        "thermal_checked": {
+          "const": false
+        }
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 10000,
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "engine_version",
+    "input_sha256",
+    "normalized_sha256",
+    "input_snapshot",
+    "normalized_input",
+    "joint_names",
+    "poses",
+    "search",
+    "summary",
+    "scope",
+    "warnings"
+  ]
+}

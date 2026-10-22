@@ -1,0 +1,38 @@
+{
+  // 精简输入：单臂自重 3.612 kg，末端负载 3 kg；单位 m、kg、rad。
+  // JSONC 支持 // 和 /* */ 注释；不支持尾逗号。删除注释即为严格 JSON。
+  "schema_version": "1.0",
+  "input_mode": "simple",
+  "simple": {
+    "name": "worksheet_single_arm_3_612kg",
+    // 顺序必须从基座到末端。axis 是当前关节局部坐标轴，按右手定则。
+    // length_m 是到下一轴心的段长；最后一段到末端参考点。
+    // direction 是当前输出坐标系的连杆方向。本例零位均沿 -Z。
+    // limits_rad 为 [下限, 上限]，不是角度；90°=1.5707963267948966 rad。
+    // link_mass_kg：本段连杆质量；joint_mass_kg：当前关节模组质量。
+    // 简易假设：连杆质心默认在中点，整模组质量默认集中在当前轴心。
+    // 若不符合实物，应显式补 link_com_m / joint_com_m 或改用 standard。
+    "segments": [
+      {"name": "J1", "axis": [0, -1, 0], "length_m": 0.035, "direction": [0, 0, -1], "limits_rad": [-1.5707963267948966, 3.141592653589793], "link_mass_kg": 0.1, "joint_mass_kg": 0.961},
+      {"name": "J2", "axis": [1, 0, 0], "length_m": 0.05, "direction": [0, 0, -1], "limits_rad": [-1.5707963267948966, 0], "link_mass_kg": 0.09, "joint_mass_kg": 0.485},
+      {"name": "J3", "axis": [0, 0, -1], "length_m": 0.25, "direction": [0, 0, -1], "limits_rad": [-2.356194490192345, 2.356194490192345], "link_mass_kg": 0.22, "joint_mass_kg": 0.485},
+      {"name": "J4", "axis": [0, -1, 0], "length_m": 0.05, "direction": [0, 0, -1], "limits_rad": [0, 2.6179938779914944], "link_mass_kg": 0.08, "joint_mass_kg": 0.485},
+      {"name": "J5", "axis": [0, 0, -1], "length_m": 0.163, "direction": [0, 0, -1], "limits_rad": [-2.356194490192345, 2.356194490192345], "link_mass_kg": 0.12, "joint_mass_kg": 0.162},
+      {"name": "J6", "axis": [0, 1, 0], "length_m": 0.047, "direction": [0, 0, -1], "limits_rad": [-1.5707963267948966, 1.5707963267948966], "link_mass_kg": 0.05, "joint_mass_kg": 0.162},
+      {"name": "J7", "axis": [1, 0, 0], "length_m": 0.04, "direction": [0, 0, -1], "limits_rad": [-1.5707963267948966, 1.5707963267948966], "link_mass_kg": 0.05, "joint_mass_kg": 0.162}
+    ]
+  },
+  // 重力在基座参考系中的方向；省略 base 表示基座原点及姿态均为零。
+  "gravity_m_s2": [0, 0, -9.8],
+  // 负载质心相对末端参考点；本例假设与参考点重合。
+  "payload": {"mass_kg": 3, "com_in_tip_m": [0, 0, 0]},
+  // 典型姿态角：必须列全主动关节，不要用“前平举”等名称代替角度。
+  "poses": [
+    {"name": "forward_horizontal", "q": {"J1": 1.5707963267948966, "J2": 0, "J3": 0, "J4": 0, "J5": 0, "J6": 0, "J7": 0}},
+    {"name": "side_horizontal", "q": {"J1": 0, "J2": -1.5707963267948966, "J3": 0, "J4": 0, "J5": 0, "J6": 0, "J7": 0}}
+  ],
+  // 可选：删除 search 则只检查上述姿态。固定配置可复现；搜索不证明全局最大。
+  "search": {"samples": 20000, "seed": 42},
+  // 可选：静态需求 = 已检查最大绝对载荷 × 此系数；省略默认为 1。
+  "design_factor": 1.2
+}

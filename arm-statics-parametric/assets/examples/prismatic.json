@@ -1,0 +1,79 @@
+{
+  "schema_version": "1.0",
+  "input_mode": "standard",
+  "model": {
+    "name": "vertical_slider",
+    "joints": [
+      {
+        "name": "P1",
+        "type": "prismatic",
+        "origin": {
+          "xyz_m": [
+            0,
+            0,
+            0
+          ],
+          "rpy_rad": [
+            0,
+            0,
+            0
+          ]
+        },
+        "axis": [
+          0,
+          0,
+          1
+        ],
+        "limits": [
+          0,
+          1
+        ],
+        "components": [
+          {
+            "name": "carriage",
+            "mass_kg": 2,
+            "com_m": [
+              0,
+              0,
+              0
+            ]
+          }
+        ]
+      }
+    ],
+    "tip": {
+      "xyz_m": [
+        0,
+        0,
+        0
+      ],
+      "rpy_rad": [
+        0,
+        0,
+        0
+      ]
+    }
+  },
+  "gravity_m_s2": [
+    0,
+    0,
+    -9.81
+  ],
+  "payload": {
+    "mass_kg": 3,
+    "com_in_tip_m": [
+      0,
+      0,
+      0
+    ]
+  },
+  "poses": [
+    {
+      "name": "hold",
+      "q": {
+        "P1": 0.5
+      }
+    }
+  ],
+  "design_factor": 1.2
+}

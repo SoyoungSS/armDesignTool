@@ -1,0 +1,193 @@
+{
+  "schema_version": "1.0",
+  "input_mode": "simple",
+  "simple": {
+    "name": "worksheet_single_arm_3_612kg",
+    "segments": [
+      {
+        "name": "J1",
+        "axis": [
+          0,
+          -1,
+          0
+        ],
+        "length_m": 0.035,
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "limits_rad": [
+          -1.5707963267948966,
+          3.141592653589793
+        ],
+        "link_mass_kg": 0.1,
+        "joint_mass_kg": 0.961
+      },
+      {
+        "name": "J2",
+        "axis": [
+          1,
+          0,
+          0
+        ],
+        "length_m": 0.05,
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "limits_rad": [
+          -1.5707963267948966,
+          0
+        ],
+        "link_mass_kg": 0.09,
+        "joint_mass_kg": 0.485
+      },
+      {
+        "name": "J3",
+        "axis": [
+          0,
+          0,
+          -1
+        ],
+        "length_m": 0.25,
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "limits_rad": [
+          -2.356194490192345,
+          2.356194490192345
+        ],
+        "link_mass_kg": 0.22,
+        "joint_mass_kg": 0.485
+      },
+      {
+        "name": "J4",
+        "axis": [
+          0,
+          -1,
+          0
+        ],
+        "length_m": 0.05,
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "limits_rad": [
+          0,
+          2.6179938779914944
+        ],
+        "link_mass_kg": 0.08,
+        "joint_mass_kg": 0.485
+      },
+      {
+        "name": "J5",
+        "axis": [
+          0,
+          0,
+          -1
+        ],
+        "length_m": 0.163,
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "limits_rad": [
+          -2.356194490192345,
+          2.356194490192345
+        ],
+        "link_mass_kg": 0.12,
+        "joint_mass_kg": 0.162
+      },
+      {
+        "name": "J6",
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "length_m": 0.047,
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "limits_rad": [
+          -1.5707963267948966,
+          1.5707963267948966
+        ],
+        "link_mass_kg": 0.05,
+        "joint_mass_kg": 0.162
+      },
+      {
+        "name": "J7",
+        "axis": [
+          1,
+          0,
+          0
+        ],
+        "length_m": 0.04,
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "limits_rad": [
+          -1.5707963267948966,
+          1.5707963267948966
+        ],
+        "link_mass_kg": 0.05,
+        "joint_mass_kg": 0.162
+      }
+    ]
+  },
+  "gravity_m_s2": [
+    0,
+    0,
+    -9.8
+  ],
+  "payload": {
+    "mass_kg": 3,
+    "com_in_tip_m": [
+      0,
+      0,
+      0
+    ]
+  },
+  "poses": [
+    {
+      "name": "forward_horizontal",
+      "q": {
+        "J1": 1.5707963267948966,
+        "J2": 0,
+        "J3": 0,
+        "J4": 0,
+        "J5": 0,
+        "J6": 0,
+        "J7": 0
+      }
+    },
+    {
+      "name": "side_horizontal",
+      "q": {
+        "J1": 0,
+        "J2": -1.5707963267948966,
+        "J3": 0,
+        "J4": 0,
+        "J5": 0,
+        "J6": 0,
+        "J7": 0
+      }
+    }
+  ],
+  "search": {
+    "samples": 20000,
+    "seed": 42
+  },
+  "design_factor": 1.2
+}

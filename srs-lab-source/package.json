@@ -1,0 +1,1 @@
+{"name":"srs-lab-v10","version":"10.0.0","private":true,"scripts":{"start":"node server/index.mjs","test":"node --test tests/*.cjs tests/*.mjs"}}

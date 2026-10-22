@@ -1,0 +1,35 @@
+{
+  "site_url": "https://srs-arm-design-lab.validmouse64.chatgpt.site",
+  "site_version": 9,
+  "source_commit": "6500629d6156b9cf94d7cc43c394ba627bc1f4b7",
+  "export_date": "2026-10-22",
+  "export_method": "git archive of deployed commit; original tracked files retained unchanged",
+  "original_files_sha256": {
+    ".openai/hosting.json": "a804a30020dcbab73a5bf6ba73689f757a43316a07bb26015ea339ca6cf3739b",
+    "DESIGN.md": "1bec11fbbc22761eb1d2c90db43dd2601640bbd979bd653d1dc90bbe2826ade9",
+    "dist/app.js": "3a679e445f53a4d802264ddb79022800b0d1cc2c9cad3108a623a87fa2706551",
+    "dist/engine.js": "1a3349c10dbef8b34e57c25d079b1af3bc9e96df76a19fe8e4f30909b19a7fa5",
+    "dist/example-input-custom-axes.json": "9479191c17d12618effb71bbf78ddc1c0befb92058ad181f9a2f816d769a978c",
+    "dist/example-input-xyz.json": "a2f88704c32c0fd3d93c9414fd308562be987dde314b7c37fac1839439ae1598",
+    "dist/example-input-yzx.json": "1b1e79b02f2c715a4d7007e809633b9ff1f199f0d378e574a5d3a30b6f9e3c16",
+    "dist/example-input.json": "8ea1d479bfafd50f311a444de7085f7bfe554201ad4e312125bfc59dfeb3a391",
+    "dist/index.html": "c2c95538cbbc49269872ec54dfcbd1f38a0f8c5f96207966a4cc84600e19bcb3",
+    "dist/scene3d.js": "4374aba33f33e0d61160235f71e1b9ff3caf60ed71ad3f4df43bc181803b21ff",
+    "dist/style.css": "9b3767f06cbef728ff11195360ad342edee742e6a3169ba5c02c65698bd4761a",
+    "dist/worksheet-critical-poses.js": "23e35958da5f8d8f6640b5aeb2f195a19b1a1f1862cf45536e8c6395f11d560a",
+    "dist/worksheet-minimal.json": "a7642e670b2a3d5c1e0986915aab789d432e6656246a0a3e6ecb94f7ed9a4e3f",
+    "dist/worksheet-minimal.jsonc": "1187caefde5a873dee30e2845da63e0d6bdfccfe52d40fd917a5f11601ebcd08",
+    "tests/custom-axes.cjs": "a8f7023fb7faf7b253d2c8141b72ff6534ac127de620dbad8af288dcf7243ffe",
+    "tests/engineering.cjs": "59e909dc8065944013be73a031200b100dd03ca300f57e096416a363190aaf83",
+    "tests/fixtures/original-zyx.json": "b69c778b42b5f955f2e52eb473d3932338e6f41efe36308c176bb14fc7da8324",
+    "tests/fixtures/worksheet-statics-reference.json": "0e0165d9dde66aaa20087e10412d77a9a5fc391981dc8ea6f8abd28555ab5683",
+    "tests/ui-templates.cjs": "8719d22d03325238ac7833692381eb1dc0f17a0c0560ef8928e2c1600ac0df6e",
+    "tests/variants.cjs": "366e49805509477301fb75854ebd57448d5d750686dc0764f6e3952b6a1e8e00",
+    "tests/worksheet.cjs": "0116bc4cb6aa3b2eb42094fa5e44f5ef65e0f7dc7a1336b4ff86dd9b41307a5c"
+  },
+  "additional_files": [
+    "README.md",
+    "SOURCE_PROVENANCE.json",
+    "VALIDATION.txt"
+  ]
+}

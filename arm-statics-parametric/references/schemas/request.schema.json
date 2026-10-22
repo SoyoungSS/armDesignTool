@@ -1,0 +1,559 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:arm-statics-parametric:request:1.0",
+  "title": "Parametric arm static analysis request",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "input_mode": {
+      "enum": [
+        "standard",
+        "simple"
+      ]
+    },
+    "model": {
+      "$ref": "#/$defs/model"
+    },
+    "simple": {
+      "$ref": "#/$defs/simple"
+    },
+    "gravity_m_s2": {
+      "$ref": "#/$defs/vec"
+    },
+    "payload": {
+      "$ref": "#/$defs/payload"
+    },
+    "attachments": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 100,
+      "items": {
+        "$ref": "#/$defs/attachment"
+      }
+    },
+    "wrenches": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 100,
+      "items": {
+        "$ref": "#/$defs/wrench"
+      }
+    },
+    "poses": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 10000,
+      "items": {
+        "$ref": "#/$defs/pose"
+      }
+    },
+    "search": {
+      "$ref": "#/$defs/search"
+    },
+    "drives": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/drive"
+      }
+    },
+    "design_factor": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 100
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "normalization_assumptions": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 500,
+          "items": {
+            "type": "string",
+            "maxLength": 2048
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "input_mode",
+    "gravity_m_s2",
+    "payload"
+  ],
+  "$defs": {
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "\\S"
+    },
+    "vec": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "number",
+        "minimum": -1000000000.0,
+        "maximum": 1000000000.0
+      }
+    },
+    "limits": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "number",
+        "minimum": -1000000.0,
+        "maximum": 1000000.0
+      }
+    },
+    "mass": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1000000000.0
+    },
+    "axis": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "number",
+        "minimum": -1000000000.0,
+        "maximum": 1000000000.0
+      },
+      "not": {
+        "const": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "transform": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "xyz_m": {
+          "$ref": "#/$defs/vec"
+        },
+        "rpy_rad": {
+          "$ref": "#/$defs/vec"
+        }
+      },
+      "required": [
+        "xyz_m",
+        "rpy_rad"
+      ]
+    },
+    "component": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/name"
+        },
+        "mass_kg": {
+          "$ref": "#/$defs/mass"
+        },
+        "com_m": {
+          "$ref": "#/$defs/vec"
+        }
+      },
+      "required": [
+        "name",
+        "mass_kg",
+        "com_m"
+      ]
+    },
+    "joint": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/name"
+        },
+        "type": {
+          "enum": [
+            "revolute",
+            "prismatic",
+            "fixed"
+          ]
+        },
+        "origin": {
+          "$ref": "#/$defs/transform"
+        },
+        "axis": {
+          "$ref": "#/$defs/axis"
+        },
+        "limits": {
+          "$ref": "#/$defs/limits"
+        },
+        "components": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/component"
+          }
+        }
+      },
+      "required": [
+        "name",
+        "type",
+        "origin",
+        "components"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "fixed"
+              }
+            }
+          },
+          "then": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "axis"
+                  ]
+                },
+                {
+                  "required": [
+                    "limits"
+                  ]
+                }
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "axis",
+              "limits"
+            ]
+          }
+        }
+      ]
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/name"
+        },
+        "joints": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/joint"
+          },
+          "contains": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "enum": [
+                  "revolute",
+                  "prismatic"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          }
+        },
+        "tip": {
+          "$ref": "#/$defs/transform"
+        }
+      },
+      "required": [
+        "name",
+        "joints",
+        "tip"
+      ]
+    },
+    "segment": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/name"
+        },
+        "axis": {
+          "$ref": "#/$defs/axis"
+        },
+        "length_m": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1000000.0
+        },
+        "direction": {
+          "$ref": "#/$defs/axis"
+        },
+        "rpy_rad": {
+          "$ref": "#/$defs/vec"
+        },
+        "limits_rad": {
+          "$ref": "#/$defs/limits"
+        },
+        "link_mass_kg": {
+          "$ref": "#/$defs/mass"
+        },
+        "link_com_m": {
+          "$ref": "#/$defs/vec"
+        },
+        "joint_mass_kg": {
+          "$ref": "#/$defs/mass"
+        },
+        "joint_com_m": {
+          "$ref": "#/$defs/vec"
+        }
+      },
+      "required": [
+        "name",
+        "axis",
+        "length_m",
+        "limits_rad",
+        "link_mass_kg"
+      ],
+      "dependentRequired": {
+        "joint_com_m": [
+          "joint_mass_kg"
+        ]
+      }
+    },
+    "simple": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/name"
+        },
+        "base": {
+          "$ref": "#/$defs/transform"
+        },
+        "segments": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": {
+            "$ref": "#/$defs/segment"
+          }
+        }
+      },
+      "required": [
+        "name",
+        "segments"
+      ]
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mass_kg": {
+          "$ref": "#/$defs/mass"
+        },
+        "com_in_tip_m": {
+          "$ref": "#/$defs/vec"
+        }
+      },
+      "required": [
+        "mass_kg",
+        "com_in_tip_m"
+      ]
+    },
+    "attachment": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/name"
+        },
+        "frame": {
+          "$ref": "#/$defs/name"
+        },
+        "mass_kg": {
+          "$ref": "#/$defs/mass"
+        },
+        "com_m": {
+          "$ref": "#/$defs/vec"
+        }
+      },
+      "required": [
+        "name",
+        "frame",
+        "mass_kg",
+        "com_m"
+      ]
+    },
+    "wrench": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/name"
+        },
+        "frame": {
+          "$ref": "#/$defs/name"
+        },
+        "point_m": {
+          "$ref": "#/$defs/vec"
+        },
+        "force_N": {
+          "$ref": "#/$defs/vec"
+        },
+        "moment_Nm": {
+          "$ref": "#/$defs/vec"
+        }
+      },
+      "required": [
+        "name",
+        "frame",
+        "point_m",
+        "force_N",
+        "moment_Nm"
+      ]
+    },
+    "pose": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/name"
+        },
+        "q": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number",
+            "minimum": -1000000.0,
+            "maximum": 1000000.0
+          }
+        }
+      },
+      "required": [
+        "name",
+        "q"
+      ]
+    },
+    "search": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "samples": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200000
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        "elite_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+        },
+        "refine_sweeps": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 40
+        }
+      },
+      "required": [
+        "samples",
+        "seed"
+      ]
+    },
+    "drive": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "continuous_output": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1000000000000.0
+        },
+        "continuous_conditions": {
+          "$ref": "#/$defs/name"
+        },
+        "ratio": {
+          "type": "number",
+          "minimum": 1e-09,
+          "maximum": 1000000000.0
+        },
+        "efficiency": {
+          "type": "number",
+          "minimum": 1e-09,
+          "maximum": 1
+        }
+      },
+      "required": [],
+      "dependentRequired": {
+        "ratio": [
+          "efficiency"
+        ],
+        "efficiency": [
+          "ratio"
+        ]
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "input_mode": {
+            "const": "standard"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "model"
+        ],
+        "not": {
+          "required": [
+            "simple"
+          ]
+        }
+      },
+      "else": {
+        "required": [
+          "simple"
+        ],
+        "not": {
+          "required": [
+            "model"
+          ]
+        }
+      }
+    }
+  ],
+  "anyOf": [
+    {
+      "required": [
+        "poses"
+      ],
+      "properties": {
+        "poses": {
+          "minItems": 1
+        }
+      }
+    },
+    {
+      "required": [
+        "search"
+      ]
+    }
+  ]
+}

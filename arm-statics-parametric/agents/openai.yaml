@@ -1,0 +1,13 @@
+interface:
+  display_name: 参数化机械臂静力学校核
+  short_description: 支持标准与简易参数输入的逐轴静力矩、姿态搜索及驱动静态需求分析
+  default_prompt: 使用 $arm-statics-parametric 根据机械臂参数计算典型姿态与关节范围内的静态力矩，并输出校核报告。
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true

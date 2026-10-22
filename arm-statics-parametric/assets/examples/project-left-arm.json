@@ -1,0 +1,334 @@
+{
+  "schema_version": "1.0",
+  "input_mode": "standard",
+  "model": {
+    "name": "project_l_arm_CAD_mass_profile",
+    "joints": [
+      {
+        "name": "arm_l_joint_1",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0.0,
+            0.17,
+            0.0
+          ],
+          "rpy_rad": [
+            0,
+            0,
+            0
+          ]
+        },
+        "axis": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "limits": [
+          -3.1416,
+          1.5708
+        ],
+        "components": [
+          {
+            "name": "CAD_equivalent_body",
+            "mass_kg": 0.57575504,
+            "com_m": [
+              0.01046005,
+              -0.00304398,
+              -1.074e-05
+            ]
+          }
+        ]
+      },
+      {
+        "name": "arm_l_joint_2",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rpy_rad": [
+            0,
+            0,
+            0
+          ]
+        },
+        "axis": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "limits": [
+          0.0,
+          1.5708
+        ],
+        "components": [
+          {
+            "name": "CAD_equivalent_body",
+            "mass_kg": 0.08406072,
+            "com_m": [
+              0.02775457,
+              0.0,
+              -0.02632484
+            ]
+          }
+        ]
+      },
+      {
+        "name": "arm_l_joint_3",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rpy_rad": [
+            0,
+            0,
+            0
+          ]
+        },
+        "axis": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "limits": [
+          -2.3562,
+          2.3562
+        ],
+        "components": [
+          {
+            "name": "CAD_equivalent_body",
+            "mass_kg": 1.20023537,
+            "com_m": [
+              -0.00092107,
+              0.00091067,
+              -0.18141941
+            ]
+          }
+        ]
+      },
+      {
+        "name": "arm_l_joint_4",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0.0,
+            0.0,
+            -0.3
+          ],
+          "rpy_rad": [
+            0,
+            0,
+            0
+          ]
+        },
+        "axis": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "limits": [
+          -2.618,
+          0.0
+        ],
+        "components": [
+          {
+            "name": "CAD_equivalent_body",
+            "mass_kg": 0.06178252,
+            "com_m": [
+              0.0,
+              0.01753679,
+              -0.02559457
+            ]
+          }
+        ]
+      },
+      {
+        "name": "arm_l_joint_5",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rpy_rad": [
+            0,
+            0,
+            0
+          ]
+        },
+        "axis": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "limits": [
+          -2.3562,
+          2.3562
+        ],
+        "components": [
+          {
+            "name": "CAD_equivalent_body",
+            "mass_kg": 0.2824892,
+            "com_m": [
+              0.0,
+              0.00233015,
+              -0.09482096
+            ]
+          }
+        ]
+      },
+      {
+        "name": "arm_l_joint_6",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0.0,
+            0.0,
+            -0.213
+          ],
+          "rpy_rad": [
+            0,
+            0,
+            0
+          ]
+        },
+        "axis": [
+          0.0,
+          -1.0,
+          0.0
+        ],
+        "limits": [
+          -1.5708,
+          1.5708
+        ],
+        "components": [
+          {
+            "name": "CAD_equivalent_body",
+            "mass_kg": 0.37923865,
+            "com_m": [
+              0.00152811,
+              0.00152999,
+              -0.0234967
+            ]
+          }
+        ]
+      },
+      {
+        "name": "arm_l_joint_7",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0.0,
+            0.0,
+            -0.047
+          ],
+          "rpy_rad": [
+            0,
+            0,
+            0
+          ]
+        },
+        "axis": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "limits": [
+          -1.5708,
+          1.5708
+        ],
+        "components": [
+          {
+            "name": "CAD_equivalent_body",
+            "mass_kg": 0.03878183,
+            "com_m": [
+              0.01097112,
+              0.0,
+              -0.02232723
+            ]
+          }
+        ]
+      }
+    ],
+    "tip": {
+      "xyz_m": [
+        0,
+        0,
+        -0.04
+      ],
+      "rpy_rad": [
+        0,
+        0,
+        0
+      ]
+    }
+  },
+  "gravity_m_s2": [
+    0,
+    0,
+    -9.8
+  ],
+  "payload": {
+    "mass_kg": 3,
+    "com_in_tip_m": [
+      0,
+      0,
+      0
+    ]
+  },
+  "poses": [
+    {
+      "name": "forward_horizontal",
+      "q": {
+        "arm_l_joint_1": -1.5707963267948966,
+        "arm_l_joint_2": 0.0,
+        "arm_l_joint_3": 0.0,
+        "arm_l_joint_4": 0.0,
+        "arm_l_joint_5": 0.0,
+        "arm_l_joint_6": 0.0,
+        "arm_l_joint_7": 0.0
+      }
+    }
+  ],
+  "search": {
+    "samples": 512,
+    "seed": 42,
+    "elite_count": 2,
+    "refine_sweeps": 4
+  },
+  "design_factor": 1.2,
+  "drives": {
+    "arm_l_joint_1": {
+      "continuous_output": 25
+    },
+    "arm_l_joint_2": {
+      "continuous_output": 20
+    },
+    "arm_l_joint_3": {
+      "continuous_output": 20
+    },
+    "arm_l_joint_4": {
+      "continuous_output": 20
+    },
+    "arm_l_joint_5": {
+      "continuous_output": 3
+    },
+    "arm_l_joint_6": {
+      "continuous_output": 3
+    },
+    "arm_l_joint_7": {
+      "continuous_output": 3
+    }
+  },
+  "metadata": {
+    "source": "Parameter snapshot extracted from supplied CAD model; no URDF runtime input required. Mass profile differs from 3.612kg concept worksheet.",
+    "capacity_note": "Continuous output values are worksheet records; operating/thermal conditions remain unconfirmed."
+  }
+}
