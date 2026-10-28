@@ -2,11 +2,35 @@
 
 ## 根请求
 
-`schema_version="1.0"`。必填input_mode、gravity_m_s2、payload以及对应model/simple；poses与search至少提供一项。可选attachments、wrenches、drives、design_factor、metadata。
+`schema_version="1.0"`。必填input_mode、payload以及对应model/simple；gravity_m_s2与installation必须且只能提供一个，poses与search至少提供一项。可选attachments、wrenches、drives、design_factor、metadata。
 
 拒绝未知业务字段、非有限数值、布尔数值、重复名称、循环对象。metadata用于来源与自定义说明，其中normalization_assumptions保留简易模型推导假设。
 
-统一SI：m、kg、rad、N、Nm。旋转关节q为rad，移动关节q为m。不猜测或自动转换mm/deg。重力直接在基坐标系表达，不自动设为地球竖直方向；无负载时显式给payload质量0。
+统一SI：m、kg、rad、N、Nm。旋转关节q为rad，移动关节q为m。不猜测或自动转换mm/deg。旧字段gravity_m_s2在基坐标系表达，新installation字段按下述规则转换；不自动设定重力；无负载时显式给payload质量0。
+
+## 安装姿态与重力（内核1.1.0新增）
+
+旧字段 `gravity_m_s2` 始终表示模型基座坐标系 B 中的重力，旧输入仍可计算。
+另一种输入方式是：
+
+```json
+"installation": {
+  "gravity_world_m_s2": [0, 0, -9.81],
+  "base_orientation_in_world": {"rpy_rad": [0, 1.5707963267948966, 0]}
+}
+```
+
+RPY 使用弧度，`R_WB = Rz(yaw) Ry(pitch) Rx(roll)` 将基座向量转换到世界 W。
+内核只转换重力 `g_B = R_WBᵀ g_W`，关节轴、质心、附件和局部外载不做第二次安装旋转。
+J1局部轴可以是任意方向，不能用J1轴向推断整个安装姿态。
+
+模型里的 `simple.base` 或标准模型第一个 `origin` 仍是模型根相对 B 的变换；它们与 B 相对 W 的 `installation` 分属两层，均可非零。不要把同一个安装旋转重复写入两层。
+均匀重力下安装平移不影响关节保持载荷，此接口仅定义安装旋转。
+
+`normalized_input.gravity_m_s2` 总是转换后的基座重力；使用新输入时，`normalized_input.installation` 另外保留世界重力、RPY与 `rotation_base_to_world`。
+输出几何 `joint_geometry`、`tip_pose_in_base` 仍在 B 中，显示到世界时乘一次 R_WB。
+`toStandardInput()` 保留安装输入，导出时不会同时写出两个互斥的重力字段。
+任意世界固定外力仍不属于本次扩展范围；`wrenches` 保持原有局部随动定义。
 
 ## 标准模型
 

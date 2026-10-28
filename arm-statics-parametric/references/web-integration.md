@@ -2,6 +2,8 @@
 
 ## 共用内核
 
+内核1.1.0新增 `installation` 输入，与基座系 `gravity_m_s2` 互斥。详见[输入与坐标约定](input-contract.md)。网页应使用同一安装设置驱动三维朝向和重力转换；不要旋转模型后又重复转换重力。
+
 无第三方运行依赖，Node.js≥20（推荐22/24）。浏览器支持ES模块、模块Worker、TextEncoder及structured clone。
 
 ```js

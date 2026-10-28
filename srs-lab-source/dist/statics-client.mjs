@@ -1,4 +1,12 @@
 /** Front-end boundary: NO gravity torque equation or duplicated solver here. */
+export async function applyInstallationToText(text, installation) {
+  const {parseRequestText}=await import('./skill-input-text.mjs');
+  const input=parseRequestText(text);
+  if(!input || typeof input!=='object' || Array.isArray(input))throw new Error('Skill 输入必须是 JSON 对象');
+  delete input.gravity_m_s2;
+  input.installation=structuredClone(installation);
+  return JSON.stringify(input,null,2);
+}
 export async function runStaticsSkill(input, {endpoint='/api/statics', signal} = {}) {
   const isText = typeof input === 'string';
   const response = await fetch(endpoint, {

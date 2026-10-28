@@ -11,6 +11,7 @@ description: 不依赖URDF的参数化机械臂静力学校核。支持标准输
 
 - 使用 standard 接收逐关节原点、安装旋转、局部轴、限位、质量部件和局部质心。支持1～64个串联 revolute/prismatic/fixed 关节；搜索至多16主动关节。
 - 使用 simple 接收每段轴向、长度、方向、质量和限位。支持1～32个旋转关节，展开后使用同一标准内核。
+- 重力输入二选一：`gravity_m_s2` 为模型基座坐标系中的重力；或用 `installation` 给出世界重力与基座相对世界的 RPY（rad），内核计算 `g_B=R_WBᵀg_W`。两者不能同时给出；不能由J1轴向推断安装朝向。
 - 显式给出重力向量、负载质量及负载质心。无负载时填0。不要将缺失质量或COM默认为0。
 - 接收构型选择Skill的参数，不要求URDF。缺真实COM时可以采用简易输入的中点估算，但必须保留warnings，不能称为CAD精度。
 - 将模组固定端、运动端质量分配到正确刚体。简易输入整模组放入当前输出刚体只是概念近似。
@@ -54,6 +55,7 @@ node scripts/run.mjs --input assets/examples/simple-two-link.json --output /abso
 - assets/examples/seven-axis-concept.json：3.612kg概念集中质量，不等同CAD。
 - assets/examples/project-right-arm.json 和project-left-arm.json：项目参数快照，无运行时URDF依赖。
 - assets/examples/prismatic.json：移动关节输出力。
+- assets/examples/side-mounted-two-link.json：世界重力与侧装姿态输入；报告保留世界/基座重力、安装RPY及旋转矩阵。
 - 执行 `node --test scripts/tests/*.test.mjs`。不要将未运行的浏览器或服务检查写成已通过。
 
 只支持固定基座串联刚体链。闭链、柔性、浮动基座、未知接触反力与被动关节平衡不求解。fixed代表几何锁定，不模拟有限容量抱闸。重力静力学不要求惯性张量。

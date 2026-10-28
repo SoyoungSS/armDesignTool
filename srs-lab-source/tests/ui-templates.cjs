@@ -37,4 +37,34 @@ assert.equal(vm.runInContext('selectedJoint',sandbox),0);
 vm.runInContext('config.payload=4;markDirty()',sandbox);
 assert.equal(vm.runInContext('skillCurrent()',sandbox),false);
 assert.equal(vm.runInContext('skillData',sandbox),null);
+// Installation UI invalidates results and rotates the world-facing camera basis.
+await vm.runInContext("tab='specs';calculate()",sandbox);
+assert.ok(nodes.content.innerHTML.includes('id="installationPreset"'));
+assert.ok(nodes.content.innerHTML.includes('id="mount2"'));
+const camera=vm.runInContext('sceneState.camera(config,700,520)',sandbox);
+await nodes.installationPreset.onchange({target:{value:'side'}});
+assert.ok(Math.abs(vm.runInContext('config.installation.base_orientation_in_world.rpy_rad[1]',sandbox)-Math.PI/2)<1e-12);
+assert.equal(vm.runInContext('skillData',sandbox),null);
+const rotated=vm.runInContext('sceneState.camera(config,700,520)',sandbox);
+assert.ok(Math.abs(camera.right[0]-rotated.right[0])>.1);
+vm.runInContext("setInstallationValue('angle',0,NaN)",sandbox);
+assert.equal(vm.runInContext('dirty',sandbox),true);
+assert.ok(nodes.installationGravity.textContent.includes('无效'));
+vm.runInContext("setInstallationValue('angle',0,.2)",sandbox);
+await vm.runInContext('calculate()',sandbox);
+assert.equal(vm.runInContext('dirty',sandbox),false);
+// A numerically successful CLI response must still match the current installation.
+vm.runInContext("tab='statics';render()",sandbox);
+nodes.skillSource.value='{"test":true}';
+sandbox.window.SkillClient.runStaticsSkill=async()=>({result:{joint_names:Array.from({length:7},(_,i)=>'J'+(i+1)),normalized_input:{gravity_m_s2:[123,0,0]}},execution:{execution_mode:'skill_cli'}});
+sandbox.window.SkillClient.makeStaticsViewModel=()=>fakeView;
+await vm.runInContext('runSkill()',sandbox);
+assert.equal(vm.runInContext('skillData',sandbox),null);
+assert.ok(vm.runInContext('skillMessage',sandbox).includes('不一致'));
+// Editing input while a request runs prevents its completed result being displayed.
+nodes.skillSource.value='{"test":true}';
+sandbox.window.SkillClient.runStaticsSkill=async()=>{vm.runInContext("skillInput='new input'",sandbox);return {result:{joint_names:Array.from({length:7},(_,i)=>'J'+(i+1))},execution:{execution_mode:'skill_cli'}};};
+await vm.runInContext('runSkill()',sandbox);
+assert.equal(vm.runInContext('skillData',sandbox),null);
+assert.ok(vm.runInContext('skillMessage',sandbox).includes('过期'));
 console.log('PASS: original views, scene controls, Skill results and critical joint binding, invalidation after model changes; original historical-snapshot assertions replaced.');})();

@@ -11,7 +11,7 @@ const example=async name=>JSON.parse(await readFile(join(root,'assets','examples
 const close=(a,b,t=1e-9)=>assert.ok(Math.abs(a-b)<t,`${a} != ${b}`);
 
 test('all bundled examples compute finite outputs and normalize roundtrip',async()=>{
-  for(const name of ['simple-two-link','standard-two-link','seven-axis-concept','project-right-arm','project-left-arm','prismatic']){
+  for(const name of ['simple-two-link','side-mounted-two-link','standard-two-link','seven-axis-concept','project-right-arm','project-left-arm','prismatic']){
     const input=await example(name),r=analyze(input),s=toStandardInput(input),round=analyze(s);
     assert.deepEqual(r.poses,round.poses);assert.deepEqual(r.summary,round.summary);
     assert.deepEqual(s,toStandardInput(s));assert.ok(!JSON.stringify(r).includes('NaN'));
@@ -43,7 +43,7 @@ test('HTTP Worker interface equals direct engine and rejects invalid requests',a
   const proc=spawn(process.execPath,[join(root,'scripts','server.mjs'),'--port','0'],{stdio:['ignore','pipe','pipe']});
   try{
     const url=await new Promise((resolve,reject)=>{let text='';const timeout=setTimeout(()=>reject(Error('server startup timeout')),10000);proc.stdout.on('data',chunk=>{text+=chunk;if(text.includes('\n')){clearTimeout(timeout);resolve(JSON.parse(text.split('\n')[0]).url);}});proc.once('error',reject);proc.once('exit',code=>{clearTimeout(timeout);reject(Error('server exited '+code));});});
-    const input=await example('simple-two-link');const response=await fetch(url+'api/statics',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(input)});assert.equal(response.status,200);assert.deepEqual((await response.json()).result,analyze(input));
+    const input=await example('side-mounted-two-link');const response=await fetch(url+'api/statics',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(input)});assert.equal(response.status,200);assert.deepEqual((await response.json()).result,analyze(input));
     const commented=await fetch(url+'api/statics',{method:'POST',headers:{'Content-Type':'application/jsonc'},body:'/* annotated */'+JSON.stringify(input)+'// end'});assert.equal(commented.status,200);assert.deepEqual((await commented.json()).result,analyze(input));
     const standard=await fetch(url+'api/statics',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(toStandardInput(input))});assert.deepEqual((await standard.json()).result.poses,analyze(input).poses);
     assert.equal((await fetch(url+'api/statics',{method:'POST',headers:{'Content-Type':'application/json'},body:'{bad'})).status,400);

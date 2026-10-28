@@ -77,12 +77,14 @@
           }
         }
       }
+    },
+    "installation": {
+      "$ref": "#/$defs/installation"
     }
   },
   "required": [
     "schema_version",
     "input_mode",
-    "gravity_m_s2",
     "payload"
   ],
   "$defs": {
@@ -506,6 +508,31 @@
           "ratio"
         ]
       }
+    },
+    "installation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gravity_world_m_s2",
+        "base_orientation_in_world"
+      ],
+      "properties": {
+        "gravity_world_m_s2": {
+          "$ref": "#/$defs/vec"
+        },
+        "base_orientation_in_world": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "rpy_rad"
+          ],
+          "properties": {
+            "rpy_rad": {
+              "$ref": "#/$defs/vec"
+            }
+          }
+        }
+      }
     }
   },
   "allOf": [
@@ -537,6 +564,30 @@
           ]
         }
       }
+    },
+    {
+      "oneOf": [
+        {
+          "required": [
+            "gravity_m_s2"
+          ],
+          "not": {
+            "required": [
+              "installation"
+            ]
+          }
+        },
+        {
+          "required": [
+            "installation"
+          ],
+          "not": {
+            "required": [
+              "gravity_m_s2"
+            ]
+          }
+        }
+      ]
     }
   ],
   "anyOf": [

@@ -1,5 +1,5 @@
 /* Shared browser/Node deterministic static-load kernel. No runtime dependencies. */
-export const ENGINE_VERSION = '1.0.0';
+export const ENGINE_VERSION = '1.1.0';
 export class InputError extends Error {
   constructor(path, message) { super(`${path}: ${message}`); this.name='InputError'; this.code='INVALID_INPUT'; this.path=path; }
 }
@@ -35,6 +35,18 @@ function rot(a,t) {const c=Math.cos(t),s=Math.sin(t),u=1-c;return [
  [a[1]*a[0]*u+a[2]*s,c+a[1]*a[1]*u,a[1]*a[2]*u-a[0]*s],
  [a[2]*a[0]*u-a[1]*s,a[2]*a[1]*u+a[0]*s,c+a[2]*a[2]*u]];}
 function rpy(v) {return mm(mm(rot([0,0,1],v[2]),rot([0,1,0],v[1])),rot([1,0,0],v[0]));}
+// R_WB maps base-frame vectors into world; geometry stays in B throughout compute().
+export function resolveInstallation(input) {
+  if(('gravity_m_s2' in input) === ('installation' in input))fail('installation','provide exactly one of gravity_m_s2 (base frame) or installation');
+  if(!('installation' in input))return {gravity_m_s2:vec(input.gravity_m_s2,'gravity_m_s2')};
+  const p='installation',v=input.installation;
+  obj(v,p,['gravity_world_m_s2','base_orientation_in_world'],['gravity_world_m_s2','base_orientation_in_world']);
+  obj(v.base_orientation_in_world,p+'.base_orientation_in_world',['rpy_rad'],['rpy_rad']);
+  const angles=vec(v.base_orientation_in_world.rpy_rad,p+'.base_orientation_in_world.rpy_rad');
+  const world=vec(v.gravity_world_m_s2,p+'.gravity_world_m_s2'),R=rpy(angles);
+  const gravity=[0,1,2].map(j=>R.reduce((s,row,i)=>s+row[j]*world[i],0));
+  return {gravity_m_s2:gravity,installation:{gravity_world_m_s2:world,base_orientation_in_world:{rpy_rad:angles},rotation_base_to_world:R}};
+}
 function transform(v,p,optional=false) {
   if(v===undefined&&optional)return {xyz_m:[0,0,0],rpy_rad:[0,0,0]};
   obj(v,p,['xyz_m','rpy_rad'],['xyz_m','rpy_rad']);return {xyz_m:vec(v.xyz_m,p+'.xyz_m'),rpy_rad:vec(v.rpy_rad,p+'.rpy_rad')};
@@ -101,13 +113,13 @@ function rawFinite(v,p='$',seen=new Set(),depth=0) {
 }
 export function normalizeInput(input) {
   rawFinite(input);const w=[];
-  obj(input,'$',['schema_version','input_mode','model','simple','gravity_m_s2','payload','attachments','wrenches','poses','search','drives','design_factor','metadata'],['schema_version','input_mode','gravity_m_s2','payload']);
+  obj(input,'$',['schema_version','input_mode','model','simple','gravity_m_s2','installation','payload','attachments','wrenches','poses','search','drives','design_factor','metadata'],['schema_version','input_mode','payload']);
   if(input.schema_version!=='1.0')fail('schema_version','expected 1.0');
   if(!['standard','simple'].includes(input.input_mode))fail('input_mode','expected standard or simple');
   if(input.input_mode==='standard'&&('simple'in input)||input.input_mode==='simple'&&('model'in input))fail('input_mode','do not mix model and simple');
   const model=input.input_mode==='standard'?serialModel(input.model,w):simpleModel(input.simple,w);
   const active=model.joints.filter(j=>j.type!=='fixed'),names=active.map(j=>j.name);
-  const gravity=vec(input.gravity_m_s2,'gravity_m_s2');if(norm(gravity)===0)w.push('zero gravity supplied explicitly');
+  const installation=resolveInstallation(input),gravity=installation.gravity_m_s2;if(norm(gravity)===0)w.push('zero gravity supplied explicitly');
   obj(input.payload,'payload',['mass_kg','com_in_tip_m'],['mass_kg','com_in_tip_m']);
   const payload={mass_kg:number(input.payload.mass_kg,'payload.mass_kg',0,1e9),com_in_tip_m:vec(input.payload.com_in_tip_m,'payload.com_in_tip_m')};
   const frames=['tip',...model.joints.map(j=>j.name)];if(names.includes('tip')||model.joints.some(j=>j.name==='tip'))fail('model.joints','tip is reserved frame name');
@@ -152,13 +164,14 @@ export function normalizeInput(input) {
   }
   w.push('collision_not_checked: evaluated joint configurations may intersect robot or environment');
   w.push('static_only: no inertia, friction, thermal, brake, bearing or structural-strength qualification');
-  return {schema_version:'1.0',model,gravity_m_s2:gravity,payload,attachments,wrenches,poses,search,drives,design_factor,warnings:[...new Set(w)]};
+  return {schema_version:'1.0',model,...installation,payload,attachments,wrenches,poses,search,drives,design_factor,warnings:[...new Set(w)]};
 }
 
 export function toStandardInput(input) {
   const n=normalizeInput(input),names=n.model.joints.filter(j=>j.type!=='fixed').map(j=>j.name);
   const out={schema_version:'1.0',input_mode:'standard',model:n.model,gravity_m_s2:n.gravity_m_s2,payload:n.payload,attachments:n.attachments,wrenches:n.wrenches,poses:n.poses.map(p=>({name:p.name,q:Object.fromEntries(names.map((name,i)=>[name,p.q[i]]))})),drives:n.drives,design_factor:n.design_factor,metadata:{...input.metadata,normalization_assumptions:n.warnings}};
   if(n.search)out.search=n.search;
+  if(n.installation){delete out.gravity_m_s2;out.installation=JSON.parse(JSON.stringify(input.installation));}
   return JSON.parse(canonicalJSON(out));
 }
 
@@ -285,6 +298,8 @@ export function reportMarkdown(r) {
   const statuses={not_sized:'待选型',exceeds_capacity:'超限',satisfies_checked_cases:'已检查工况满足',capacity_conditions_unknown:'连续能力适用条件待确认'};
   let text=`# 机械臂静力学校核报告\n\n模型：${f(r.normalized_input.model.name)}\n\n内核：${r.engine_version}；输入 SHA-256：${r.input_sha256}\n\n`;
   text+='结果用于已检查姿态与搜索范围内的静态驱动初选。未证明全局最大值，未检查碰撞、热保持或结构强度。\n\n';
+  text+=`基座坐标系重力 / m/s²：${JSON.stringify(r.normalized_input.gravity_m_s2)}\n\n`;
+  if(r.normalized_input.installation)text+=`世界重力及基座安装姿态（Rz(yaw)Ry(pitch)Rx(roll)，rad）：${JSON.stringify(r.normalized_input.installation)}\n\n`;
   text+='|关节|单位|最大绝对载荷|设计系数|输出端需求|连续能力|裕量|判定|\n|---|---|---:|---:|---:|---:|---:|---|\n';
   for(const s of r.summary)text+=`|${f(s.joint)}|${s.unit}|${f(s.max_abs_checked)}|${f(s.design_factor)}|${f(s.required_output)}|${f(s.continuous_available)}|${f(s.margin)}|${statuses[s.status]}|\n`;
   text+='\n裕量 = 连续能力 / 加设计系数后的需求 − 1；需求为零时不计算比值。\n\n## 典型姿态\n\n';

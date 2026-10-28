@@ -50,6 +50,13 @@ function execute(skillDir, input, output, reportDir) {
 const server = http.createServer(async (req, res) => {
   const requestId = randomUUID(), url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   if (req.method === 'GET' && !url.pathname.startsWith('/api/')) {
+    if(url.pathname === '/skill-input-text.mjs') {
+      try {
+        const source = await readFile(path.resolve(SKILL_DIR || path.resolve(WEB_DIR,'../../arm-statics-parametric'),'scripts/lib/input-text.mjs'));
+        res.writeHead(200,{'content-type':'text/javascript; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(source);
+      } catch { respond(res,503,{ok:false,error:'SKILL_PARSER_UNAVAILABLE'},requestId); }
+      return;
+    }
     const whitelist = new Map([['/','index.html'],['/index.html','index.html'],['/app.js','app.js'],['/engine.js','engine.js'],['/scene3d.js','scene3d.js'],['/worksheet-critical-poses.js','worksheet-critical-poses.js'],['/statics-client.mjs','statics-client.mjs'],['/style.css','style.css'],['/worksheet-minimal.jsonc','worksheet-minimal.jsonc'],['/worksheet-minimal.json','worksheet-minimal.json']]);
     const filename = whitelist.get(url.pathname);
     if (!filename) { respond(res,404,{ok:false,error:'NOT_FOUND'},requestId); return; }
