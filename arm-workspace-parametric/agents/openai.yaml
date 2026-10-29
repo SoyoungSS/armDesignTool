@@ -1,0 +1,6 @@
+interface:
+  display_name: "机械臂可达工作空间分析"
+  short_description: "区分空间位置可达、采样灵巧空间与不可达点，提供投影剖面和可复现姿态"
+  default_prompt: "使用 $arm-workspace-parametric 分析机械臂可达工作空间，输出点云、姿态可达率和可复现报告。"
+policy:
+  allow_implicit_invocation: true

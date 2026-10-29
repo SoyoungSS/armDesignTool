@@ -1,0 +1,11 @@
+{
+  "source_archive_name": "Dexbot_ana.zip",
+  "archive_sha256": "74c5283cd3c39dd6afdbaddec5c9b37fafadc8fd85178aeeaafea879dd704e9a",
+  "files": {
+    "Dexbot_ana/robot_arm_moverange.py": "e2ba59bf37db9cf37c0c221d68565ffe23ddd92b9c985d6f01bbf0eaf04c348d",
+    "Dexbot_ana/moverangeSolver.py": "503d590e5fff2f68c5c3205f1ab1096b8835b6117f982d11fa4b00edc7552ad3",
+    "Dexbot_ana/issac_ikSolver.py": "f4a3ab595304ba4ce432b512e36eddfc36465c7f3d81a2febd89be16dc3b14ec",
+    "Dexbot_ana/dual_arm_urdf_new/urdf/dual_arm.urdf": "4e77ee6c5f6260c5d77793c16ebd1056d1420ed434293d06f07a9427fad26176"
+  },
+  "method": "Geometry-only parameter snapshots extracted from supplied URDF; no cuRobo code executed or copied."
+}

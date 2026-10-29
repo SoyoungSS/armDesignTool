@@ -67,4 +67,49 @@ sandbox.window.SkillClient.runStaticsSkill=async()=>{vm.runInContext("skillInput
 await vm.runInContext('runSkill()',sandbox);
 assert.equal(vm.runInContext('skillData',sandbox),null);
 assert.ok(vm.runInContext('skillMessage',sandbox).includes('过期'));
+// Exercise the independent workspace page with actual client geometry/exports and real result data.
+const os=require('node:os'),path=require('node:path'),url=require('node:url'),workspaceTemp=fs.mkdtempSync(path.join(os.tmpdir(),'workspace-ui-test-'));
+try{
+ for(const name of ['kinematics','exports','input-text'])fs.copyFileSync(path.resolve('../arm-workspace-parametric/scripts/lib/'+name+'.mjs'),path.join(workspaceTemp,'workspace-'+name+'.mjs'));
+ fs.copyFileSync(path.resolve('dist/workspace-client.mjs'),path.join(workspaceTemp,'workspace-client.mjs'));
+ const workspaceClient=await import(url.pathToFileURL(path.join(workspaceTemp,'workspace-client.mjs')).href);
+ const {analyze}=await import(url.pathToFileURL(path.resolve('../arm-workspace-parametric/scripts/lib/workspace.mjs')).href);
+ sandbox.window.WorkspaceClient={...workspaceClient};
+ vm.runInContext(fs.readFileSync('dist/workspace-scene.js','utf8'),sandbox);
+ await vm.runInContext("tab='workspace';config.samples=100;calculate()",sandbox);
+ nodes.workspaceFromModel.onclick();
+ const input=workspaceClient.parseInput(vm.runInContext('workspaceInput',sandbox));
+ const result=analyze(input),payload={result,execution:{execution_mode:'skill_cli',skill_name:'arm-workspace-parametric',request_id:'real-ui-test',elapsed_ms:1}};
+ sandbox.window.WorkspaceClient.runWorkspaceSkill=async()=>payload;
+ nodes.workspaceSource.value=vm.runInContext('workspaceInput',sandbox);
+ await nodes.workspaceRun.onclick();
+ assert.equal(vm.runInContext('workspaceCurrent()',sandbox),true);
+ assert.ok(nodes.content.innerHTML.includes('projection')||nodes.content.innerHTML.includes('投影'));
+ assert.ok(nodes.content.innerHTML.includes('workspaceScene'));
+ assert.equal(vm.runInContext('workspaceMatchesWeb()',sandbox),true);
+ assert.ok(vm.runInContext('workspaceScene.preview.nodes_world_m.length',sandbox)>7);
+ assert.ok(nodes.content.innerHTML.includes('空间可达性与灵巧空间'));
+ assert.ok(nodes.content.innerHTML.includes('不可达 · 几何证明'));
+ nodes.workspaceFilter.onchange({target:{value:'sampled_dexterous'}});
+ assert.equal(vm.runInContext('workspaceFilter',sandbox),'sampled_dexterous');
+ assert.equal(vm.runInContext('workspaceScene.preview',sandbox),null);
+ nodes.workspaceFilter.onchange({target:{value:'spatial'}});
+ assert.ok(vm.runInContext('workspaceScene.preview.nodes_world_m.length',sandbox)>7);
+
+ nodes.workspacePoint.onchange({target:{value:'3'}});
+ assert.equal(vm.runInContext('workspacePoint',sandbox),3);
+ nodes.workspaceApply.onclick();assert.equal(vm.runInContext('tab',sandbox),'kinematics');
+ assert.equal(JSON.stringify(vm.runInContext('q',sandbox)),JSON.stringify(result.joint_names.map(j=>result.points[3].q[j])));
+ vm.runInContext("tab='workspace';render()",sandbox);
+ // A foreign model can be visualized but cannot drive the seven-axis web model.
+ vm.runInContext("workspaceData.result.normalized_input.model.joints[0].origin.xyz_m[1]+=.17;render()",sandbox);
+ assert.equal(vm.runInContext('workspaceMatchesWeb()',sandbox),false);
+ vm.runInContext("config.payload+=1;markDirty()",sandbox);assert.equal(vm.runInContext('workspaceCurrent()',sandbox),false);
+ await vm.runInContext("calculate()",sandbox);
+ nodes.workspaceFromModel.onclick();nodes.workspaceSource.value=vm.runInContext('workspaceInput',sandbox);
+ sandbox.window.WorkspaceClient.runWorkspaceSkill=async()=>{vm.runInContext("workspaceInput='new request'",sandbox);return payload;};
+ await nodes.workspaceRun.onclick();assert.equal(vm.runInContext('workspaceCurrent()',sandbox),false);
+ assert.ok(vm.runInContext('workspaceMessage',sandbox).includes('过期'));
+}catch(e){console.error('Workspace UI failure:',e);throw e;}
+finally{fs.rmSync(workspaceTemp,{recursive:true,force:true});}
 console.log('PASS: original views, scene controls, Skill results and critical joint binding, invalidation after model changes; original historical-snapshot assertions replaced.');})();

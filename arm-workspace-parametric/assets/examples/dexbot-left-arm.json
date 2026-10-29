@@ -1,0 +1,243 @@
+{
+  "schema_version": "1.0",
+  "mode": "joint_sampling",
+  "model": {
+    "name": "dexbot_left_arm_urdf",
+    "joints": [
+      {
+        "name": "arm_l_joint_1",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0.0,
+            0.17,
+            0.0
+          ],
+          "rpy_rad": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "axis": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "limits": [
+          -3.1416,
+          1.5708
+        ]
+      },
+      {
+        "name": "arm_l_joint_2",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rpy_rad": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "axis": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "limits": [
+          0.0,
+          1.5708
+        ]
+      },
+      {
+        "name": "arm_l_joint_3",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rpy_rad": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "axis": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "limits": [
+          -2.3562,
+          2.3562
+        ]
+      },
+      {
+        "name": "arm_l_joint_4",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0.0,
+            0.0,
+            -0.3
+          ],
+          "rpy_rad": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "axis": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "limits": [
+          -2.618,
+          0.0
+        ]
+      },
+      {
+        "name": "arm_l_joint_5",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rpy_rad": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "axis": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "limits": [
+          -2.3562,
+          2.3562
+        ]
+      },
+      {
+        "name": "arm_l_joint_6",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0.0,
+            0.0,
+            -0.213
+          ],
+          "rpy_rad": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "axis": [
+          0.0,
+          -1.0,
+          0.0
+        ],
+        "limits": [
+          -1.5708,
+          1.5708
+        ]
+      },
+      {
+        "name": "arm_l_joint_7",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0.0,
+            0.0,
+            -0.047
+          ],
+          "rpy_rad": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "axis": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "limits": [
+          -1.5708,
+          1.5708
+        ]
+      },
+      {
+        "name": "arm_l_joint_8",
+        "type": "fixed",
+        "origin": {
+          "xyz_m": [
+            0.0,
+            0.0,
+            -0.04
+          ],
+          "rpy_rad": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      }
+    ],
+    "tip": {
+      "xyz_m": [
+        0,
+        0,
+        0
+      ],
+      "rpy_rad": [
+        0,
+        0,
+        0
+      ]
+    }
+  },
+  "base_in_world": {
+    "xyz_m": [
+      0,
+      0,
+      0
+    ],
+    "rpy_rad": [
+      0,
+      0,
+      0
+    ]
+  },
+  "sampling": {
+    "method": "random",
+    "samples": 5000,
+    "seed": 42
+  },
+  "sections": {
+    "center_m": [
+      0,
+      0.17,
+      0
+    ],
+    "thickness_m": 0.03,
+    "voxel_size_m": 0.02
+  },
+  "metadata": {
+    "source": "Dexbot_ana.zip/dual_arm_urdf_new/urdf/dual_arm.urdf",
+    "arm": "left",
+    "note": "URDF geometry differs from worksheet; no collision geometry or GPU solver included."
+  }
+}

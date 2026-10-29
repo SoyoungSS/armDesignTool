@@ -1,0 +1,255 @@
+{
+  "schema_version": "1.0",
+  "mode": "pose_reachability",
+  "model": {
+    "name": "worksheet_single_arm_3_612kg",
+    "joints": [
+      {
+        "name": "J1",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0,
+            0,
+            0
+          ],
+          "rpy_rad": [
+            0,
+            0,
+            0
+          ]
+        },
+        "axis": [
+          0,
+          -1,
+          0
+        ],
+        "limits": [
+          -1.5707963267948966,
+          3.141592653589793
+        ]
+      },
+      {
+        "name": "J2",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0.0,
+            0.0,
+            -0.035
+          ],
+          "rpy_rad": [
+            0,
+            0,
+            0
+          ]
+        },
+        "axis": [
+          1,
+          0,
+          0
+        ],
+        "limits": [
+          -1.5707963267948966,
+          0
+        ]
+      },
+      {
+        "name": "J3",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0.0,
+            0.0,
+            -0.05
+          ],
+          "rpy_rad": [
+            0,
+            0,
+            0
+          ]
+        },
+        "axis": [
+          0,
+          0,
+          -1
+        ],
+        "limits": [
+          -2.356194490192345,
+          2.356194490192345
+        ]
+      },
+      {
+        "name": "J4",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0.0,
+            0.0,
+            -0.25
+          ],
+          "rpy_rad": [
+            0,
+            0,
+            0
+          ]
+        },
+        "axis": [
+          0,
+          -1,
+          0
+        ],
+        "limits": [
+          0,
+          2.6179938779914944
+        ]
+      },
+      {
+        "name": "J5",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0.0,
+            0.0,
+            -0.05
+          ],
+          "rpy_rad": [
+            0,
+            0,
+            0
+          ]
+        },
+        "axis": [
+          0,
+          0,
+          -1
+        ],
+        "limits": [
+          -2.356194490192345,
+          2.356194490192345
+        ]
+      },
+      {
+        "name": "J6",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0.0,
+            0.0,
+            -0.163
+          ],
+          "rpy_rad": [
+            0,
+            0,
+            0
+          ]
+        },
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "limits": [
+          -1.5707963267948966,
+          1.5707963267948966
+        ]
+      },
+      {
+        "name": "J7",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0.0,
+            0.0,
+            -0.047
+          ],
+          "rpy_rad": [
+            0,
+            0,
+            0
+          ]
+        },
+        "axis": [
+          1,
+          0,
+          0
+        ],
+        "limits": [
+          -1.5707963267948966,
+          1.5707963267948966
+        ]
+      }
+    ],
+    "tip": {
+      "xyz_m": [
+        0.0,
+        0.0,
+        -0.04
+      ],
+      "rpy_rad": [
+        0,
+        0,
+        0
+      ]
+    }
+  },
+  "base_in_world": {
+    "xyz_m": [
+      0,
+      0,
+      0
+    ],
+    "rpy_rad": [
+      0,
+      0,
+      0
+    ]
+  },
+  "sections": {
+    "center_m": [
+      0,
+      0,
+      0
+    ],
+    "thickness_m": 0.03,
+    "voxel_size_m": 0.02
+  },
+  // 球体内分层采样；radial_steps=1仅球面，>=2包括球心与外壳。
+  // orientations在radial参考姿态上右乘RPY扰动，工具+Z朝向球心；球心采用单位参考姿态。
+  // 删除orientations_rpy_rad则只检查位置；成功率仅针对这些离散姿态。
+  // IK失败只表示预算内未找到解，不证明不可达；无碰撞或载荷约束。
+  "reachability": {
+    "sphere": {
+      "center_m": [
+        0,
+        0,
+        0
+      ],
+      "radius_m": 0.65,
+      "radial_steps": 3,
+      "theta_steps": 8,
+      "phi_steps": 5
+    },
+    "orientations_rpy_rad": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        1.5707963267948966,
+        0
+      ]
+    ],
+    "orientation_frame": "radial",
+    "seed": 42,
+    "ik": {
+      "attempts": 4,
+      "max_iterations": 120,
+      "position_tolerance_m": 0.001,
+      "orientation_tolerance_rad": 0.02,
+      "damping": 0.03
+    }
+  }
+}

@@ -6,6 +6,8 @@
 
 **安装姿态升级：** Skill 1.1.0、网页计算内核1.4.0已支持正装、倒装、侧装、自定义安装角和世界重力。使用方法、坐标约定与验证记录见[安装姿态与重力配置](docs/安装姿态与重力配置.md)。
 
+**可达空间升级：** 新增独立 `arm-workspace-parametric` Skill，参考Dexbot源码，支持FK点云和目标位置/姿态IK可达率，并接入网页“可达空间”页。启动网站后访问 `http://localhost:8787/?model=worksheet#workspace`；详情见[工作空间Skill设计与使用](docs/可达工作空间Skill设计与使用.md)。工作空间Skill默认自动定位同仓库目录；已有服务需要重启才能加载新接口。 内核1.1.0新增空间位置可达、采样灵巧空间、部分姿态可达、几何不可达和待定点的统一分类；网页可载入“选型表 / 空间与灵巧分类”演示。
+
 ## 1. 项目作用
 
 - **配置机械臂模型：** 在 SRS Lab 中查看/编辑七自由度机械臂的构型、关节轴、杆长和其他规格。
@@ -37,7 +39,7 @@ Node.js 将真实 Skill 结果返回给网页 → 更新扭矩、需求、临界
 建议本机目录结构如下（下文所有操作均以此为例）：
 
 ```text
-E:\Robot\designTool\
+E:\Robot\armDesignTool\
 ├── README.md                         # 本文件：整个工程的使用指南
 ├── arm-statics-parametric\          # 独立静力学校核 Skill
 │   ├── scripts\
@@ -76,8 +78,8 @@ npm.cmd -v
 ### 3.2 检查两个工程文件
 
 ```powershell
-Test-Path "E:\Robot\designTool\srs-lab-source\package.json"
-Test-Path "E:\Robot\designTool\arm-statics-parametric\scripts\run.mjs"
+Test-Path "E:\Robot\armDesignTool\srs-lab-source\package.json"
+Test-Path "E:\Robot\armDesignTool\arm-statics-parametric\scripts\run.mjs"
 ```
 
 **两条都应显示 `True`。** 第一条说明找到了网站工程根目录；第二条只说明 Skill 入口存在，是否能正确计算仍需实际运行验证。
@@ -90,10 +92,10 @@ Test-Path "E:\Robot\designTool\arm-statics-parametric\scripts\run.mjs"
 
 ```powershell
 # 步骤 1：进入网站工程根目录
-cd "E:\Robot\designTool\srs-lab-source"
+cd "E:\Robot\armDesignTool\srs-lab-source"
 
 # 步骤 2：告诉网站静力学 Skill 在哪里
-$env:STATICS_SKILL_DIR="E:\Robot\designTool\arm-statics-parametric"
+$env:STATICS_SKILL_DIR="E:\Robot\armDesignTool\arm-statics-parametric"
 
 # 步骤 3：启动本地网站服务
 npm.cmd start
@@ -171,7 +173,7 @@ Skill 返回的是 **关节角度**，网页负责根据自己已有的模型显
 若希望绕开网页、直接验证计算内核，可执行：
 
 ```powershell
-cd "E:\Robot\designTool\arm-statics-parametric"
+cd "E:\Robot\armDesignTool\arm-statics-parametric"
 
 # 将结果放进 Skill 工程自己的 outputs 文件夹
 New-Item -ItemType Directory -Force ".\outputs" | Out-Null
@@ -208,7 +210,7 @@ outputs/
 另开一个 PowerShell 窗口：
 
 ```powershell
-cd "E:\Robot\designTool\srs-lab-source"
+cd "E:\Robot\armDesignTool\srs-lab-source"
 npm.cmd test
 ```
 
@@ -222,7 +224,7 @@ npm.cmd test
 | --- | --- |
 | `node` 无法识别 | 未安装 Node.js，或安装后未重新打开 PowerShell |
 | `npm.ps1` 执行受限 | 使用 `npm.cmd start` 和 `npm.cmd test` |
-| 找不到 `package.json` | 未进入 `E:\Robot\designTool\srs-lab-source` 根目录 |
+| 找不到 `package.json` | 未进入 `E:\Robot\armDesignTool\srs-lab-source` 根目录 |
 | 浏览器无法打开 localhost | 检查 PowerShell 服务是否运行；确认访问端口是否正确 |
 | `EADDRINUSE` | 端口被占用；关闭旧网站进程或使用 `PORT=8888`（PowerShell 中为 `$env:PORT="8888"`） |
 | `configured=false` | 启动前未设置 `STATICS_SKILL_DIR`；停止服务后重新设置并启动 |
@@ -239,7 +241,7 @@ npm.cmd test
 Get-Location
 node -v
 $env:STATICS_SKILL_DIR
-Test-Path "E:\Robot\designTool\arm-statics-parametric\scripts\run.mjs"
+Test-Path "E:\Robot\armDesignTool\arm-statics-parametric\scripts\run.mjs"
 ```
 
 ## 9. 工程维护约定
