@@ -1,7 +1,7 @@
 import http from 'node:http';
 import { spawn } from 'node:child_process';
 import { mkdtemp, writeFile, readFile, rm } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { randomUUID, createHash } from 'node:crypto';
@@ -30,21 +30,30 @@ function readBody(req) {
     req.on('end', () => resolve(text)); req.on('error', reject);
   });
 }
-function execute(skillDir, input, output, reportDir, timeoutMs=TIMEOUT_MS) {
+function execute(skillDir, input, output, reportDir, timeoutMs=TIMEOUT_MS, signal) {
   return new Promise((resolve, reject) => {
+    signal?.throwIfAborted();
     // Run fixed CLI arguments without shell interpolation; computation belongs to the selected Skill.
     const child = spawn(process.execPath, ['scripts/run.mjs', '--input', input, '--output', output, '--report-dir', reportDir], {
       cwd: skillDir, env: {...process.env}, stdio: ['ignore','pipe','pipe']
     });
     let out = '', err = '', timedOut = false;
-    const timer = setTimeout(() => { timedOut = true; child.kill('SIGKILL'); }, timeoutMs);
+    const timer = timeoutMs===null?null:setTimeout(() => { timedOut = true; child.kill('SIGKILL'); }, timeoutMs);
+    const cancel=()=>child.kill('SIGKILL');
+    signal?.addEventListener('abort',cancel,{once:true});
+    const cleanup=()=>{clearTimeout(timer);signal?.removeEventListener('abort',cancel);};
     child.stdout.on('data', b => { out = (out + b).slice(-8192); });
     child.stderr.on('data', b => { err = (err + b).slice(-8192); });
-    child.on('error', e => { clearTimeout(timer); reject(e); });
+    child.on('error', e => { cleanup(); reject(e); });
     child.on('close', code => {
-      clearTimeout(timer);
-      if (timedOut) reject(new Error('SKILL_TIMEOUT'));
-      else if (code !== 0) reject(new Error(`SKILL_FAILED_${code}: ${err || out}`));
+      cleanup();
+      if (signal?.aborted) reject(signal.reason);
+      else if (timedOut) reject(new Error('SKILL_TIMEOUT'));
+      else if (code !== 0) {
+        const failure=new Error(`SKILL_FAILED_${code}: ${err || out}`);
+        try{const detail=JSON.parse(err.trim());if(detail.error?.code==='INVALID_INPUT')failure.inputDetail=detail.error.message;}catch{}
+        reject(failure);
+      }
       else resolve();
     });
   });
@@ -53,6 +62,7 @@ const server = http.createServer(async (req, res) => {
   const requestId = randomUUID(), url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   if (req.method === 'GET' && !url.pathname.startsWith('/api/')) {
     const workspaceAssets=new Map([['/workspace-kinematics.mjs','scripts/lib/kinematics.mjs'],['/workspace-exports.mjs','scripts/lib/exports.mjs'],['/workspace-input-text.mjs','scripts/lib/input-text.mjs'],['/workspace-example.jsonc','assets/examples/worksheet-workspace.jsonc'],['/workspace-reachability.jsonc','assets/examples/worksheet-reachability.jsonc'],['/workspace-classification.jsonc','assets/examples/worksheet-classification.jsonc'],['/workspace-dexbot-right.json','assets/examples/dexbot-right-arm.json'],['/workspace-dexbot-left.json','assets/examples/dexbot-left-arm.json']]);
+    workspaceAssets.set('/workspace-voxel-grid.mjs','scripts/lib/voxel-grid.mjs');
     if(workspaceAssets.has(url.pathname)){
       try{const data=await readFile(path.join(WORKSPACE_DIR,workspaceAssets.get(url.pathname)));res.writeHead(200,{'content-type':url.pathname.endsWith('.mjs')?'text/javascript; charset=utf-8':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(data);}catch{respond(res,503,{ok:false,error:'WORKSPACE_ASSET_UNAVAILABLE'},requestId);}return;
     }
@@ -77,24 +87,33 @@ const server = http.createServer(async (req, res) => {
   }
   if(req.method==='GET'&&url.pathname==='/api/workspace/health'){
     let configured=false;try{await readFile(path.join(WORKSPACE_DIR,'scripts/run.mjs'));configured=true;}catch{}
-    respond(res,configured?200:503,{ok:configured,skillConfigured:configured},requestId);return;
+    respond(res,configured?200:503,{ok:configured,skillConfigured:configured,activeJobs:workspaceActive,maxConcurrentJobs:2},requestId);return;
   }
   if(req.method==='POST'&&url.pathname==='/api/workspace'){
     const type=(req.headers['content-type']||'').split(';')[0].trim();
     if(!['application/json','application/jsonc'].includes(type)){respond(res,415,{ok:false,error:'UNSUPPORTED_MEDIA_TYPE'},requestId);return;}
-    if(workspaceActive>=2){respond(res,503,{ok:false,error:'WORKSPACE_BUSY'},requestId);return;}
+    if(workspaceActive>=2){respond(res,503,{ok:false,error:'WORKSPACE_BUSY',detail:'已有两个工作空间任务在运行。请等待完成，或在运行任务的页面点击「取消计算」。',request_id:requestId},requestId);return;}
+    const controller=new AbortController(),signal=controller.signal;
+    res.once('close',()=>{if(!res.writableEnded)controller.abort();});
     workspaceActive++;let workDir;
     try{
       const raw=await readBody(req);if(!raw.trim())throw Error('EMPTY_INPUT');
+      let mode;
+      try{
+        const parserURL=pathToFileURL(path.join(WORKSPACE_DIR,'scripts/lib/input-text.mjs'));
+        const {parseRequestText}=await import(parserURL.href);
+        mode=parseRequestText(raw)?.mode;
+      }catch{/* Let the CLI report input or configuration errors. */}
       workDir=await mkdtemp(path.join(tmpdir(),'arm-workspace-'));
       const input=path.join(workDir,'request.jsonc'),output=path.join(workDir,'workspace_result.json');
       await writeFile(input,raw,'utf8');const start=Date.now();
-      await execute(WORKSPACE_DIR,input,output,workDir,Number(process.env.WORKSPACE_TIMEOUT_MS||120000));
+      const timeout=mode==='dexterity_voxels'?null:Number(process.env.WORKSPACE_TIMEOUT_MS||295000);
+      await execute(WORKSPACE_DIR,input,output,workDir,timeout,signal);
       const result=JSON.parse(await readFile(output,'utf8'));
       if(!Array.isArray(result.points)||!Array.isArray(result.joint_names)||!result.summary||!result.normalized_input?.model)throw Error('INVALID_SKILL_OUTPUT');
       const execution={request_id:requestId,executed_at:new Date().toISOString(),elapsed_ms:Date.now()-start,execution_mode:'skill_cli',skill_name:'arm-workspace-parametric',skill_entrypoint:'scripts/run.mjs',engine_version:result.engine_version,input_sha256:result.input_sha256,raw_input_sha256:createHash('sha256').update(raw).digest('hex')};
       respond(res,200,{ok:true,result,execution},requestId);
-    }catch(e){const isInput=['EMPTY_INPUT','INPUT_TOO_LARGE'].includes(e.message);respond(res,isInput?400:e.message==='SKILL_TIMEOUT'?504:502,{ok:false,error:isInput?e.message:e.message==='SKILL_TIMEOUT'?'WORKSPACE_TIMEOUT':'WORKSPACE_EXECUTION_FAILED',request_id:requestId},requestId);console.error(JSON.stringify({event:'workspace_error',request_id:requestId,message:String(e.message).slice(0,500)}));}
+    }catch(e){if(!signal.aborted){const isInput=['EMPTY_INPUT','INPUT_TOO_LARGE'].includes(e.message);respond(res,isInput?400:e.message==='SKILL_TIMEOUT'?504:502,{ok:false,error:isInput?e.message:e.message==='SKILL_TIMEOUT'?'WORKSPACE_TIMEOUT':'WORKSPACE_EXECUTION_FAILED',detail:e.inputDetail,request_id:requestId},requestId);console.error(JSON.stringify({event:'workspace_error',request_id:requestId,message:String(e.message).slice(0,500)}));}}
     finally{workspaceActive--;if(workDir)await rm(workDir,{recursive:true,force:true}).catch(()=>{});}
     return;
   }

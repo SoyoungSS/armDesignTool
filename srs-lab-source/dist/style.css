@@ -9,3 +9,9 @@
 .axis-editor{min-width:205px}.axis-editor select{border:1px solid #dbe0db;border-radius:4px;padding:6px 8px;width:145px;font-size:11px}.axis-components{display:flex;gap:5px;margin-top:6px}.axis-components label{display:flex;align-items:center;gap:3px;color:#92999c;font-size:9px}.axis-components input[type=number]{width:57px;max-width:57px;padding:5px!important;font-size:10px}
 
 .critical-pose-panel{margin:12px 16px 16px;padding:16px;background:#f8f5f6;border:1px solid #e5d9dd;border-radius:8px}.critical-pose-panel>label{display:block;font-weight:650;font-size:13px;margin-bottom:8px}.critical-pose-panel select{width:100%;max-width:100%;padding:10px 12px;border:1px solid #cdb8c0;border-radius:5px;background:white;font-size:13px}.critical-pose-panel p{font-size:12px;line-height:1.8;margin:10px 0 0}.critical-pose-panel .critical-source{font-size:10px;color:#7c7479;overflow-wrap:anywhere}.critical-pose-panel td,.critical-pose-panel th{font-size:11px;padding:7px 10px}.critical-pose-panel .table-scroll{margin-top:12px}.critical-pose-panel select:disabled{opacity:.6}
+.voxel-key{display:inline-flex;align-items:center;gap:5px}
+.voxel-key i{width:12px;height:12px;border-radius:2px}
+.voxel-views{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:14px;padding:0 16px 16px;align-items:stretch}
+.voxel-views .viewport{min-height:380px;margin:0}
+.voxel-views svg{width:100%;height:100%;display:block;background:#fafbf9;border-radius:12px}
+@media(max-width:1050px){.voxel-views{grid-template-columns:1fr}}

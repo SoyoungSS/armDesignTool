@@ -6,7 +6,7 @@ const names={overview:['PROJECT OVERVIEW','从设计规格，到关节需求。'
 const stages=[['构型建模','model'],['运动学','kinematics'],['可达空间','workspace'],['静力学','statics'],['动力学','dynamics'],['模组规格','sizing']];
 function variantInfo(){return SRS.configurations().find(v=>v.id===config.configuration);}
 function axisLabels(){return SRS.model(config).axisLabels;}
-function sideMount(){return !!config.linkVectors||config.configuration==='SRS-7R-YZX'||config.configuration==='SRS-7R-XYZ';}
+function sideMount(){return Arm3DMath.sideMountPlate(config);}
 const AXIS_PRESETS={'X':[1,0,0],'-X':[-1,0,0],'Y':[0,1,0],'-Y':[0,-1,0],'Z':[0,0,1],'-Z':[0,0,-1]};
 function axisEditor(j,v){const label=SRS.labelAxis(v),selected=Object.prototype.hasOwnProperty.call(AXIS_PRESETS,label)?label:'custom';return `<div class="axis-editor"><select id="axisPreset${j}" data-axis-preset="${j}" aria-label="J${j+1}局部关节轴">${[...Object.keys(AXIS_PRESETS),'custom'].map(a=>`<option value="${a}" ${a===selected?'selected':''}>${a==='custom'?'自定义向量':a+' 轴'}</option>`).join('')}</select><div class="axis-components">${v.map((x,k)=>`<label>${['x','y','z'][k]}<input id="axis${j}_${k}" data-axis-component="${j},${k}" type="number" step="0.01" value="${Number(x.toFixed(6))}" aria-label="J${j+1}轴向${['x','y','z'][k]}分量"></label>`).join('')}</div></div>`;}
 function note(t,cls=''){return `<div class="note ${cls}">${t}</div>`;}
@@ -20,12 +20,23 @@ const skillKey=()=>JSON.stringify(config);
 function invalidateSkill(){skillData=null;criticalJoint=null;skillRunSignature=null;skillMessage='参数发生变化，请重新准备对应模型的 Skill 输入并计算';}
 function skillCurrent(){return !!skillData&&!dirty&&skillRunSignature===skillKey();}
 let workspaceData=null,workspaceInput='',workspaceBusy=false,workspaceMessage='尚未运行工作空间 Skill',workspaceSignature=null,workspacePoint=0,workspaceSolution=0,workspaceScene=null,workspaceMode='joint_sampling',workspaceFilter='all';
+let workspaceAbort=null;
+let voxelSettings={voxel_size_m:.10,orientations_per_voxel:20},voxelPlane='xy',voxelLayer=null,voxelSliceOnly=false;
 function invalidateWorkspace(){workspaceData=null;workspaceSignature=null;workspaceScene=null;workspaceMessage='输入或模型已改变，请重新运行工作空间 Skill';}
 function workspaceCurrent(){return !!workspaceData&&!dirty&&workspaceSignature===skillKey();}
+function dexterityView(result){
+ const d=result.dexterity,s=result.summary,client=window.WorkspaceClient;
+ const legend=[0,.25,.5,.75,1,null].map(rate=>`<span class="voxel-key"><i style="background:${client.voxelColor({reachability:rate})}"></i>${rate===null?'未完成':`${rate*100}%`}</span>`).join('');
+ const planes=['xy','yz','xz'].map(plane=>`<option value="${plane}" ${voxelPlane===plane?'selected':''}>${plane.toUpperCase()}</option>`).join('');
+ return `<div class="kpis">${kpi('完成体素',`${d.completed_voxels} / ${s.point_count}`,'',d.incomplete_voxels?`${d.incomplete_voxels} 个未完成`:'全部中心已测试')}${kpi('每点测试朝向',d.orientations_wxyz.length,'个',`${fmt(d.voxel_size_m*100,1)} cm 网格`)}${kpi('至少一个朝向有解',s.spatial_reachable_point_count,'点',`${s.sampled_dexterous_point_count} 点全部朝向有解`)}${kpi('耗时',fmt(workspaceData.execution.elapsed_ms/1000,1),'s',d.time_budget_s==null?'不限时':`计算时限 ${d.time_budget_s} s`)}</div>`+
+ card('体素灵巧工作空间',`<div class="card-body"><p>${esc(result.normalized_input.model.name)} · 颜色表示体素中心的朝向解出比例。灰色为未完成，0% 表示本次测试未找到朝向解。</p><div class="actions-row" aria-label="体素得分色标">${legend}</div><div class="actions-row"><label for="voxelPlane">剖面</label><select id="voxelPlane">${planes}</select><label for="voxelLayer">剖面位置</label><input id="voxelLayer" type="range" step="1" style="width:min(280px,42vw)"><output id="voxelPosition" for="voxelLayer"></output><label><input id="voxelSliceOnly" type="checkbox" ${voxelSliceOnly?'checked':''}> 三维仅显示当前层</label></div></div><div class="voxel-views"><div class="viewport"><canvas id="workspaceScene" aria-label="三维灵巧空间与剖面"></canvas></div><div id="voxelSectionView"></div></div>`)+
+ card('导出灵巧空间',`<div class="card-body"><p>剖面沿基座坐标轴移动。每格对应一个体素，悬停可查看中心坐标和通过数。</p><div class="actions-row"><button class="button" id="workspaceExport">下载完整 Skill JSON</button><button class="button" id="workspaceCSV">下载体素 CSV</button><button class="button" id="workspaceReport">下载分析报告</button><button class="button" id="voxelExportSection">下载当前剖面 SVG</button></div></div>`);
+}
 function workspaceView(){
  const ok=workspaceCurrent(),r=workspaceData?.result,s=r?.summary;
- let html=card('独立可达工作空间 Skill',`<div class="card-body"><p>参考 Dexbot 的关节采样与目标位姿可达率分析。由服务端独立 CLI 计算；当前为 CPU 确定性求解，不需要 CUDA。未检查碰撞和带载约束。</p><div class="actions-row"><label for="workspaceMode">分析方式</label><select id="workspaceMode"><option value="joint_sampling" ${workspaceMode==='joint_sampling'?'selected':''}>关节采样 / FK 点云</option><option value="pose_reachability" ${workspaceMode==='pose_reachability'?'selected':''}>空间 / 灵巧 / 不可达分类（IK）</option></select><button id="workspaceFromModel" class="button">从当前网页模型生成输入</button><label for="workspaceExample">参考模型</label><select id="workspaceExample"><option value="/workspace-example.jsonc">选型表 / FK</option><option value="/workspace-reachability.jsonc">选型表 / IK</option><option value="/workspace-classification.jsonc">选型表 / 空间与灵巧分类</option><option value="/workspace-dexbot-right.json">Dexbot URDF 右臂</option><option value="/workspace-dexbot-left.json">Dexbot URDF 左臂</option></select><button class="button" id="workspaceLoadExample">载入示例</button><button class="button" id="workspaceUpload">上传 JSON / JSONC</button><input id="workspaceFile" type="file" accept=".json,.jsonc" hidden><button id="workspaceRun" class="button primary" ${workspaceBusy?'disabled':''}>${workspaceBusy?'计算中…':'运行工作空间 Skill'}</button></div><textarea id="workspaceSource" spellcheck="false" style="box-sizing:border-box;width:100%;min-height:200px;margin-top:14px;font:12px/1.5 monospace" aria-label="工作空间请求 JSONC">${esc(workspaceInput)}</textarea><p id="workspaceState" role="status">${esc(workspaceMessage)}</p><small>关节采样不是笛卡尔均匀采样；IK失败表示预算内未找到解。上传其他模型时，预览根据Skill模型绘制，不套用当前网页机械臂。</small></div>`);
+ let html=card('独立可达工作空间 Skill',`<div class="card-body"><p>参考 Dexbot 的关节采样与目标位姿可达率分析。由服务端独立 CLI 计算；当前为 CPU 确定性求解，不需要 CUDA。未检查碰撞和带载约束。</p><div class="actions-row"><label for="workspaceMode">分析方式</label><select id="workspaceMode"><option value="joint_sampling" ${workspaceMode==='joint_sampling'?'selected':''}>关节采样 / FK 点云</option><option value="pose_reachability" ${workspaceMode==='pose_reachability'?'selected':''}>空间 / 灵巧 / 不可达分类（IK）</option><option value="dexterity_voxels" ${workspaceMode==='dexterity_voxels'?'selected':''}>体素灵巧空间（IK）</option></select><button id="workspaceFromModel" class="button">从当前网页模型生成输入</button><label for="workspaceExample">参考模型</label><select id="workspaceExample"><option value="/workspace-example.jsonc">选型表 / FK</option><option value="/workspace-reachability.jsonc">选型表 / IK</option><option value="/workspace-classification.jsonc">选型表 / 空间与灵巧分类</option><option value="/workspace-dexbot-right.json">Dexbot URDF 右臂</option><option value="/workspace-dexbot-left.json">Dexbot URDF 左臂</option></select><button class="button" id="workspaceLoadExample">载入示例</button><button class="button" id="workspaceUpload">上传 JSON / JSONC</button><input id="workspaceFile" type="file" accept=".json,.jsonc" hidden><button id="workspaceRun" class="button primary" ${workspaceBusy?'disabled':''}>${workspaceBusy?'计算中…':'运行工作空间 Skill'}</button>${workspaceBusy?'<button id="workspaceCancel" class="button">取消计算</button>':''}</div>${workspaceMode==='dexterity_voxels'?`<div class="actions-row"><label for="voxelSize">体素边长 / cm</label><input id="voxelSize" type="number" min="0.1" step="any" value="${voxelSettings.voxel_size_m*100}" style="width:90px"><label for="voxelOrientations">每点朝向数</label><input id="voxelOrientations" type="number" min="2" max="100" step="1" value="${voxelSettings.orientations_per_voxel}" style="width:90px"><output id="voxelEstimate" for="voxelSize voxelOrientations" aria-live="polite"></output><small>按本机 FR3 实测速度估算。计算不限时，可手动取消。</small></div>`:''}<textarea id="workspaceSource" spellcheck="false" style="box-sizing:border-box;width:100%;min-height:200px;margin-top:14px;font:12px/1.5 monospace" aria-label="工作空间请求 JSONC">${esc(workspaceInput)}</textarea><p id="workspaceState" role="status">${esc(workspaceMessage)}</p><small>关节采样不是笛卡尔均匀采样；IK失败表示预算内未找到解。上传其他模型时，预览根据Skill模型绘制，不套用当前网页机械臂。</small></div>`);
  if(!ok)return html+card('结果与点云',`<div class="card-body">请生成或载入输入后运行 Skill。本页不使用网页旧点云替代校核结果。</div>`);
+ if(r.dexterity)return html+dexterityView(r);
  html+=`<div class="kpis">${kpi('采样目标 / 末端点',s.point_count,'点','完整数据可导出')}${kpi('已找到解的点',s.reachable_point_count,'点',r.mode==='joint_sampling'?'FK样本均为限位内姿态':'失败点不代表数学上不可达')}${kpi(r.scope.orientation_checked?'已采样姿态成功率':'位置 IK 成功率',s.sampled_orientation_success_rate===null?'—':fmt(s.sampled_orientation_success_rate*100,2),'%',r.mode==='joint_sampling'?'FK模式不计算IK成功率':'仅适用于输入的离散目标集合')}${kpi('独立 CLI 耗时',workspaceData.execution.elapsed_ms,'ms','Skill版本 '+r.engine_version)}</div>`;
  html+=card('空间可达性与灵巧空间',`<div class="kpis">${kpi('空间位置可达',s.spatial_reachable_point_count??s.reachable_point_count,'点','包括下述灵巧点和部分姿态点')}${kpi('灵巧空间 · 已采样姿态',s.sampled_dexterous_point_count===null?'未评估':s.sampled_dexterous_point_count,'点','至少两个不同姿态全部找到解')}${kpi('不可达 · 几何证明',s.proven_unreachable_point_count??0,'点','仅超出保守几何外界的点')}${kpi('位置解未找到 · 待定',s.unresolved_point_count??0,'点','不能把IK未收敛当作不可达证明')}</div><div class="card-body"><p>空间位置可达：至少存在一个满足位置要求的关节解。灵巧空间在此仅表示<b>输入的不同离散姿态全部找到解</b>，没有证明任意连续朝向均可达；只检查一个姿态或重复姿态不算灵巧空间。</p><div class="actions-row">${Object.values(window.WorkspaceClient.WORKSPACE_CATEGORIES).map(v=>`<span><i style="display:inline-block;width:10px;height:10px;background:${v.color}"></i> ${esc(v.label)}</span>`).join('')}</div><div class="actions-row"><label for="workspaceFilter">显示分类</label><select id="workspaceFilter">${[['all','全部点'],['spatial','空间位置可达（含灵巧点）'],...Object.entries(window.WorkspaceClient.WORKSPACE_CATEGORIES).map(([key,value])=>[key,value.label])].map(([key,label])=>`<option value="${key}" ${workspaceFilter===key?'selected':''}>${esc(label)}</option>`).join('')}</select></div><small>分类筛选同步作用于三维点云和投影/剖面。FK模式只显示已采到的可达点，不能显示未采样区域中的不可达点；请用IK目标采样模式分析三类空间。</small></div>`);
  const point=r.points[workspacePoint],solutionCount=point?.solutions?.length||(point?.q?1:0);
@@ -44,27 +55,80 @@ function workspaceMatchesWeb(){
  if(!close(expected.base_in_world.xyz_m,actual.base_in_world.xyz_m)||!close(expected.base_in_world.rpy_rad,actual.base_in_world.rpy_rad)||expected.model.joints.length!==actual.model.joints.length)return false;
  return expected.model.joints.every((j,i)=>{const v=actual.model.joints[i];return j.name===v.name&&j.type===v.type&&close(j.axis,v.axis)&&close(j.limits,v.limits)&&close(j.origin.xyz_m,v.origin.xyz_m)&&close(j.origin.rpy_rad,v.origin.rpy_rad);})&&close(expected.model.tip.xyz_m,actual.model.tip.xyz_m)&&close(expected.model.tip.rpy_rad,actual.model.tip.rpy_rad);
 }
+function workspaceVoxelRequest(raw){
+ if(!Number.isFinite(voxelSettings.voxel_size_m)||voxelSettings.voxel_size_m<.001||voxelSettings.voxel_size_m>1000||!Number.isInteger(voxelSettings.orientations_per_voxel)||voxelSettings.orientations_per_voxel<2||voxelSettings.orientations_per_voxel>100)throw Error('请填写有效体素边长及 2–100 个朝向');
+ const client=window.WorkspaceClient;
+ const input=raw.trim()?client.parseInput(raw):client.fromWebConfig(config,SRS.model(config),SRS.installationInfo(config),'dexterity_voxels');
+ return client.asDexterityInput(input,voxelSettings);
+}
+function updateVoxelEstimate(){
+ const output=$('#voxelEstimate');if(!output)return;
+ try{
+  const estimate=window.WorkspaceClient.estimateDexterity(workspaceVoxelRequest($('#workspaceSource').value));
+  const seconds=Math.ceil(estimate.seconds),minutes=Math.floor(seconds/60);
+  const duration=minutes?`${minutes} 分 ${seconds%60} 秒`:`${seconds} 秒`;
+  const suffix=estimate.withinLimit?'':' · 超出批次上限';
+  output.textContent=`预估约 ${duration} · ${estimate.centers.toLocaleString()} 个体素 · ${estimate.checks.toLocaleString()} 次 IK${suffix}`;
+ }catch{output.textContent='暂无法估算。请检查模型与参数，或增大体素边长、缩小扫描区域。';}
+}
 async function runWorkspace(){
+ if(workspaceBusy)return;
  if(dirty)return message('请先运行全流程，更新网页模型参数');
- const raw=$('#workspaceSource')?.value??workspaceInput;if(!raw.trim())return message('请先生成或载入工作空间输入');workspaceInput=raw;
- const signature=skillKey();workspaceBusy=true;workspaceMessage='独立工作空间 Skill 正在计算…';render();
- try{const payload=await window.WorkspaceClient.runWorkspaceSkill(raw);if(signature!==skillKey()||raw!==workspaceInput||dirty){invalidateWorkspace();workspaceMessage='模型或输入已改变，丢弃过期工作空间结果';}else{workspaceData=payload;workspaceSignature=signature;workspacePoint=0;workspaceSolution=0;workspaceFilter='all';workspaceMessage='Skill执行成功；结果来源：arm-workspace-parametric';}}
- catch(e){invalidateWorkspace();workspaceMessage='工作空间 Skill 失败：'+e.message;}finally{workspaceBusy=false;render();}
+ let raw=$('#workspaceSource')?.value??workspaceInput;
+ if(workspaceMode==='dexterity_voxels'){
+  try{raw=window.WorkspaceClient.formatInput(workspaceVoxelRequest(raw));}
+  catch(e){return message(e.message);}
+ }
+ if(!raw.trim())return message('请先生成或载入工作空间输入');workspaceInput=raw;
+ const signature=skillKey(),controller=new AbortController();workspaceAbort=controller;workspaceBusy=true;workspaceMessage='独立工作空间 Skill 正在计算…';render();
+ const started=Date.now(),timer=workspaceMode==='dexterity_voxels'?setInterval(()=>{const state=$('#workspaceState');if(state)state.textContent=`独立工作空间 Skill 正在计算，已等待 ${Math.floor((Date.now()-started)/1000)} 秒。`;},1000):null;
+ try{const payload=await window.WorkspaceClient.runWorkspaceSkill(raw,{signal:controller.signal});if(signature!==skillKey()||raw!==workspaceInput||dirty){invalidateWorkspace();workspaceMessage='模型或输入已改变，丢弃过期工作空间结果';}else{workspaceData=payload;workspaceSignature=signature;workspacePoint=0;workspaceSolution=0;workspaceFilter='all';voxelLayer=null;workspaceMessage=payload.result.dexterity?.completed===false?'这份结果仅包含部分已完成体素。':'Skill执行成功；结果来源：arm-workspace-parametric';}}
+ catch(e){invalidateWorkspace();workspaceMessage=controller.signal.aborted?'已取消工作空间计算。':'工作空间 Skill 失败：'+e.message;}finally{if(timer!==null)clearInterval(timer);workspaceAbort=null;workspaceBusy=false;render();}
+}
+function updateVoxelSlice(){
+ const slider=$('#voxelLayer');if(!slider||!workspaceScene)return;
+ const result=workspaceData.result,client=window.WorkspaceClient,section=client.voxelSection(result,voxelPlane,voxelLayer);
+ const normal=section.axes[2];voxelLayer=section.layer;
+ slider.min=section.min[normal];slider.max=section.max[normal];slider.value=voxelLayer;
+ $('#voxelPosition').textContent=`${'XYZ'[normal]} = ${fmt(section.position_m,3)} m`;
+ $('#voxelSectionView').innerHTML=client.voxelSectionSVG(section);
+ workspaceScene.setSection({...section,corners_world_m:client.sectionCornersWorld(result,section)},voxelSliceOnly);
 }
 function setupWorkspaceScene(){
  if(!workspaceCurrent()||!$('#workspaceScene'))return;let preview=null;
+ if(workspaceData.result.dexterity){
+  workspaceScene=new WorkspaceScene($('#workspaceScene'),workspaceData.result,null,{pointColor:window.WorkspaceClient.voxelColor});
+  updateVoxelSlice();return;
+ }
  try{if(window.WorkspaceClient.pointVisible(workspaceData.result.points[workspacePoint],workspaceFilter))preview=window.WorkspaceClient.previewPose(workspaceData.result,workspacePoint,workspaceSolution);}catch{}
  workspaceScene=new WorkspaceScene($('#workspaceScene'),workspaceData.result,preview,{filter:workspaceFilter,pointColor:window.WorkspaceClient.pointColor,pointVisible:window.WorkspaceClient.pointVisible});
 }
+function loadWorkspaceText(raw){
+ workspaceInput=raw;
+ try{
+  const input=window.WorkspaceClient.parseInput(raw);
+  if(['joint_sampling','pose_reachability','dexterity_voxels'].includes(input.mode))workspaceMode=input.mode;
+  if(input.mode==='dexterity_voxels')voxelSettings={voxel_size_m:input.dexterity?.voxel_size_m??.10,orientations_per_voxel:input.dexterity?.orientations_per_voxel??20};
+ }catch{}
+ invalidateWorkspace();
+}
 function bindWorkspacePage(){
  if($('#workspaceFilter'))$('#workspaceFilter').onchange=e=>{workspaceFilter=e.target.value;const first=workspaceData.result.points.findIndex(p=>window.WorkspaceClient.pointVisible(p,workspaceFilter));if(first>=0){workspacePoint=first;workspaceSolution=0;}render();};
- if($('#workspaceMode'))$('#workspaceMode').onchange=e=>{workspaceMode=e.target.value;};
- if($('#workspaceFromModel'))$('#workspaceFromModel').onclick=()=>{try{workspaceInput=window.WorkspaceClient.formatInput(window.WorkspaceClient.fromWebConfig(config,SRS.model(config),SRS.installationInfo(config),workspaceMode));invalidateWorkspace();workspaceMessage='已从当前网页几何、轴向、限位及安装角生成输入';render();}catch(e){message(e.message);}};
- if($('#workspaceSource'))$('#workspaceSource').oninput=e=>{workspaceInput=e.target.value;invalidateWorkspace();if($('#workspaceState'))$('#workspaceState').textContent='输入已修改，请重新计算';};
- if($('#workspaceLoadExample'))$('#workspaceLoadExample').onclick=async()=>{try{const response=await fetch($('#workspaceExample').value);if(!response.ok)throw Error('示例不可用');workspaceInput=await response.text();invalidateWorkspace();workspaceMessage='已加载独立参考模型；其几何可能与当前网页不同';render();}catch(e){message(e.message);}};
+ if($('#workspaceMode'))$('#workspaceMode').onchange=e=>{workspaceMode=e.target.value;render();};
+ if($('#voxelSize'))$('#voxelSize').oninput=e=>{voxelSettings.voxel_size_m=e.target.valueAsNumber/100;updateVoxelEstimate();};
+ if($('#voxelOrientations'))$('#voxelOrientations').oninput=e=>{voxelSettings.orientations_per_voxel=e.target.valueAsNumber;updateVoxelEstimate();};
+ updateVoxelEstimate();
+ if($('#voxelPlane'))$('#voxelPlane').onchange=e=>{voxelPlane=e.target.value;voxelLayer=null;updateVoxelSlice();};
+ if($('#voxelLayer'))$('#voxelLayer').oninput=e=>{voxelLayer=Number(e.target.value);updateVoxelSlice();};
+ if($('#voxelSliceOnly'))$('#voxelSliceOnly').onchange=e=>{voxelSliceOnly=e.target.checked;updateVoxelSlice();};
+ if($('#voxelExportSection'))$('#voxelExportSection').onclick=()=>{const client=window.WorkspaceClient;download(`dexterity-${voxelPlane}-${voxelLayer}.svg`,client.voxelSectionSVG(client.voxelSection(workspaceData.result,voxelPlane,voxelLayer)),'image/svg+xml');};
+ if($('#workspaceFromModel'))$('#workspaceFromModel').onclick=()=>{try{const client=window.WorkspaceClient;let request=client.fromWebConfig(config,SRS.model(config),SRS.installationInfo(config),workspaceMode);if(workspaceMode==='dexterity_voxels')request=client.asDexterityInput(request,voxelSettings);workspaceInput=client.formatInput(request);invalidateWorkspace();workspaceMessage='已从当前网页几何、轴向、限位及安装角生成输入';render();}catch(e){message(e.message);}};
+ if($('#workspaceSource'))$('#workspaceSource').oninput=e=>{workspaceInput=e.target.value;invalidateWorkspace();if($('#workspaceState'))$('#workspaceState').textContent='输入已修改，请重新计算';updateVoxelEstimate();};
+ if($('#workspaceLoadExample'))$('#workspaceLoadExample').onclick=async()=>{try{const response=await fetch($('#workspaceExample').value);if(!response.ok)throw Error('示例不可用');loadWorkspaceText(await response.text());workspaceMessage='已加载独立参考模型；其几何可能与当前网页不同';render();}catch(e){message(e.message);}};
  if($('#workspaceUpload'))$('#workspaceUpload').onclick=()=>$('#workspaceFile').click();
- if($('#workspaceFile'))$('#workspaceFile').onchange=async e=>{const file=e.target.files?.[0];if(!file)return;if(file.size>2*1024*1024)return message('工作空间输入不可超过2MiB');workspaceInput=await file.text();invalidateWorkspace();render();};
+ if($('#workspaceFile'))$('#workspaceFile').onchange=async e=>{const file=e.target.files?.[0];if(!file)return;if(file.size>2*1024*1024)return message('工作空间输入不可超过2MiB');loadWorkspaceText(await file.text());render();};
  if($('#workspaceRun'))$('#workspaceRun').onclick=runWorkspace;
+ if($('#workspaceCancel'))$('#workspaceCancel').onclick=()=>workspaceAbort?.abort();
  if($('#workspacePoint'))$('#workspacePoint').onchange=e=>{const index=Number(e.target.value);if(!Number.isInteger(index)||index<0||index>=workspaceData.result.points.length)return message('点编号不合法');workspacePoint=index;workspaceSolution=0;render();};
  if($('#workspaceSolution'))$('#workspaceSolution').onchange=e=>{workspaceSolution=Number(e.target.value);render();};
  if($('#workspacePreview'))$('#workspacePreview').onclick=setupWorkspaceScene;

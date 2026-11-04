@@ -67,6 +67,24 @@ IK失败只表示当前预算未找到解，不证明不可达；增加预算可
 IK预算现在包括额外的位置检查。`ik_query_count`保留采样位姿检查数；`position_check_count`记录位置检查数；`numerical_ik_solve_count`为实际调用数，几何提前拒绝时不调用IK。
 FK模式只能给出已采到的蓝色位置可达点，不能据未采样区域判断不可达，灵巧数量返回null表示未评估。
 
+## 模式三：dexterity_voxels
+
+使用同一 `model` 和 `base_in_world`。将 `mode` 设为 `dexterity_voxels`，使用 `dexterity`，省略 `sampling` 和 `reachability`。
+
+```json
+"dexterity": {
+  "voxel_size_m": 0.10,
+  "orientations_per_voxel": 20,
+  "seed": 42
+}
+```
+
+- 体素边长默认 0.10 m。中心以基座坐标原点为格点锚点，每轴为 `(索引 + 0.5) × 边长`。只检查保守几何外界内的中心。可选 `bounds_base_m: {"min":[x,y,z],"max":[x,y,z]}` 进一步裁剪任务区。
+- 朝向数默认 20，允许 2–100。由 `seed` 生成一组共用的均匀 SO(3) 随机朝向，每个中心按相同顺序测试。以相邻体素同朝向的已知解作为额外初值，失败后用常规多初值 IK。可选 `ik` 与目标模式相同，默认 6 个初值，每个 180 次迭代。
+- 批次不限时，完成全部计划位姿后输出结果。网页的预估耗时仅供参考，运行时可手动取消。旧输入的 `time_budget_s` 字段仍可读取，求解时忽略。单批限制 100,000 个包围盒格子、50,000 个候选中心及 1,000,000 个计划位姿检查。
+- `dexterity.orientations_wxyz` 记录实际测试的四元数。每点记录 `voxel_index`、中心坐标、`orientation_tested`、`orientation_successes`、`orientation_total`、`successful_orientation_indices` 和一个示例关节解。体素的 `reachability` 为成功数除以计划朝向数。0% 表示测试中没有找到解，几何可达性仍待定。结果中 `dexterity.completed` 为 `true`，`time_budget_s` 为 `null`。
+- 网页剖面用基座系 XY、YZ 或 XZ。拖动滑块逐层移动，三维剖面随安装变换转入世界系，可仅显示当前层。CLI 的三个剖面 SVG 使用最靠近 `sections.center_m` 的层，CSV 包含每个中心的测试数和得分。
+
 ## 剖面与输出
 
 `sections={center_m,thickness_m,voxel_size_m}`，默认 `[0,0,0]`、0.03m、0.02m。
@@ -74,10 +92,10 @@ XY/XZ/YZ剖面选择距相应平面不超过总厚度一半的全部目标点，
 
 JSON包括input_snapshot、normalized_input、input_sha256、model_sha256、joint_names、points、summary、sections、scope、warnings。
 
-每点保留B/W位置；FK保留q；IK保留每个成功姿态的q、姿态编号及位置/姿态误差。IK的reachability为成功姿态数/本点声明的姿态数，位置模式分母为1；几何不可达目标全部计失败。q优先为成功姿态解，否则为独立位置解；没有任何位置见证时为null。
+每点保留B/W位置。FK 保留 q。`pose_reachability` 保留每个成功姿态的 q、姿态编号及位置/姿态误差，`reachability` 为成功姿态数除以本点声明的姿态数。仅位置模式的分母为 1，几何不可达目标全部计失败。q 优先为成功姿态解，其次为独立位置解。体素模式的逐点输出见上节。
 summary的包围盒只统计已找到解点；全部失败时为null。`sampled_voxel_volume_m3`只表示已占据采样格子的体积，受分辨率与样本数影响，不能当作真实工作空间体积。
 
-核心输出不含时间或随机运行ID，同版本同输入同环境完全确定；跨平台浮点运算允许微小容差。网页桥接附execution包含实际运行ID、耗时、时间和原始文本哈希。
+核心输出不含实际耗时或随机运行 ID。未触发体素时限时，同版本、同输入、同环境的计算可复现。跨平台浮点运算允许微小容差。网页桥接的 `execution` 包含实际运行 ID、耗时、时间和原始文本哈希。
 
 CLI输出主JSON、points.csv、report.md、request.json，以及三个projection和三个section SVG。主JSON在配套文件完成后原子替换；配套文件不是目录事务。失败必须检查退出码，旧结果可能仍存在。
 

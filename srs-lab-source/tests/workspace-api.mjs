@@ -13,7 +13,7 @@ const E=createRequire(import.meta.url)('../dist/engine.js');
 const close=(a,b)=>assert.ok(Math.abs(a-b)<1e-9,`${a} != ${b}`);
 const root=new URL('../../arm-workspace-parametric/',import.meta.url);
 const dir=await mkdtemp(join(tmpdir(),'workspace-client-test-'));
-for(const name of ['kinematics','exports','input-text'])await writeFile(join(dir,`workspace-${name}.mjs`),await readFile(new URL(`scripts/lib/${name}.mjs`,root)));
+for(const name of ['kinematics','exports','input-text','voxel-grid'])await writeFile(join(dir,`workspace-${name}.mjs`),await readFile(new URL(`scripts/lib/${name}.mjs`,root)));
 await writeFile(join(dir,'workspace-client.mjs'),await readFile(new URL('../dist/workspace-client.mjs',import.meta.url)));
 const client=await import(pathToFileURL(join(dir,'workspace-client.mjs')));
 
@@ -44,7 +44,7 @@ try{
     await test('workspace server health/assets work independently of statics env configuration',async()=>{
       assert.equal((await fetch(url+'/api/workspace/health')).status,200);
       assert.equal((await fetch(url+'/api/statics/health')).status,503);
-      for(const asset of ['/workspace-client.mjs','/workspace-scene.js','/workspace-kinematics.mjs','/workspace-exports.mjs','/workspace-input-text.mjs','/workspace-example.jsonc','/workspace-reachability.jsonc','/workspace-classification.jsonc','/workspace-dexbot-right.json','/workspace-dexbot-left.json'])assert.equal((await fetch(url+asset)).status,200,asset);
+      for(const asset of ['/workspace-client.mjs','/workspace-scene.js','/workspace-kinematics.mjs','/workspace-exports.mjs','/workspace-input-text.mjs','/workspace-voxel-grid.mjs','/workspace-example.jsonc','/workspace-reachability.jsonc','/workspace-classification.jsonc','/workspace-dexbot-right.json','/workspace-dexbot-left.json'])assert.equal((await fetch(url+asset)).status,200,asset);
       assert.equal((await fetch(url+'/workspace-../../server/index.mjs')).status,404);
     });
     await test('workspace real CLI result and provenance equal direct analysis for FK and IK',async()=>{
@@ -60,6 +60,39 @@ try{
     await test('workspace errors do not return fallback point clouds',async()=>{
       assert.equal((await fetch(url+'/api/workspace',{method:'POST',body:'{}'})).status,415);
       for(const body of ['{}','/* bad */ {']){const response=await fetch(url+'/api/workspace',{method:'POST',headers:{'content-type':'application/jsonc'},body});assert.equal(response.status,502);const data=await response.json();assert.equal(data.ok,false);assert.equal(data.result,undefined);}
+    });
+    await test('busy requests identify the occupied slots and aborted requests release them',async()=>{
+      const c=E.defaults('WORKSHEET-7R');
+      const input=client.fromWebConfig(c,E.model(c),E.installationInfo(c),'dexterity_voxels');
+      input.dexterity.voxel_size_m=.05;
+      const request=(body,signal)=>fetch(url+'/api/workspace',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body),signal});
+      const controllers=[new AbortController(),new AbortController()];
+      const pending=controllers.map(c=>request(input,c.signal).catch(error=>error));
+      async function waitForActiveJobs(count){
+        const deadline=Date.now()+5000;
+        while(Date.now()<deadline){
+          const health=await (await fetch(url+'/api/workspace/health')).json();
+          if(health.activeJobs===count)return;
+          await new Promise(resolve=>setTimeout(resolve,25));
+        }
+        assert.fail(`Expected ${count} active workspace jobs`);
+      }
+      try{
+        await waitForActiveJobs(2);
+        const busy=await request(input);
+        assert.equal(busy.status,503);
+        const body=await busy.json();
+        assert.equal(body.error,'WORKSPACE_BUSY');
+        assert.ok(body.request_id);
+        controllers[0].abort();
+        await waitForActiveJobs(1);
+        const fast={...client.fromWebConfig(c,E.model(c),E.installationInfo(c)),sampling:{method:'random',samples:2,seed:42}};
+        assert.equal((await request(fast)).status,200);
+      }finally{
+        for(const c of controllers)c.abort();
+        await Promise.all(pending);
+        await waitForActiveJobs(0);
+      }
     });
   }finally{server.kill();await once(server,'exit');}
 }finally{await rm(dir,{recursive:true,force:true});}

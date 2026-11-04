@@ -4,6 +4,9 @@ const V={add:(a,b)=>a.map((v,i)=>v+b[i]),sub:(a,b)=>a.map((v,i)=>v-b[i]),mul:(a,
 const mv=(A,b)=>A.map(r=>V.dot(r,b)),mm=(A,B)=>A.map(r=>B[0].map((_,j)=>r.reduce((s,v,k)=>s+v*B[k][j],0))),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 function rot([x,y,z],t){const c=Math.cos(t),s=Math.sin(t),v=1-c;return [[c+x*x*v,x*y*v-z*s,x*z*v+y*s],[y*x*v+z*s,c+y*y*v,y*z*v-x*s],[z*x*v-y*s,z*y*v+x*s,c+z*z*v]];}
 function basis(axis){const u=V.unit(V.cross(axis,Math.abs(axis[2])<.85?[0,0,1]:[0,1,0]));return [u,V.unit(V.cross(axis,u))];}
+function sideMountPlate(config){
+ return ['WORKSHEET-7R','SRS-7R-YZX','SRS-7R-XYZ'].includes(config.configuration);
+}
 function displayFK(c,q){if(c.linkVectors)return root.SRS.fk(c,q);const axesLocal=root.SRS.model(c).axes,r=c.reach,offsets=[[0,0,.12*r],[.15*r,0,0],[c.upper,0,0],[c.fore,0,0],[.12*r,0,0],[.12*r,0,0],[c.tool,0,0]];let R=[[1,0,0],[0,1,0],[0,0,1]],p=[0,0,c.baseHeight];const origins=[],axes=[],nodes=[p.slice()];for(let j=0;j<7;j++){origins.push(p.slice());axes.push(mv(R,axesLocal[j]));R=mm(R,rot(axesLocal[j],q[j]));p=V.add(p,mv(R,offsets[j]));nodes.push(p.slice());}return {origins,axes,nodes,p,R};}
 function distanceToSegment(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,t=clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy||1),0,1);return Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy);}
 class Arm3D{
@@ -28,24 +31,55 @@ class Arm3D{
  const face=(pts,normal,color)=>{const center=V.mul(pts.reduce((a,p)=>V.add(a,p),[0,0,0]),1/pts.length);if(V.dot(normal,V.sub(this.cam.eye,center))<=0)return;faces.push({pts,depth:V.dot(V.sub(center,this.cam.target),this.cam.towards),color,shade:.58+.42*Math.max(0,V.dot(normal,light))});};
  const cylinder=(a,b,radius,color,n=16)=>{const axis=V.unit(V.sub(b,a)),[u,v]=basis(axis),ring=[];for(let k=0;k<n;k++)ring.push(V.add(V.mul(u,Math.cos(k*2*Math.PI/n)*radius),V.mul(v,Math.sin(k*2*Math.PI/n)*radius)));for(let k=0;k<n;k++){const next=(k+1)%n;face([V.add(a,ring[k]),V.add(b,ring[k]),V.add(b,ring[next]),V.add(a,ring[next])],V.unit(V.add(ring[k],ring[next])),color);}face(ring.map(v=>V.add(a,v)).reverse(),V.mul(axis,-1),color);face(ring.map(v=>V.add(b,v)),axis,color);};
  const box=(center,size,R,color)=>{const vertices=[];for(let k=0;k<8;k++)vertices.push(V.add(center,mv(R,size.map((v,j)=>(k&(1<<j)?1:-1)*v/2))));for(const [ids,normal]of [[[0,4,6,2],[-1,0,0]],[[1,3,7,5],[1,0,0]],[[0,1,5,4],[0,-1,0]],[[2,6,7,3],[0,1,0]],[[0,2,3,1],[0,0,-1]],[[4,5,7,6],[0,0,1]]])face(ids.map(i=>vertices[i]),mv(R,normal),color);};
- const I=[[1,0,0],[0,1,0],[0,0,1]];
- if(c.linkVectors||c.configuration==='SRS-7R-YZX'||c.configuration==='SRS-7R-XYZ'){
+ const I=[[1,0,0],[0,1,0],[0,0,1]],baseOrigin=[0,0,0];
+ if(sideMountPlate(c)){
   // Fixed side mounting plate parallel to YZ; its normal and standoff are +X.
   const h=c.baseHeight,front=-.116*r;box([-.13*r,0,h],[.028*r,.24*r,.32*r],I,'#667681');
   cylinder([front,0,h],f.nodes[0],.031*r,'#82939f');
   for(const y of [-.078*r,.078*r])for(const z of [-.115*r,.115*r])cylinder([front,y,h+z],[front+.009*r,y,h+z],.012*r,'#dce5e8',12);
- }else{box([0,0,.012*r],[.22*r,.22*r,.024*r],I,'#667681');cylinder([0,0,.024*r],f.nodes[0],.043*r,'#82939f');} 
+ }else{
+  box([0,0,-.012*r],[.22*r,.22*r,.024*r],I,'#667681');
+  cylinder(baseOrigin,f.origins[0],.043*r,'#82939f');
+ }
  for(let j=0;j<7;j++){const a=f.nodes[j],b=f.nodes[j+1];cylinder(a,b,.019*r,'#c2ced5',12);const mid=V.mul(V.add(a,b),.5);cylinder(V.add(a,V.mul(V.sub(b,a),.35)),V.add(a,V.mul(V.sub(b,a),.65)),.022*r,j===2||j===3?'#8e9fa9':'#bbc7cd',12);const o=f.origins[j],axis=f.axes[j],half=.043*r;cylinder(V.sub(o,V.mul(axis,half)),V.add(o,V.mul(axis,half)),.038*r,colors[j]);cylinder(V.add(o,V.mul(axis,half)),V.add(o,V.mul(axis,half+.006*r)),.025*r,'#dce5e8');}
  const endAxis=mv(f.R,c.linkVectors?[0,0,-1]:[1,0,0]);cylinder(f.p,V.add(f.p,V.mul(endAxis,.025*r)),.035*r,'#53636e');if(!c.linkVectors){box(V.add(f.p,mv(f.R,[.04*r,0,0])),[.045*r,.10*r,.032*r],f.R,'#70818e');for(const side of [-1,1])box(V.add(f.p,mv(f.R,[.08*r,side*.045*r,.015*r])),[.07*r,.015*r,.055*r],f.R,'#4e6372');}
  faces.sort((a,b)=>a.depth-b.depth);for(const f of faces){const pts=f.pts.map(p=>this.project(p));if(pts.some(p=>!p.visible))continue;ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i].x,pts[i].y);ctx.closePath();const rgb=f.color.match(/[0-9a-f]{2}/gi).map(v=>Math.round(parseInt(v,16)*f.shade));ctx.fillStyle=`rgb(${rgb.join(',')})`;ctx.fill();ctx.strokeStyle='rgba(255,255,255,.12)';ctx.lineWidth=.4;ctx.stroke();}
  this.hitJoints=f.origins.map((o,j)=>({...this.project(o),j,radius:Math.max(7,this.cam.focal/Math.max(.01,this.cam.distance-this.project(o).depth)*r*.04)}));
  const j=this.selected,origin=f.origins[j],axis=f.axes[j],[u,v]=basis(axis),ringRadius=r*.11;this.ring=Array.from({length:97},(_,k)=>this.project(V.add(origin,V.add(V.mul(u,ringRadius*Math.cos(k*2*Math.PI/96)),V.mul(v,ringRadius*Math.sin(k*2*Math.PI/96))))));ctx.beginPath();this.ring.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.strokeStyle=colors[j];ctx.lineWidth=2.6;ctx.stroke();for(const k of [0,24,48,72]){const p=this.ring[k];ctx.beginPath();ctx.arc(p.x,p.y,4.5,0,Math.PI*2);ctx.fillStyle=colors[j];ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();}line(V.sub(origin,V.mul(axis,r*.17)),V.add(origin,V.mul(axis,r*.17)),colors[j],2);
  const occupied=[];for(const h of this.hitJoints){let x=h.x+12,y=h.y-25;for(const [dx,dy]of [[12,-25],[12,13],[-42,-25],[-42,13],[12,-45],[-42,33]]){const candidate={x:clamp(h.x+dx,5,W-38),y:clamp(h.y+dy,46,H-106)};if(!occupied.some(b=>candidate.x<b.x+36&&candidate.x+36>b.x&&candidate.y<b.y+20&&candidate.y+20>b.y)){x=candidate.x;y=candidate.y;break;}}occupied.push({x,y});h.label={x,y};ctx.beginPath();ctx.moveTo(h.x,h.y);ctx.lineTo(x+15,y+9);ctx.strokeStyle=colors[h.j];ctx.lineWidth=.8;ctx.stroke();ctx.fillStyle='rgba(255,255,255,.96)';ctx.fillRect(x,y,32,19);ctx.strokeStyle=colors[h.j];ctx.lineWidth=h.j===j?1.8:1;ctx.strokeRect(x,y,32,19);ctx.fillStyle=colors[h.j];ctx.font='600 10px sans-serif';ctx.fillText('J'+(h.j+1),x+7,y+13);}
- const coord=[-r*.4,-r*.35,0];for(const [label,vec,color]of [['X',[r*.16,0,0],'#b25366'],['Y',[0,r*.16,0],'#398b72'],['Z',[0,0,r*.16],'#3d73b0']]){line(wb(coord),wb(V.add(coord,vec)),color,1.8);const p=this.project(wb(V.add(coord,vec)));ctx.fillStyle=color;ctx.font='10px sans-serif';ctx.fillText('W'+label,p.x+4,p.y-2);}
- for(const [label,axis,color] of [['BX',[1,0,0],'#b25366'],['BY',[0,1,0],'#398b72'],['BZ',[0,0,1],'#3d73b0']]){const end=V.add(f.nodes[0],V.mul(axis,r*.2));line(f.nodes[0],end,color,2);const p=this.project(end);ctx.fillStyle=color;ctx.fillText(label,p.x+4,p.y);}
+ const axes=[['X',[1,0,0],'#b25366'],['Y',[0,1,0],'#398b72'],['Z',[0,0,1],'#3d73b0']];
+ const drawDirections=(prefix,title,x,y,toBase)=>{
+  ctx.font='10px sans-serif';
+  for(const [label,axis,color] of axes){
+   const direction=toBase(axis);
+   const endX=x+25*V.dot(this.cam.right,direction),endY=y-25*V.dot(this.cam.up,direction);
+   ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(endX,endY);ctx.strokeStyle=color;ctx.lineWidth=2;ctx.stroke();
+   ctx.fillStyle=color;ctx.fillText(prefix+label,endX+3,endY-2);
+  }
+  ctx.fillStyle='#425563';ctx.fillText(title,x-18,y+30);
+ };
+ drawDirections('W','世界 W',51,74,wb);
+ drawDirections('B','基座 B',137,74,axis=>axis);
+ const worldOrigin=wb([0,0,0]), projectedOrigin=this.project(worldOrigin);
+ for(const [label,axis,color] of axes){
+  const end=wb(V.mul(axis,r*(label==='Z'?.14:.23)));
+  const projectedEnd=this.project(end);
+  if(!projectedOrigin.visible||!projectedEnd.visible)continue;
+  line(worldOrigin,end,color,2);
+  const angle=Math.atan2(projectedEnd.y-projectedOrigin.y,projectedEnd.x-projectedOrigin.x);
+  ctx.beginPath();
+  ctx.moveTo(projectedEnd.x-7*Math.cos(angle-.45),projectedEnd.y-7*Math.sin(angle-.45));
+  ctx.lineTo(projectedEnd.x,projectedEnd.y);
+  ctx.lineTo(projectedEnd.x-7*Math.cos(angle+.45),projectedEnd.y-7*Math.sin(angle+.45));
+  ctx.strokeStyle=color;ctx.stroke();
+  const labelX=label==='Z'||projectedEnd.x<projectedOrigin.x?projectedEnd.x-26:projectedEnd.x+5;
+  const labelY=projectedEnd.y-4;
+  ctx.fillStyle='rgba(255,255,255,.92)';ctx.fillRect(labelX-2,labelY-10,22,13);
+  ctx.fillStyle=color;ctx.fillText('W'+label,labelX,labelY);
+ }
  const gb=installation.gravity_m_s2;if(V.norm(gb)>0){const start=V.add(f.nodes[0],[0,0,r*.3]),end=V.add(start,V.mul(V.unit(gb),r*.25));line(start,end,'#c07316',3);const p=this.project(end),a=this.project(start),angle=Math.atan2(p.y-a.y,p.x-a.x);ctx.beginPath();ctx.moveTo(p.x-10*Math.cos(angle-.45),p.y-10*Math.sin(angle-.45));ctx.lineTo(p.x,p.y);ctx.lineTo(p.x-10*Math.cos(angle+.45),p.y-10*Math.sin(angle+.45));ctx.strokeStyle='#c07316';ctx.stroke();ctx.fillStyle='#c07316';ctx.fillText('g',p.x+6,p.y);}
  this.options.drawn?.(this.selected,q[this.selected]);
  }
 }
-root.Arm3D=Arm3D;root.Arm3DMath={displayFK,V,basis,distanceToSegment};
+root.Arm3D=Arm3D;root.Arm3DMath={displayFK,V,basis,distanceToSegment,sideMountPlate};
 })(typeof globalThis!=='undefined'?globalThis:this);
