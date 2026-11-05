@@ -22,33 +22,51 @@
 
 当前版本标识：静力学内核 **1.1.0**、工作空间内核 **1.1.0**、浏览器概念内核 **1.4.0**。网站 `package.json` 仍保留历史名称 `srs-lab-v10` / `10.0.0`，不代表两个 Skill 的版本。
 
-## 2. 快速启动（Windows PowerShell）
+## 2. 快速启动
 
-### 环境与文件检查
+工程可以放在任意磁盘或目录，不要求固定盘符。**以下启动命令均从工程根目录运行**，即同时包含 `README.md`、`srs-lab-source` 和两个 Skill 文件夹的目录。请先在该目录打开终端。
 
-需要 **Node.js ≥20**；已有开发验证环境为 Node.js v24.22.1。网站和两个计算 CLI 无第三方运行依赖，首次运行无需 `npm install`。
+### 环境要求
+
+需要 **Node.js ≥20**。网站和两个计算 CLI 无第三方运行依赖，首次运行无需 `npm install`。
 
 Python 3 仅用于可选的 URDF 转换及其测试。PyYAML 仅用于 Skill 作者的元数据校验，不是计算运行依赖。
+
+### Windows PowerShell
+
+先检查环境与文件位置：
 
 ```powershell
 node -v
 npm.cmd -v
-Test-Path "E:\Robot\armDesignTool\srs-lab-source\package.json"
-Test-Path "E:\Robot\armDesignTool\arm-statics-parametric\scripts\run.mjs"
-Test-Path "E:\Robot\armDesignTool\arm-workspace-parametric\scripts\run.mjs"
+Test-Path ./srs-lab-source/package.json
+Test-Path ./arm-statics-parametric/scripts/run.mjs
+Test-Path ./arm-workspace-parametric/scripts/run.mjs
 ```
 
-三个 `Test-Path` 均应返回 `True`。下文以 `E:\Robot\armDesignTool` 为工程位置；若实际位置不同，请统一替换路径。
-
-### 启动网站与两个 Skill 的调用入口
+三个 `Test-Path` 均应返回 `True`。然后从工程根目录启动：
 
 ```powershell
-cd "E:\Robot\armDesignTool\srs-lab-source"
-$env:STATICS_SKILL_DIR="E:\Robot\armDesignTool\arm-statics-parametric"
+$env:STATICS_SKILL_DIR = (Resolve-Path ./arm-statics-parametric).Path
+Set-Location ./srs-lab-source
 npm.cmd start
 ```
 
-**务必进入 `srs-lab-source` 再运行 `npm.cmd start`。仓库根目录没有 `package.json`。** PowerShell 中使用 `npm.cmd` 可避开部分机器对 `npm.ps1` 的执行策略限制。
+使用 `Resolve-Path` 自动获取本机绝对路径，路径中包含空格也可使用。PowerShell 中使用 `npm.cmd` 可避开部分机器对 `npm.ps1` 的执行策略限制。
+
+### Linux / macOS（Bash 或 Zsh）
+
+从工程根目录执行：
+
+```bash
+node -v
+npm -v
+export STATICS_SKILL_DIR="$(pwd)/arm-statics-parametric"
+cd srs-lab-source
+npm start
+```
+
+**启动网站前必须进入 `srs-lab-source`。仓库根目录没有 `package.json`。** 静力学环境变量使用绝对路径，避免后端切换工作目录后相对路径失效。
 
 工作空间 Skill 默认自动定位同仓库的 `arm-workspace-parametric`，无需额外配置。两个 Skill 不需要另开终端常驻启动，每次网页提交分析时由后端运行 CLI。
 
@@ -70,7 +88,7 @@ Skill bridge listening on 8787; configured=true
 
 健康检查成功返回 `{"ok":true,"skillConfigured":true}`。静力学检查只判断环境变量；工作空间检查确认 CLI 入口可读取。两者都不能替代真实计算验证。
 
-保持终端打开。停止服务按 **Ctrl+C**。更新代码后应停止旧服务、重新 `npm.cmd start`，再刷新网页；新的 PowerShell 窗口需重新设置环境变量。
+保持终端打开。停止服务按 **Ctrl+C**。更新代码后应停止旧服务，在 `srs-lab-source` 中重新启动，再强制刷新网页（Ctrl+Shift+R）。新的终端窗口需重新设置环境变量；可以回到工程根目录重复上述启动步骤。
 
 ## 3. 整体架构与目录
 
@@ -242,37 +260,36 @@ J1 的局部轴向与整臂安装朝向独立，不能通过 J1 轴向推断重�
 
 ## 7. 独立 CLI 与 URDF 转换
 
-CLI 命令不要求网站已启动。以下均使用单行命令，避免 PowerShell 续行符误用。
+CLI 命令不要求网站已启动。以下命令均在工程根目录执行，可用于 PowerShell、Bash 或 Zsh；使用相对路径，无需固定盘符。
 
 ### 静力学校核
 
-```powershell
-cd "E:\Robot\armDesignTool\arm-statics-parametric"
-node scripts/run.mjs --input assets/examples/worksheet-installation.jsonc --output outputs/statics_result.json --report-dir outputs/statics
+```shell
+node arm-statics-parametric/scripts/run.mjs --input arm-statics-parametric/assets/examples/worksheet-installation.jsonc --output outputs/statics_result.json --report-dir outputs/statics
 ```
 
 生成主 JSON，以及 `report.md`、`joint_summary.csv`、`standard_request.json`、`normalized_model.json`。原始输入或标准请求可复算；`normalized_input` 是内部快照，不能直接当作请求提交。
 
 ### 工作空间分类
 
-```powershell
-cd "E:\Robot\armDesignTool\arm-workspace-parametric"
-node scripts/run.mjs --input assets/examples/worksheet-classification.jsonc --output outputs/workspace_result.json --report-dir outputs/classification
+```shell
+node arm-workspace-parametric/scripts/run.mjs --input arm-workspace-parametric/assets/examples/worksheet-classification.jsonc --output outputs/workspace_result.json --report-dir outputs/classification
 ```
 
 生成主 JSON，以及 `points.csv`、`report.md`、`request.json`、`projection-xy/xz/yz.svg` 和 `section-xy/xz/yz.svg`，即三张投影、三张剖面。
 
-两个 CLI 都会创建所需输出目录。主 JSON 在计算和配套导出完成后原子替换，配套文件不是整个目录的事务；**失败时必须检查退出码，不能把仍存在的旧文件当作新结果**。工作空间 `outputs/` 已加入该 Skill 自身的 `.gitignore`。
+两个 CLI 都会创建所需输出目录。主 JSON 在计算和配套导出完成后原子替换，配套文件不是整个目录的事务；**失败时必须检查退出码，不能把仍存在的旧文件当作新结果**。上述命令在工程根目录生成 `outputs/`；这些生成文件无需提交到 Git。
 
 ### 可选 URDF 转换
 
 有实际 URDF 时，可将指定 base→tip 的串联路径转成工作空间请求。将下面的 `robot.urdf` 和 link 名称替换为实际值：
 
-```powershell
-cd "E:\Robot\armDesignTool\arm-workspace-parametric"
-python scripts/import_urdf.py --input robot.urdf --base-link arm_base_link --tip-link arm_r_link_8 --output outputs/robot-input.json
-node scripts/run.mjs --input outputs/robot-input.json --output outputs/robot-result.json --report-dir outputs/robot-report
+```shell
+python3 arm-workspace-parametric/scripts/import_urdf.py --input robot.urdf --base-link arm_base_link --tip-link arm_r_link_8 --output outputs/robot-input.json
+node arm-workspace-parametric/scripts/run.mjs --input outputs/robot-input.json --output outputs/robot-result.json --report-dir outputs/robot-report
 ```
+
+Windows 中若 Python 命令为 `python` 或 `py -3`，请替换上面的 `python3`。`robot.urdf` 可替换为实际文件的相对或绝对路径；含空格时用引号包围路径。
 
 转换器只使用 Python 标准库，不需要 STL 或 cuRobo。保留路径上的固定关节，不导入碰撞或动力学信息；不支持 mimic、无有限分析范围的 continuous 关节及闭链模型。
 
@@ -287,18 +304,34 @@ node scripts/run.mjs --input outputs/robot-input.json --output outputs/robot-res
 | `WORKSPACE_TIMEOUT_MS` | 工作空间 CLI 超时，默认120000ms |
 | `WEB_ORIGIN` | 可选跨域响应允许来源，不是鉴权配置 |
 
-例如修改端口：
+下面的配置示例在 `srs-lab-source` 目录中执行，停止旧服务后再启动。
+
+Windows PowerShell 修改端口：
 
 ```powershell
-$env:PORT="8888"
+$env:PORT = "8888"
 npm.cmd start
 ```
 
-随后将页面地址中的8787改成8888。更换工作空间目录时，在启动前设置：
+Linux / macOS 修改端口：
+
+```bash
+PORT=8888 npm start
+```
+
+随后将页面地址中的8787改成8888。通常无需设置工作空间路径；需要显式配置同仓库 Skill 时：
 
 ```powershell
-$env:WORKSPACE_SKILL_DIR="E:\Robot\armDesignTool\arm-workspace-parametric"
+# Windows PowerShell
+$env:WORKSPACE_SKILL_DIR = (Resolve-Path ../arm-workspace-parametric).Path
 ```
+
+```bash
+# Linux / macOS
+export WORKSPACE_SKILL_DIR="$(cd ../arm-workspace-parametric && pwd)"
+```
+
+如果使用其他位置的 Skill，设置为该目录在本机的实际绝对路径；路径中有空格时用引号包围。独立分发包需保留 Skill 与 `shared/` 的同级结构，见[公共分发说明](shared/README.md)。
 
 两个 POST 接口均接收完整请求文本，支持 `application/json` / `application/jsonc`，输入上限2MiB。工作空间桥接最多2个并发任务，忙碌返回 `WORKSPACE_BUSY`，超时返回 `WORKSPACE_TIMEOUT`；静力学桥接未实现相同的并发限制。
 
@@ -315,19 +348,38 @@ $env:WORKSPACE_SKILL_DIR="E:\Robot\armDesignTool\arm-workspace-parametric"
 
 ## 9. 测试与验证范围
 
-分别运行：
+从工程根目录运行。每个 `npm test` 都在对应目录执行，避免相对路径夹具解析错误。
+
+Windows PowerShell：
 
 ```powershell
-cd "E:\Robot\armDesignTool\srs-lab-source"
+Push-Location ./srs-lab-source
 npm.cmd test
+Pop-Location
 
-cd "E:\Robot\armDesignTool\arm-statics-parametric"
-node --test scripts/tests/*.test.mjs
+Push-Location ./arm-statics-parametric/scripts
+npm.cmd test
+Pop-Location
 
-cd "E:\Robot\armDesignTool\arm-workspace-parametric"
-node --test scripts/tests/*.test.mjs
-python -m unittest discover -s scripts/tests -p "test_*.py"
+Push-Location ./arm-workspace-parametric/scripts
+npm.cmd test
+python -m unittest discover -s tests -p "test_*.py"
+Pop-Location
+
+node --test shared/tests/*.test.mjs
 ```
+
+Linux / macOS：
+
+```bash
+(cd srs-lab-source && npm test)
+(cd arm-statics-parametric/scripts && npm test)
+(cd arm-workspace-parametric/scripts && npm test)
+(cd arm-workspace-parametric/scripts && python3 -m unittest discover -s tests -p 'test_*.py')
+node --test shared/tests/*.test.mjs
+```
+
+可选 Python 测试命令按本机安装情况使用 `python`、`python3` 或 `py -3`。
 
 已有开发验证记录为：网站 **16项**、静力学 **64项**、工作空间 **17项**、URDF转换 **3项**测试通过。运行器的一项测试可能包含多条断言；这些数字不是每次启动时自动检查的结果。
 
@@ -339,10 +391,10 @@ python -m unittest discover -s scripts/tests -p "test_*.py"
 
 | 现象 | 检查与处理 |
 | --- | --- |
-| `ENOENT ... armDesignTool\package.json` | 当前在仓库根目录；先 `cd E:\Robot\armDesignTool\srs-lab-source` 再启动 |
+| `ENOENT ... package.json` | 当前目录不正确；从工程根目录执行 `cd srs-lab-source` 再启动 |
 | `npm.ps1` 执行受限 | 改用 `npm.cmd start` / `npm.cmd test` |
 | `EADDRINUSE` | 旧服务未停止或端口被占用；停止自己的旧服务，或设置 `PORT` |
-| `configured=false` / `SKILL_NOT_CONFIGURED` | 在启动服务的同一终端设置正确的 `STATICS_SKILL_DIR`；不要沿用旧的 `E:\Robot\designTool` 路径 |
+| `configured=false` / `SKILL_NOT_CONFIGURED` | 在启动服务的同一终端设置正确的 `STATICS_SKILL_DIR`；可从工程根目录按快速启动示例自动获取本机路径 |
 | 静力学 `configured=true` 仍调用失败 | 该标志不检查实际目录；确认 `scripts/run.mjs` 存在，再独立运行 CLI |
 | `SKILL_EXECUTION_FAILED` | 查服务日志和CLI错误；静力学超时在日志中可见 `SKILL_TIMEOUT`，对外可能仍返回通用执行失败 |
 | `WORKSPACE_ASSET_UNAVAILABLE` / `WORKSPACE_EXECUTION_FAILED` | 检查工作空间目录、CLI和共享模块；必要时显式设置 `WORKSPACE_SKILL_DIR` |
@@ -367,3 +419,23 @@ python -m unittest discover -s scripts/tests -p "test_*.py"
 - [静力学Skill说明](arm-statics-parametric/SKILL.md)与[输入契约](arm-statics-parametric/references/input-contract.md)。
 - [工作空间Skill说明](arm-workspace-parametric/SKILL.md)与[输入契约](arm-workspace-parametric/references/input-contract.md)。
 - [Dexbot参考源码分析](arm-workspace-parametric/references/dexbot-source-review.md)：原工程与当前CPU实现的差异、模型来源及指纹。
+
+## P0/P1：公共参数模型与独立调用
+
+现有静力学、工作空间 CLI 保持兼容，另支持公共参数请求 `arm-analysis-request` 1.0。无需 URDF、网页或 Isaac Sim：几何级用于工作空间，增加质量/COM 后可做静力学；缺惯量不阻塞这两项分析。
+
+- 公共模型：`examples/models/single-link.json`、`two-link.json`、`seven-axis.json`。
+- 两个 Skill 各自 `assets/examples/design-*.json` 提供可直接运行的公共请求。
+- [公共契约、校验与分发说明](shared/README.md)。
+- [基线与本轮验证记录](docs/validation-baseline.md)。
+- [参考模型差异与来源](docs/reference-model-audit.md)。
+
+在仓库根目录可直接运行（PowerShell、Bash、Zsh 通用）：
+
+```shell
+node arm-statics-parametric/scripts/run.mjs --input arm-statics-parametric/assets/examples/design-two-link.json --output outputs/statics-result.json --report-dir outputs/statics-report
+node arm-workspace-parametric/scripts/run.mjs --input arm-workspace-parametric/assets/examples/design-two-link.json --output outputs/workspace-result.json --report-dir outputs/workspace-report
+node --test shared/tests/*.test.mjs
+```
+
+单独分发 Skill 时，使用 `shared/scripts/package-skill.mjs` 打包并保留共享资源。网页下拉框、选择及输入控件已增加可见边框；更新后重启服务并强制刷新浏览器。

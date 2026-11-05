@@ -106,7 +106,8 @@ function setupWorkspaceScene(){
 function loadWorkspaceText(raw){
  workspaceInput=raw;
  try{
-  const input=window.WorkspaceClient.parseInput(raw);
+  const parsed=window.WorkspaceClient.parseInput(raw);
+  const input=parsed?.schema_name==='arm-analysis-request'?parsed.options:parsed;
   if(['joint_sampling','pose_reachability','dexterity_voxels'].includes(input.mode))workspaceMode=input.mode;
   if(input.mode==='dexterity_voxels')voxelSettings={voxel_size_m:input.dexterity?.voxel_size_m??.10,orientations_per_voxel:input.dexterity?.orientations_per_voxel??20};
  }catch{}

@@ -3,6 +3,12 @@ export async function applyInstallationToText(text, installation) {
   const {parseRequestText}=await import('./skill-input-text.mjs');
   const input=parseRequestText(text);
   if(!input || typeof input!=='object' || Array.isArray(input))throw new Error('Skill 输入必须是 JSON 对象');
+  if(input.schema_name==='arm-analysis-request'){
+    if(!input.design_model || typeof input.design_model!=='object')throw new Error('公共请求缺少 design_model');
+    input.design_model.gravity_world_m_s2=structuredClone(installation.gravity_world_m_s2);
+    input.design_model.base_in_world={xyz_m:input.design_model.base_in_world?.xyz_m??[0,0,0],rpy_rad:structuredClone(installation.base_orientation_in_world.rpy_rad)};
+    return JSON.stringify(input,null,2);
+  }
   delete input.gravity_m_s2;
   input.installation=structuredClone(installation);
   return JSON.stringify(input,null,2);

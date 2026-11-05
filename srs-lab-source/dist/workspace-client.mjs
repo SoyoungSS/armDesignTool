@@ -11,11 +11,13 @@ export function fromWebConfig(config,model,installation,mode='joint_sampling'){
   return request;
 }
 export function asDexterityInput(input,settings){
+  if(input?.schema_name==='arm-analysis-request')return {...input,options:asDexterityInput(input.options,settings)};
   const {sampling,reachability,dexterity,...request}=input;
   const {time_budget_s,...options}=dexterity??{};
   return {...request,mode:'dexterity_voxels',dexterity:{seed:sampling?.seed??reachability?.seed??42,...options,...settings}};
 }
 export function estimateDexterity(request){
+  if(request?.schema_name==='arm-analysis-request')request={...request.options,model:request.design_model};
   const plan=voxelPlan(request.model,request.dexterity);
   // Full FR3 web run: 81,040 checks in 189.263 s. Other models and IK settings can differ.
   return {centers:plan.cells.length,checks:plan.checks,seconds:plan.checks*.00234,

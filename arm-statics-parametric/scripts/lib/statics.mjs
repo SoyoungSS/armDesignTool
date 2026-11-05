@@ -1,3 +1,4 @@
+import {isDesignRequest,toStaticsRequest} from '../../../shared/model/adapters.mjs';
 /* Shared browser/Node deterministic static-load kernel. No runtime dependencies. */
 export const ENGINE_VERSION = '1.1.0';
 export class InputError extends Error {
@@ -112,6 +113,7 @@ function rawFinite(v,p='$',seen=new Set(),depth=0) {
   }
 }
 export function normalizeInput(input) {
+  if(isDesignRequest(input))input=toStaticsRequest(input);
   rawFinite(input);const w=[];
   obj(input,'$',['schema_version','input_mode','model','simple','gravity_m_s2','installation','payload','attachments','wrenches','poses','search','drives','design_factor','metadata'],['schema_version','input_mode','payload']);
   if(input.schema_version!=='1.0')fail('schema_version','expected 1.0');
@@ -168,6 +170,7 @@ export function normalizeInput(input) {
 }
 
 export function toStandardInput(input) {
+  if(isDesignRequest(input))input=toStaticsRequest(input);
   const n=normalizeInput(input),names=n.model.joints.filter(j=>j.type!=='fixed').map(j=>j.name);
   const out={schema_version:'1.0',input_mode:'standard',model:n.model,gravity_m_s2:n.gravity_m_s2,payload:n.payload,attachments:n.attachments,wrenches:n.wrenches,poses:n.poses.map(p=>({name:p.name,q:Object.fromEntries(names.map((name,i)=>[name,p.q[i]]))})),drives:n.drives,design_factor:n.design_factor,metadata:{...input.metadata,normalization_assumptions:n.warnings}};
   if(n.search)out.search=n.search;
@@ -283,6 +286,7 @@ export function analyze(input) {
   });
   const normalized_input={...n};
   const result={schema_version:'1.0',engine_version:ENGINE_VERSION,input_sha256:sha256(canonicalJSON(input)),normalized_sha256:sha256(canonicalJSON(n)),input_snapshot:JSON.parse(JSON.stringify(input)),normalized_input,joint_names:active.map(j=>j.name),poses,search,summary,scope:{global_optimum_proven:false,collision_checked:false,thermal_checked:false,scope:search?'provided_poses_and_searched_joint_limits':'provided_poses_only'},warnings:n.warnings};
+  if(isDesignRequest(input)){result.design_model_sha256=sha256(canonicalJSON(input.design_model));result.design_model_info=toStaticsRequest(input).metadata.design_model;}
   // Return JSON-native data, including identical signed-zero/prototype behavior
   // for direct calls, Worker structured-clone and serialized HTTP/CLI outputs.
   return JSON.parse(JSON.stringify(result));

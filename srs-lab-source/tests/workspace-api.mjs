@@ -13,11 +13,17 @@ const E=createRequire(import.meta.url)('../dist/engine.js');
 const close=(a,b)=>assert.ok(Math.abs(a-b)<1e-9,`${a} != ${b}`);
 const root=new URL('../../arm-workspace-parametric/',import.meta.url);
 const dir=await mkdtemp(join(tmpdir(),'workspace-client-test-'));
-for(const name of ['kinematics','exports','input-text','voxel-grid'])await writeFile(join(dir,`workspace-${name}.mjs`),await readFile(new URL(`scripts/lib/${name}.mjs`,root)));
+for(const name of ['kinematics','exports','input-text','voxel-grid'])await writeFile(join(dir,`workspace-${name}.mjs`),await readFile(name==='kinematics'?new URL('../../shared/kinematics/serial.mjs',import.meta.url):new URL(`scripts/lib/${name}.mjs`,root)));
 await writeFile(join(dir,'workspace-client.mjs'),await readFile(new URL('../dist/workspace-client.mjs',import.meta.url)));
 const client=await import(pathToFileURL(join(dir,'workspace-client.mjs')));
 
 try{
+  await test('common requests retain model and provenance when switching voxel mode',async()=>{
+    const input=JSON.parse(await readFile(new URL('../../arm-workspace-parametric/assets/examples/design-single-link.json',import.meta.url),'utf8'));
+    const next=client.asDexterityInput(input,{voxel_size_m:.5,orientations_per_voxel:2});
+    assert.equal(next.options.mode,'dexterity_voxels');assert.deepEqual(next.design_model,input.design_model);assert.equal(next.options.sampling,undefined);
+    assert.ok(client.estimateDexterity(next).centers>0);
+  });
   await test('workspace client maps all web templates/custom axes and installation to identical FK; replays q',()=>{
     for(const variant of E.configurations()){
       const c=E.defaults(variant.id);c.installation={gravity_world_m_s2:[0,0,-9.8],base_orientation_in_world:{rpy_rad:[.3,-.4,.8]}};c.samples=100;
@@ -44,7 +50,7 @@ try{
     await test('workspace server health/assets work independently of statics env configuration',async()=>{
       assert.equal((await fetch(url+'/api/workspace/health')).status,200);
       assert.equal((await fetch(url+'/api/statics/health')).status,503);
-      for(const asset of ['/workspace-client.mjs','/workspace-scene.js','/workspace-kinematics.mjs','/workspace-exports.mjs','/workspace-input-text.mjs','/workspace-voxel-grid.mjs','/workspace-example.jsonc','/workspace-reachability.jsonc','/workspace-classification.jsonc','/workspace-dexbot-right.json','/workspace-dexbot-left.json'])assert.equal((await fetch(url+asset)).status,200,asset);
+      for(const asset of ['/shared/kinematics/serial.mjs','/workspace-client.mjs','/workspace-scene.js','/workspace-kinematics.mjs','/workspace-exports.mjs','/workspace-input-text.mjs','/workspace-voxel-grid.mjs','/workspace-example.jsonc','/workspace-reachability.jsonc','/workspace-classification.jsonc','/workspace-dexbot-right.json','/workspace-dexbot-left.json'])assert.equal((await fetch(url+asset)).status,200,asset);
       assert.equal((await fetch(url+'/workspace-../../server/index.mjs')).status,404);
     });
     await test('workspace real CLI result and provenance equal direct analysis for FK and IK',async()=>{

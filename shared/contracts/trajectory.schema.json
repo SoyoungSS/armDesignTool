@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schema_name": {
+      "const": "arm-trajectory"
+    },
+    "schema_version": {
+      "const": "1.0"
+    },
+    "joint_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 2048
+      },
+      "minItems": 1,
+      "maxItems": 64
+    },
+    "joint_types": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "revolute",
+          "prismatic"
+        ]
+      },
+      "minItems": 1,
+      "maxItems": 64
+    },
+    "samples": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "time_s": {
+            "type": "number",
+            "minimum": 0
+          },
+          "q": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 1,
+            "maxItems": 64
+          },
+          "dq": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 1,
+            "maxItems": 64
+          },
+          "ddq": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 1,
+            "maxItems": 64
+          },
+          "phase_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048
+          }
+        },
+        "required": [
+          "time_s",
+          "q",
+          "dq",
+          "ddq",
+          "phase_id"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "maxItems": 1000000
+    },
+    "provenance": {
+      "type": "object",
+      "properties": {
+        "source": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "assumptions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048
+          },
+          "minItems": 0,
+          "maxItems": 500
+        }
+      },
+      "required": [
+        "source",
+        "assumptions"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schema_name",
+    "schema_version",
+    "joint_ids",
+    "joint_types",
+    "samples",
+    "provenance"
+  ],
+  "additionalProperties": false
+}

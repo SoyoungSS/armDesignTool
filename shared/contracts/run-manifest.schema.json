@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schema_name": {
+      "const": "arm-run-manifest"
+    },
+    "schema_version": {
+      "const": "1.0"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
+    },
+    "skill": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
+    },
+    "engine_version": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
+    },
+    "code_revision": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
+    },
+    "source_backend": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
+    },
+    "status": {
+      "enum": [
+        "completed",
+        "failed",
+        "cancelled",
+        "partial"
+      ]
+    },
+    "input_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "model_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 2048
+      },
+      "minItems": 0,
+      "maxItems": 1000000
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "required": [
+          "path",
+          "sha256"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0,
+      "maxItems": 1000000
+    }
+  },
+  "required": [
+    "schema_name",
+    "schema_version",
+    "run_id",
+    "skill",
+    "engine_version",
+    "code_revision",
+    "source_backend",
+    "status",
+    "input_sha256",
+    "model_sha256",
+    "assumptions",
+    "artifacts"
+  ],
+  "additionalProperties": false
+}

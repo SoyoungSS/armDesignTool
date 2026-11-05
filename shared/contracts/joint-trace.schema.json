@@ -1,0 +1,183 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schema_name": {
+      "const": "arm-joint-trace"
+    },
+    "schema_version": {
+      "const": "1.0"
+    },
+    "joint_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 2048
+      },
+      "minItems": 1,
+      "maxItems": 64
+    },
+    "samples": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "time_s": {
+            "type": "number",
+            "minimum": 0
+          },
+          "joint_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048
+          },
+          "phase_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048
+          },
+          "q": {
+            "type": "number"
+          },
+          "dq": {
+            "type": "number"
+          },
+          "ddq": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "effort": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "effort_semantics": {
+            "enum": [
+              "inverse_dynamics",
+              "drive_output",
+              "solver_projected",
+              "unavailable"
+            ]
+          },
+          "effort_unit": {
+            "enum": [
+              "Nm",
+              "N"
+            ]
+          },
+          "interface_wrench": {
+            "anyOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "force_N": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 3,
+                    "maxItems": 3
+                  },
+                  "moment_Nm": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 3,
+                    "maxItems": 3
+                  },
+                  "frame": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2048
+                  },
+                  "point_m": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 3,
+                    "maxItems": 3
+                  }
+                },
+                "required": [
+                  "force_N",
+                  "moment_Nm",
+                  "frame",
+                  "point_m"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          },
+          "quality_flags": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048
+            },
+            "minItems": 0,
+            "maxItems": 1000000
+          }
+        },
+        "required": [
+          "time_s",
+          "joint_id",
+          "phase_id",
+          "q",
+          "dq",
+          "ddq",
+          "effort",
+          "effort_semantics",
+          "effort_unit",
+          "interface_wrench",
+          "quality_flags"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "maxItems": 1000000
+    },
+    "provenance": {
+      "type": "object",
+      "properties": {
+        "source": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "assumptions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048
+          },
+          "minItems": 0,
+          "maxItems": 500
+        }
+      },
+      "required": [
+        "source",
+        "assumptions"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schema_name",
+    "schema_version",
+    "joint_ids",
+    "samples",
+    "provenance"
+  ],
+  "additionalProperties": false
+}

@@ -51,6 +51,7 @@ test('HTTP Worker interface equals direct engine and rejects invalid requests',a
     assert.equal((await fetch(url+'api/statics',{method:'POST',body:'{}'})).status,415);
     assert.equal((await fetch(url,{headers:{Origin:'https://unrelated.example'}})).status,403);
     assert.equal((await fetch(url)).status,200);assert.equal((await fetch(url+'web/worker.mjs')).headers.get('content-type'),'text/javascript; charset=utf-8');
+    for(const resource of ['shared/model/adapters.mjs','shared/model/design-model.mjs','shared/contracts/validate.mjs','shared/contracts/schemas.mjs'])assert.equal((await fetch(url+resource)).status,200,resource);
     assert.equal((await fetch(url+'api/statics',{method:'POST',headers:{'Content-Type':'application/json'},body:' '.repeat(1024*1024+1)})).status,413);
   }finally{proc.kill('SIGTERM');}
 });

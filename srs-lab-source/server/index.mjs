@@ -61,6 +61,10 @@ function execute(skillDir, input, output, reportDir, timeoutMs=TIMEOUT_MS, signa
 const server = http.createServer(async (req, res) => {
   const requestId = randomUUID(), url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   if (req.method === 'GET' && !url.pathname.startsWith('/api/')) {
+    // Fixed allowlist; load the same bundled geometry version as the selected workspace Skill.
+    if(url.pathname==='/shared/kinematics/serial.mjs'){
+      try{const data=await readFile(path.resolve(WORKSPACE_DIR,'../shared/kinematics/serial.mjs'));res.writeHead(200,{'content-type':'text/javascript; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(data);}catch{respond(res,503,{ok:false,error:'SHARED_GEOMETRY_UNAVAILABLE'},requestId);}return;
+    }
     const workspaceAssets=new Map([['/workspace-kinematics.mjs','scripts/lib/kinematics.mjs'],['/workspace-exports.mjs','scripts/lib/exports.mjs'],['/workspace-input-text.mjs','scripts/lib/input-text.mjs'],['/workspace-example.jsonc','assets/examples/worksheet-workspace.jsonc'],['/workspace-reachability.jsonc','assets/examples/worksheet-reachability.jsonc'],['/workspace-classification.jsonc','assets/examples/worksheet-classification.jsonc'],['/workspace-dexbot-right.json','assets/examples/dexbot-right-arm.json'],['/workspace-dexbot-left.json','assets/examples/dexbot-left-arm.json']]);
     workspaceAssets.set('/workspace-voxel-grid.mjs','scripts/lib/voxel-grid.mjs');
     if(workspaceAssets.has(url.pathname)){
@@ -102,7 +106,8 @@ const server = http.createServer(async (req, res) => {
       try{
         const parserURL=pathToFileURL(path.join(WORKSPACE_DIR,'scripts/lib/input-text.mjs'));
         const {parseRequestText}=await import(parserURL.href);
-        mode=parseRequestText(raw)?.mode;
+        const parsed=parseRequestText(raw);
+        mode=parsed?.schema_name==='arm-analysis-request'?parsed.options?.mode:parsed?.mode;
       }catch{/* Let the CLI report input or configuration errors. */}
       workDir=await mkdtemp(path.join(tmpdir(),'arm-workspace-'));
       const input=path.join(workDir,'request.jsonc'),output=path.join(workDir,'workspace_result.json');

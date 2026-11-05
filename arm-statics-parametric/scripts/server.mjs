@@ -32,6 +32,11 @@ const server=http.createServer(async(req,res)=>{
   if(req.method!=='GET'){json(res,405,{ok:false,error:{code:'METHOD_NOT_ALLOWED'}});return;}
   try{
     const pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname);
+    const sharedFiles=new Set(['/shared/model/adapters.mjs','/shared/model/design-model.mjs','/shared/contracts/validate.mjs','/shared/contracts/schemas.mjs']);
+    if(sharedFiles.has(pathname)){
+      const data=await readFile(resolve(root,'..',pathname.slice(1)));
+      res.writeHead(200,{'Content-Type':'text/javascript; charset=utf-8','Cache-Control':'no-store'});res.end(data);return;
+    }
     if(pathname==='/'){res.writeHead(302,{Location:'/assets/web/index.html'});res.end();return;}
     // Preserve existing integration URLs while using standard Skill directories.
     const aliases=[['/web/','/assets/web/'],['/engine/','/scripts/lib/'],['/examples/','/assets/examples/'],['/schemas/','/references/schemas/']];

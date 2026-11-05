@@ -27,3 +27,10 @@ node --test scripts/tests/*.test.mjs
 CLI导出JSON、点云CSV、Markdown报告及XY/XZ/YZ投影SVG。网页后端调用相同CLI；失败不得显示旧网页点云作为新Skill结果。新输入可参考 `dexbot-right-arm.json`、`dexbot-left-arm.json` 和 `worksheet-reachability.jsonc`。
 
 三类空间及未解点的带注释演示见 `assets/examples/worksheet-classification.jsonc`。分类颜色、筛选、JSON/CSV字段与报告使用统一定义。
+
+
+## 公共参数模型与独立分发（P0/P1）
+
+CLI 与 `analyze(input)` 另外接受 `schema_name: "arm-analysis-request"`、`schema_version: "1.0"` 的公共请求，design_model 内嵌参数模型，options 保留本 Skill 的分析设置。无需网页、CAD 或 URDF。完整示例为 `assets/examples/design-single-link.json`、`design-two-link.json`、`design-seven-axis.json`；读取 [公共输入说明](references/design-model.md) 后再构造这种请求。旧格式继续支持。
+
+独立执行仍使用本 Skill 的 `scripts/run.mjs --input ... --output ... --report-dir ...`。共享代码位于同包根的 `shared/`，单独分发时使用仓库 `shared/scripts/package-skill.mjs` 生成 bundle；保留 skill 与 shared 同级结构，不依赖网页源码或原始仓库路径。

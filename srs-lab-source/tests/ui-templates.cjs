@@ -70,7 +70,7 @@ assert.ok(vm.runInContext('skillMessage',sandbox).includes('过期'));
 // Exercise the independent workspace page with actual client geometry/exports and real result data.
 const os=require('node:os'),path=require('node:path'),url=require('node:url'),workspaceTemp=fs.mkdtempSync(path.join(os.tmpdir(),'workspace-ui-test-'));
 try{
- for(const name of ['kinematics','exports','input-text','voxel-grid'])fs.copyFileSync(path.resolve('../arm-workspace-parametric/scripts/lib/'+name+'.mjs'),path.join(workspaceTemp,'workspace-'+name+'.mjs'));
+ for(const name of ['kinematics','exports','input-text','voxel-grid'])fs.copyFileSync(path.resolve(name==='kinematics'?'../shared/kinematics/serial.mjs':'../arm-workspace-parametric/scripts/lib/'+name+'.mjs'),path.join(workspaceTemp,'workspace-'+name+'.mjs'));
  fs.copyFileSync(path.resolve('dist/workspace-client.mjs'),path.join(workspaceTemp,'workspace-client.mjs'));
  const workspaceClient=await import(url.pathToFileURL(path.join(workspaceTemp,'workspace-client.mjs')).href);
  const {analyze}=await import(url.pathToFileURL(path.resolve('../arm-workspace-parametric/scripts/lib/workspace.mjs')).href);

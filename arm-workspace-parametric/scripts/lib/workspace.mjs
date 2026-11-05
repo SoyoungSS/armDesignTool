@@ -1,3 +1,4 @@
+import {isDesignRequest,toWorkspaceRequest} from '../../../shared/model/adapters.mjs';
 import {createHash} from 'node:crypto';
 import {add,sub,scale,dot,norm,cross,eye,mv,mm,rpy,forward,jacobian,orientationError,solveLinear} from './kinematics.mjs';
 import {analyzeDexterity} from './dexterity.mjs';
@@ -23,6 +24,7 @@ function ikOptions(raw,path,defaults={attempts:4,max_iterations:120}){
   return ik;
 }
 export function normalizeInput(input){
+  if(isDesignRequest(input))input=toWorkspaceRequest(input);
   jsonData(input);object(input,'$',['schema_version','mode','model','base_in_world','sampling','reachability','dexterity','sections','metadata'],['schema_version','mode','model']);
   if(input.schema_version!=='1.0')fail('schema_version','expected 1.0');
   const parameters={joint_sampling:'sampling',pose_reachability:'reachability',dexterity_voxels:'dexterity'};
@@ -90,6 +92,7 @@ export function normalizeInput(input){
     warnings.push('Voxel scores measure the tested orientation set at each cell center. Zero solutions do not prove unreachability.');
   }
   if(input.metadata!==undefined&&(!input.metadata||Array.isArray(input.metadata)||typeof input.metadata!=='object'))fail('metadata','object required');
+  if(input.metadata?.design_model&&Array.isArray(input.metadata.normalization_assumptions))warnings.push(...input.metadata.normalization_assumptions);
   warnings.push('No collision, self-collision, load/torque, thermal or dual-arm coordination checks.','Samples do not certify a complete workspace boundary or continuous orientation coverage.');
   return {schema_version:'1.0',mode:input.mode,model,base_in_world,sampling,reachability,sections,warnings,...(dexterity?{dexterity}:{})};
 }
@@ -196,5 +199,6 @@ export function analyze(input){
   summary.distinct_orientation_count=orientationCount;
   summary.sampled_dexterous_bounds_base_m=bounds(points.filter(p=>p.category==='sampled_dexterous').map(p=>p.position_base_m));
   const result={schema_version:'1.0',engine_version:ENGINE_VERSION,mode:n.mode,input_sha256:hash(input),model_sha256:hash({model:n.model,base_in_world:n.base_in_world}),input_snapshot:input,normalized_input:n,joint_names:active.map(j=>j.name),points,summary,sections,geometric_reach_bound:reachBound,scope:{collision_checked:false,load_checked:false,complete_boundary_proven:false,orientation_checked:!!(n.reachability?.orientations_rpy_rad||dexterityDetail),dexterous_workspace_proven:false,dexterity_evaluated:orientationCount>=2,ik_failure_proves_unreachable:false},warnings:n.warnings,...(dexterityDetail?{dexterity:dexterityDetail}:{})};
+  if(isDesignRequest(input)){result.design_model_sha256=hash(input.design_model);result.design_model_info=toWorkspaceRequest(input).metadata.design_model;}
   return JSON.parse(JSON.stringify(result));
 }

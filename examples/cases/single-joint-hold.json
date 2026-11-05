@@ -1,0 +1,20 @@
+{
+  "schema_name": "arm-case",
+  "schema_version": "1.0",
+  "name": "single_joint_hold",
+  "phases": [
+    {
+      "id": "hold",
+      "kind": "hold",
+      "duration_s": 5,
+      "q_target": [
+        0
+      ]
+    }
+  ],
+  "repetitions": 1,
+  "provenance": {
+    "source": "P0 minimal declarative hold; no trajectory execution yet",
+    "assumptions": []
+  }
+}
