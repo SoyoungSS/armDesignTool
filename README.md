@@ -1,18 +1,20 @@
 # RobotArm DesignTool — 机械臂设计、静力学校核与工作空间分析工作台
 
-本工程将 **SRS Lab 网页工作台** 与两个独立计算 Skill 放在同一仓库中：
+本工程将 **SRS Lab 网页工作台** 与三个独立计算 Skill 放在同一仓库中：
 
 - **`arm-statics-parametric`**：保持载荷、关节范围内大载荷姿态搜索及静态驱动需求，支持任意基座安装朝向和重力分量。
 - **`arm-workspace-parametric`**：关节采样点云、目标位置/姿态 IK、空间与采样灵巧空间分类、几何不可达与待定点分析。
+- **`arm-kinematics-dynamics`**：第一阶段已支持关节轨迹生成/导入、TCP 状态、运动约束和奇异性分析，尚不计算动态载荷。
 
-两个 Skill 均可通过 CLI 独立运行；网页后端启动真实 CLI，返回计算结果、输入哈希和执行来源。计算不依赖大模型在线推理，也不需要 CUDA。
+三个 Skill 均可通过 CLI 独立运行；网页后端启动真实 CLI，返回计算结果、输入哈希和执行来源。计算不依赖大模型在线推理，也不需要 CUDA。
 
 ## 1. 功能与计算来源
 
 | 功能 | 当前实现 | 使用边界 |
 | --- | --- | --- |
-| 规格与模型 | 七轴模板、逐关节轴向、几何、质量、限位、运动参数及安装姿态编辑 | 网页固定七个旋转关节；独立 Skill 支持更通用的串联模型 |
+| 规格与模型 | 选型表七轴主模型、逐关节轴向、几何、质量、限位、运动参数及安装姿态编辑 | 网页固定七个旋转关节；独立 Skill 支持更通用的串联模型 |
 | 运动学 | 浏览器内 FK、6×7 雅可比、位置 IK、交互三维视图 | 网页运动学页的位置 IK 不约束末端朝向 |
+| 轨迹与奇异性 | 独立轨迹 Skill，经 `POST /api/motion` 调用 | 关节轨迹、运动状态、奇异性与可选刚体动态载荷 |
 | 静力学分析 | 独立静力学 Skill，经 `POST /api/statics` 调用 | 已检查载荷不等于已证明的全局最坏载荷 |
 | 可达空间 | 独立工作空间 Skill，经 `POST /api/workspace` 调用 | 区分位置、离散姿态成功率及未解点，不检查碰撞或带载 |
 | 动力学、概念选型 | 保留浏览器内核的示例工况与需求计算 | 使用旧内核的重力估算，尚未自动消费静力学 Skill 结果；未匹配真实产品 |
@@ -20,7 +22,7 @@
 
 **顶部“运行全流程”只运行浏览器概念内核，不自动执行两个独立 Skill。** 静力学页和可达空间页需分别点击运行；重新运行网页概念计算会使旧 Skill 结果失效。
 
-当前版本标识：静力学内核 **1.1.0**、工作空间内核 **1.1.0**、浏览器概念内核 **1.4.0**。网站 `package.json` 仍保留历史名称 `srs-lab-v10` / `10.0.0`，不代表两个 Skill 的版本。
+当前版本标识：静力学内核 **1.1.0**、工作空间内核 **1.2.0**、浏览器概念内核 **1.4.0**。网站 `package.json` 仍保留历史名称 `srs-lab-v10` / `10.0.0`，不代表两个 Skill 的版本。
 
 ## 2. 快速启动
 
@@ -90,6 +92,8 @@ Skill bridge listening on 8787; configured=true
 
 保持终端打开。停止服务按 **Ctrl+C**。更新代码后应停止旧服务，在 `srs-lab-source` 中重新启动，再强制刷新网页（Ctrl+Shift+R）。新的终端窗口需重新设置环境变量；可以回到工程根目录重复上述启动步骤。
 
+轨迹入口：[轨迹与奇异性](http://localhost:8787/#motion)。[第一阶段使用说明与验证](docs/motion-stage1.md)。
+
 ## 3. 整体架构与目录
 
 ```text
@@ -110,7 +114,7 @@ armDesignTool/
 │  ├─ SKILL.md                           静力学 Skill 入口说明
 │  ├─ scripts/run.mjs                    独立 CLI
 │  ├─ scripts/lib/statics.mjs             静力学、安装重力、搜索及判定
-│  ├─ assets/examples/                   普通输入、安装姿态、左右臂等样例
+│  ├─ assets/examples/                   选型表单臂及安装工况
 │  └─ references/                        坐标契约、Schema、集成与验证说明
 ├─ arm-workspace-parametric/
 │  ├─ SKILL.md                           工作空间 Skill 入口说明
@@ -119,7 +123,7 @@ armDesignTool/
 │  ├─ scripts/lib/kinematics.mjs          计算与网页预览共用的几何 FK
 │  ├─ scripts/lib/workspace.mjs           采样、IK、分类与统计
 │  ├─ scripts/lib/exports.mjs             分类颜色、CSV、报告及 SVG
-│  ├─ assets/examples/                   选型表、分类演示、Dexbot 左右臂
+│  ├─ assets/examples/                   选型表单臂、FR3 及分析工况
 │  └─ references/                        输入契约、参考源码分析与来源哈希
 └─ srs-lab-source/
    ├─ package.json                       网站启动与测试命令
@@ -190,20 +194,21 @@ J1 的局部轴向与整臂安装朝向独立，不能通过 J1 轴向推断重�
 
 ## 5. 工作空间：位置、灵巧空间与不可达点
 
-### 两种分析模式
+### 三种分析模式
 
 | 模式 | 计算方法 | 能回答的问题 |
 | --- | --- | --- |
 | `joint_sampling` | 限位内随机或网格关节姿态 → FK → 末端点云 | 哪些位置已由采样关节姿态实际到达 |
 | `pose_reachability` | 指定点/分层球体目标 → 独立位置 IK → 可选的多个朝向 IK | 位置是否找到解、哪些采样朝向找到解、哪些点几何不可达或仍待定 |
+| `dexterity_voxels` | 规则体素中心 × 共用采样朝向 → IK | 每点采样朝向成功率及三维/二维剖面 |
 
 网页工作空间输入可以由当前模型自动生成，无需质量、质心和重力。独立 Skill 支持旋转、移动及固定关节串联几何；前端预览与计算使用同一份几何 FK，不复制采样或 IK 求解器。
 
 ### 网页操作
 
 1. 打开[选型表可达空间页面](http://localhost:8787/?model=worksheet#workspace)。
-2. 选择“关节采样 / FK 点云”或“空间 / 灵巧 / 不可达分类（IK）”，点击“从当前网页模型生成输入”。几何、轴向、限位、肩高与安装角一并转换。
-3. 或在“参考模型”中选择示例，再点击“载入示例”；也可上传 JSON/JSONC。初次查看分类建议选 **“选型表 / 空间与灵巧分类”**。
+2. 选择“关节采样 / FK 点云”、“空间 / 灵巧 / 不可达分类（IK）”或“体素灵巧空间（IK）”，点击“从当前网页模型生成输入”。几何、轴向、限位、肩高与安装角一并转换。
+3. 或在“参考模型”中选择示例，再点击“载入示例”；也可上传 JSON/JSONC。也可从 CLI 使用选型表分类请求。
 4. 点击“运行工作空间 Skill”，查看分类数量、世界点云、基座系投影和剖面。
 5. 使用“显示分类”筛选点集；输入点编号、选择成功解，点击“显示所选姿态”。
 6. 只有实际关节名称、几何、轴向、限位和安装变换均与当前网页模型一致时，才能“应用到网页七轴模型”。异模型仍可在独立视图中预览，不会强行套用 SRS 外形。
@@ -238,17 +243,18 @@ J1 的局部轴向与整臂安装朝向独立，不能通过 J1 轴向推断重�
 
 两个 Skill 的请求格式不同；虽然都使用 `schema_version="1.0"`，**静力学请求不能直接提交给工作空间 Skill，反之亦然**。
 
-| 用途 | 示例 |
-| --- | --- |
-| 静力学：七轴选型表、基座重力输入 | [worksheet-minimal.jsonc](arm-statics-parametric/assets/examples/worksheet-minimal.jsonc) |
-| 静力学：世界重力＋安装角，带详细注释 | [worksheet-installation.jsonc](arm-statics-parametric/assets/examples/worksheet-installation.jsonc) |
-| 静力学：两杆侧装 | [side-mounted-two-link.json](arm-statics-parametric/assets/examples/side-mounted-two-link.json) |
-| 工作空间：选型表 FK 点云 | [worksheet-workspace.jsonc](arm-workspace-parametric/assets/examples/worksheet-workspace.jsonc) |
-| 工作空间：球体位置/姿态 IK | [worksheet-reachability.jsonc](arm-workspace-parametric/assets/examples/worksheet-reachability.jsonc) |
-| 工作空间：空间/灵巧/不可达分类演示 | [worksheet-classification.jsonc](arm-workspace-parametric/assets/examples/worksheet-classification.jsonc) |
-| 工作空间：原 Dexbot URDF 左右臂快照 | [右臂](arm-workspace-parametric/assets/examples/dexbot-right-arm.json)、[左臂](arm-workspace-parametric/assets/examples/dexbot-left-arm.json) |
+当前仅提供 **选型表七轴单臂** 和 **Franka FR3** 两个公开模型，详见[当前示例目录与迁移说明](docs/examples-catalog.md)。各文件是模型的输入格式或分析工况，不是不同机械臂。
 
-分类演示有4个目标：目标0为两个采样朝向全通过，目标1为位置可达但指定朝向均未解，目标2超出0.635m几何外界，目标3在界内暂未找到位置解，分别呈绿、蓝、红、灰色。
+| 模型 | 参数与能力 | 示例入口 |
+| --- | --- | --- |
+| 选型表七轴单臂 | 本体 3.612 kg、负载 3 kg；支持网页主模型、静力学和工作空间 | [公共参数模型](examples/models/seven-axis.json)、[静力学](arm-statics-parametric/assets/examples/worksheet-minimal.jsonc)、[安装工况](arm-statics-parametric/assets/examples/worksheet-installation.jsonc)、[工作空间](arm-workspace-parametric/assets/examples/worksheet-workspace.jsonc) |
+| Franka FR3 | 七个旋转关节＋末端固定关节；只提供几何和限位，末端为 fr3_link8 法兰 | [原始工作空间请求](arm-workspace-parametric/assets/examples/franka-fr3.workspace.json)、[公共几何模型](examples/models/franka-fr3.json) |
+
+网页默认使用选型表单臂。在“可达空间 → 参考模型”中选择 **Franka FR3（仅几何）**，点击“载入示例”，再运行分析；支持 FK、位置/姿态 IK 和体素灵巧空间，切换分析方式会保留所选模型。FR3 用独立杆链视图显示，不套用主网页的选型表几何，也不能将其关节解强行应用到主模型。
+
+FR3 示例完整保留提供文件中的参数和 30,000 点 FK 采样设置；未补造质量、质心或惯量，暂不能运行静力学和动力学。[来源与文件指纹](arm-workspace-parametric/references/franka-fr3-source.json)。
+
+选型表的 IK/分类请求仍保留在同一示例目录，可用于更细的工况演示；单杆、两杆、移动关节、历史 CAD/Dexbot 左右臂已移入测试夹具，不再列入公开示例或网页选择项。旧浏览器构型内核只为历史配置兼容保留。
 
 统一计算单位为 m、kg、rad、N、N·m；网页部分字段显示 mm、度，输入转换由界面负责。JSONC 支持 `//`、`/* */` 注释和 UTF-8 BOM，不支持尾逗号。
 
@@ -299,6 +305,7 @@ Windows 中若 Python 命令为 `python` 或 `py -3`，请替换上面的 `pytho
 | --- | --- |
 | `STATICS_SKILL_DIR` | 静力学 Skill 目录，必须显式设置 |
 | `WORKSPACE_SKILL_DIR` | 可选；默认定位同仓库 `arm-workspace-parametric` |
+| `MOTION_SKILL_DIR` | 可选；默认定位同仓库 arm-kinematics-dynamics |
 | `PORT` | 8787 |
 | `STATICS_TIMEOUT_MS` | 静力学 CLI 超时，默认120000ms |
 | `WORKSPACE_TIMEOUT_MS` | 工作空间 CLI 超时，默认120000ms |
@@ -424,7 +431,7 @@ node --test shared/tests/*.test.mjs
 
 现有静力学、工作空间 CLI 保持兼容，另支持公共参数请求 `arm-analysis-request` 1.0。无需 URDF、网页或 Isaac Sim：几何级用于工作空间，增加质量/COM 后可做静力学；缺惯量不阻塞这两项分析。
 
-- 公共模型：`examples/models/single-link.json`、`two-link.json`、`seven-axis.json`。
+- 公共模型：`examples/models/seven-axis.json`（选型表）、`examples/models/franka-fr3.json`（仅几何）。
 - 两个 Skill 各自 `assets/examples/design-*.json` 提供可直接运行的公共请求。
 - [公共契约、校验与分发说明](shared/README.md)。
 - [基线与本轮验证记录](docs/validation-baseline.md)。
@@ -433,9 +440,28 @@ node --test shared/tests/*.test.mjs
 在仓库根目录可直接运行（PowerShell、Bash、Zsh 通用）：
 
 ```shell
-node arm-statics-parametric/scripts/run.mjs --input arm-statics-parametric/assets/examples/design-two-link.json --output outputs/statics-result.json --report-dir outputs/statics-report
-node arm-workspace-parametric/scripts/run.mjs --input arm-workspace-parametric/assets/examples/design-two-link.json --output outputs/workspace-result.json --report-dir outputs/workspace-report
+node arm-statics-parametric/scripts/run.mjs --input arm-statics-parametric/assets/examples/design-seven-axis.json --output outputs/statics-result.json --report-dir outputs/statics-report
+node arm-workspace-parametric/scripts/run.mjs --input arm-workspace-parametric/assets/examples/design-seven-axis.json --output outputs/workspace-result.json --report-dir outputs/workspace-report
 node --test shared/tests/*.test.mjs
 ```
 
 单独分发 Skill 时，使用 `shared/scripts/package-skill.mjs` 打包并保留共享资源。网页下拉框、选择及输入控件已增加可见边框；更新后重启服务并强制刷新浏览器。
+
+
+## 轨迹与奇异性 Skill 第一阶段
+
+网页左侧进入“轨迹与奇异性”，载入选型表或 FR3 轨迹，运行后可播放、拖动时间游标、查看位置/速度/加速度和奇异事件。也可直接调用 CLI：
+
+```shell
+node arm-kinematics-dynamics/scripts/run.mjs --input arm-kinematics-dynamics/assets/examples/worksheet-motion.json --output outputs/motion-result.json --report-dir outputs/motion-report
+```
+
+“载入选型表奇异工况”用于观察风险区间。示例参数不代表厂家运动能力；可在“轨迹与奇异性”页载入选型表动力学演示，查看关节力矩、接口载荷及 RMS，并导出动态载荷 CSV。演示惯量采用明确的球体近似，实际设计应替换惯性参数。[使用说明与验证](docs/motion-stage1.md)、[Skill 入口](arm-kinematics-dynamics/SKILL.md)。
+
+### 网页生成关节模组规格表
+
+启动网站服务，打开「规格与模型」。从选型表模型开始修改，或导入已有 `arm-design-model` JSON。表单只需模型名、末端与安装、负载、各关节几何和运动体质量及质心。可下载公共模型 JSON 再导入复用。
+
+- 点击「运行三个 Skill 并生成规格表」，服务端用同一模型调用三个独立 CLI，完成后进入「关节模组选型」，可下载 CSV 或带计算来源的 JSON。
+- 点击「应用到三个 Skill」，可在「静力学分析」「可达空间」「轨迹与奇异性」逐页调整工况再运行。同一份模型的结果齐备后，规格表自动更新。调整工况时保留公共模型部分可维持结果关联。
+- 默认工况为限位中位附近的往返轨迹，工作空间用快速关节采样。缺少部件惯量时按半径 40 mm 的均匀实心球估算，附加负载按 50 mm 估算。用真实任务轨迹和质量属性复算后再开展详细选型。

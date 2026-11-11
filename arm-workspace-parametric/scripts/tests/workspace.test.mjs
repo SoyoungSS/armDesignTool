@@ -28,7 +28,7 @@ test('grid includes actual limit endpoints and named fixed joints without repeat
 
 test('Dexbot left/right URDF snapshots match 20 independent Python 4x4 FK references',async()=>{
   const references=JSON.parse(await readFile(join(root,'scripts/tests/fixtures/dexbot-fk-reference.json'),'utf8'));
-  const models=Object.fromEntries(await Promise.all(['left','right'].map(async side=>[side,(await example(`dexbot-${side}-arm.json`)).model])));
+  const models=Object.fromEntries(await Promise.all(['left','right'].map(async side=>[side,parseRequestText(await readFile(join(root,`scripts/tests/fixtures/dexbot-${side}-arm.json`),'utf8')).model])));
   for(const ref of references.poses){const actual=forward(models[ref.arm],ref.q);ref.position_m.forEach((v,k)=>close(v,actual.position_m[k]));ref.rotation.forEach((row,i)=>row.forEach((v,j)=>close(v,actual.rotation[i][j])));}
   close(forward(models.right,Array(7).fill(0)).position_m[1],-.17);close(forward(models.left,Array(7).fill(0)).position_m[2],-.6);
 });

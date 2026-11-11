@@ -1,0 +1,674 @@
+{
+  "units": "joint output",
+  "source_document": "纯旋转关节具身双臂平台设计方案文档 1.3 表 7–11、1.4 表 13–14",
+  "static_analysis": {
+    "input_sha256": "df7f466b1867f7e69e89f904889e98c54eba1dc5bd45ff06d722d31e35339de0",
+    "engine_version": "1.1.0",
+    "request": "statics.request.json",
+    "search": {
+      "samples": 4096,
+      "seed": 42,
+      "elite_count": 3,
+      "refine_sweeps": 12
+    },
+    "design_factor": 1
+  },
+  "cases": [
+    {
+      "id": "unloaded-transfer",
+      "name": "空载转位",
+      "repetitions": 30,
+      "duration_s": 4,
+      "input_sha256": "2c7d0b11098a5b665a4779f49da13a996235193cd2d4350e57be4841d5805de7",
+      "engine_version": "0.2.0",
+      "request": "../worksheet-duty-demo/unloaded-transfer.request.json",
+      "loads": "../worksheet-duty-demo/unloaded-transfer.loads.csv"
+    },
+    {
+      "id": "loaded-transfer",
+      "name": "带载搬运",
+      "repetitions": 20,
+      "duration_s": 6,
+      "input_sha256": "cd9dd2edc2d65651faad32984768a9aad8078a56a430a07284753ec328c58f0f",
+      "engine_version": "0.2.0",
+      "request": "../worksheet-duty-demo/loaded-transfer.request.json",
+      "loads": "../worksheet-duty-demo/loaded-transfer.loads.csv"
+    },
+    {
+      "id": "rated-reach-hold",
+      "name": "3 kg 伸臂保持",
+      "repetitions": 10,
+      "duration_s": 10,
+      "input_sha256": "5313cb92fca0bce3d617579b5760387a80873f46db2c57507c5808ac8094bf10",
+      "engine_version": "0.2.0",
+      "request": "../worksheet-duty-demo/rated-reach-hold.request.json",
+      "loads": "../worksheet-duty-demo/rated-reach-hold.loads.csv"
+    }
+  ],
+  "combined_duration_s": 340,
+  "axes": [
+    {
+      "id": "joint-1",
+      "name": "J1",
+      "range_deg": [
+        -90,
+        180
+      ],
+      "mass_target_kg": 0.961,
+      "design_target_speed_rpm": 23.8732414637843,
+      "design_acceleration_limit_rad_s2": 12.5,
+      "horizontal_hold_torque_Nm": 26.956526800000006,
+      "checked_static_torque_abs_Nm": 26.956526800000006,
+      "checked_static_signed_Nm": 26.956526800000006,
+      "checked_static_pose_rad": {
+        "source": "provided_pose",
+        "name": "horizontal-hold",
+        "q": {
+          "J1": 1.5707963267948966,
+          "J2": 0,
+          "J3": 0,
+          "J4": 0,
+          "J5": 0,
+          "J6": 0,
+          "J7": 0
+        }
+      },
+      "dynamic_peak": {
+        "case_id": "rated-reach-hold",
+        "time_s": 2.5,
+        "phase_id": "move_out",
+        "q_rad": [
+          1.5707963267948966,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "torque_Nm": 26.956526800000006,
+        "speed_rpm": 0
+      },
+      "speed_peak": {
+        "case_id": "rated-reach-hold",
+        "time_s": 1.25,
+        "phase_id": "move_out",
+        "q_rad": [
+          1.0603981633974482,
+          -0.225,
+          0.05,
+          0.675,
+          0,
+          0.1,
+          0
+        ],
+        "torque_Nm": 24.66956933168925,
+        "speed_rpm": 7.3109151584755905
+      },
+      "peak_90pct_window": {
+        "threshold_Nm": 24.260874120000008,
+        "start_s": 1.18705419624691,
+        "end_s": 7.812945803753091,
+        "duration_s": 6.625891607506181
+      },
+      "combined_rms_Nm": 15.167159474778726,
+      "interface_peaks": {
+        "axial_force_peak_abs_N": {
+          "value": 1.087294592887469,
+          "case_id": "rated-reach-hold"
+        },
+        "radial_force_peak_N": {
+          "value": 65.82440643693748,
+          "case_id": "rated-reach-hold"
+        },
+        "bending_moment_peak_Nm": {
+          "value": 8.246383541545415,
+          "case_id": "rated-reach-hold"
+        }
+      }
+    },
+    {
+      "id": "joint-2",
+      "name": "J2",
+      "range_deg": [
+        -90,
+        0
+      ],
+      "mass_target_kg": 0.485,
+      "design_target_speed_rpm": 47.7464829275686,
+      "design_acceleration_limit_rad_s2": 25,
+      "horizontal_hold_torque_Nm": 0,
+      "checked_static_torque_abs_Nm": 25.03538380000001,
+      "checked_static_signed_Nm": 25.03538380000001,
+      "checked_static_pose_rad": {
+        "source": "local_refinement",
+        "q": {
+          "J1": 3.141592653589793,
+          "J2": -1.5707963267948966,
+          "J3": 0,
+          "J4": 0,
+          "J5": 0,
+          "J6": 0,
+          "J7": 0
+        }
+      },
+      "dynamic_peak": {
+        "case_id": "rated-reach-hold",
+        "time_s": 0,
+        "phase_id": "move_out",
+        "q_rad": [
+          0.55,
+          -0.45,
+          0.1,
+          1.35,
+          0,
+          0.2,
+          0
+        ],
+        "torque_Nm": -7.030244187475378,
+        "speed_rpm": 0
+      },
+      "speed_peak": {
+        "case_id": "unloaded-transfer",
+        "time_s": 0.6,
+        "phase_id": "move_out",
+        "q_rad": [
+          0.75,
+          -0.6,
+          -0.24999999999999997,
+          1.625,
+          0.35,
+          -0.14999999999999997,
+          0.3
+        ],
+        "torque_Nm": -1.6105705265266947,
+        "speed_rpm": -4.4762327744595565
+      },
+      "peak_90pct_window": {
+        "threshold_Nm": 6.32721976872784,
+        "start_s": 0,
+        "end_s": 0.5377372441630388,
+        "duration_s": 0.5377372441630388
+      },
+      "combined_rms_Nm": 3.3175106709300466,
+      "interface_peaks": {
+        "axial_force_peak_abs_N": {
+          "value": 54.39979999999999,
+          "case_id": "rated-reach-hold"
+        },
+        "radial_force_peak_N": {
+          "value": 46.3771634951327,
+          "case_id": "rated-reach-hold"
+        },
+        "bending_moment_peak_Nm": {
+          "value": 25.035383800000005,
+          "case_id": "rated-reach-hold"
+        }
+      }
+    },
+    {
+      "id": "joint-3",
+      "name": "J3",
+      "range_deg": [
+        -135,
+        135
+      ],
+      "mass_target_kg": 0.485,
+      "design_target_speed_rpm": 47.7464829275686,
+      "design_acceleration_limit_rad_s2": 25,
+      "horizontal_hold_torque_Nm": 0,
+      "checked_static_torque_abs_Nm": 11.841642032503923,
+      "checked_static_signed_Nm": -11.841642032503923,
+      "checked_static_pose_rad": {
+        "source": "local_refinement",
+        "q": {
+          "J1": -1.5495123433629834,
+          "J2": -1.5707963267948966,
+          "J3": -1.5917043724646358,
+          "J4": 1.5713523937820806,
+          "J5": -2.3556192473968878,
+          "J6": -0.0007980686256187273,
+          "J7": 0.00030273919315979654
+        }
+      },
+      "dynamic_peak": {
+        "case_id": "rated-reach-hold",
+        "time_s": 0,
+        "phase_id": "move_out",
+        "q_rad": [
+          0.55,
+          -0.45,
+          0.1,
+          1.35,
+          0,
+          0.2,
+          0
+        ],
+        "torque_Nm": 3.5716133274020447,
+        "speed_rpm": 0
+      },
+      "speed_peak": {
+        "case_id": "unloaded-transfer",
+        "time_s": 0.6,
+        "phase_id": "move_out",
+        "q_rad": [
+          0.75,
+          -0.6,
+          -0.24999999999999997,
+          1.625,
+          0.35,
+          -0.14999999999999997,
+          0.3
+        ],
+        "torque_Nm": 0.695148517199535,
+        "speed_rpm": -10.444543140405631
+      },
+      "peak_90pct_window": {
+        "threshold_Nm": 3.2144519946618404,
+        "start_s": 0,
+        "end_s": 0.3809853417091886,
+        "duration_s": 0.3809853417091886
+      },
+      "combined_rms_Nm": 1.4375519248242272,
+      "interface_peaks": {
+        "axial_force_peak_abs_N": {
+          "value": 37.434456502074255,
+          "case_id": "rated-reach-hold"
+        },
+        "radial_force_peak_N": {
+          "value": 48.764799999999994,
+          "case_id": "rated-reach-hold"
+        },
+        "bending_moment_peak_Nm": {
+          "value": 22.575093800000005,
+          "case_id": "rated-reach-hold"
+        }
+      }
+    },
+    {
+      "id": "joint-4",
+      "name": "J4",
+      "range_deg": [
+        0,
+        150.00000000000003
+      ],
+      "mass_target_kg": 0.485,
+      "design_target_speed_rpm": 47.7464829275686,
+      "design_acceleration_limit_rad_s2": 25,
+      "horizontal_hold_torque_Nm": 11.841643800000002,
+      "checked_static_torque_abs_Nm": 11.841643800000005,
+      "checked_static_signed_Nm": 11.841643800000005,
+      "checked_static_pose_rad": {
+        "source": "local_refinement",
+        "q": {
+          "J1": 1.5707963267948966,
+          "J2": -1.5707963267948966,
+          "J3": 0,
+          "J4": 0,
+          "J5": 0,
+          "J6": 0,
+          "J7": 0
+        }
+      },
+      "dynamic_peak": {
+        "case_id": "rated-reach-hold",
+        "time_s": 1.26,
+        "phase_id": "move_out",
+        "q_rad": [
+          1.0680538091998573,
+          -0.2216251439972352,
+          0.0492500319993856,
+          0.6648754319917056,
+          0,
+          0.0985000639987712,
+          0
+        ],
+        "torque_Nm": 11.947325460827907,
+        "speed_rpm": -9.667425243598004
+      },
+      "speed_peak": {
+        "case_id": "rated-reach-hold",
+        "time_s": 1.25,
+        "phase_id": "move_out",
+        "q_rad": [
+          1.0603981633974482,
+          -0.225,
+          0.05,
+          0.675,
+          0,
+          0.1,
+          0
+        ],
+        "torque_Nm": 11.947273951957333,
+        "speed_rpm": -9.668662792832642
+      },
+      "peak_90pct_window": {
+        "threshold_Nm": 10.752592914745117,
+        "start_s": 0.46542415313234414,
+        "end_s": 8.534575846867654,
+        "duration_s": 8.069151693735309
+      },
+      "combined_rms_Nm": 7.148528908020501,
+      "interface_peaks": {
+        "axial_force_peak_abs_N": {
+          "value": 13.259272141666575,
+          "case_id": "rated-reach-hold"
+        },
+        "radial_force_peak_N": {
+          "value": 42.6365517223659,
+          "case_id": "rated-reach-hold"
+        },
+        "bending_moment_peak_Nm": {
+          "value": 3.7336833789013646,
+          "case_id": "rated-reach-hold"
+        }
+      }
+    },
+    {
+      "id": "joint-5",
+      "name": "J5",
+      "range_deg": [
+        -135,
+        135
+      ],
+      "mass_target_kg": 0.162,
+      "design_target_speed_rpm": 164.6298731342565,
+      "design_acceleration_limit_rad_s2": 86.21,
+      "horizontal_hold_torque_Nm": 0,
+      "checked_static_torque_abs_Nm": 4.4407618823616035,
+      "checked_static_signed_Nm": 4.4407618823616035,
+      "checked_static_pose_rad": {
+        "source": "local_refinement",
+        "q": {
+          "J1": 2.5966019251098387,
+          "J2": -0.1515036561982592,
+          "J3": -0.8230887434642518,
+          "J4": 2.057207111733639,
+          "J5": -1.8668912664176291,
+          "J6": 1.5707963267948966,
+          "J7": -0.0007045610963690592
+        }
+      },
+      "dynamic_peak": {
+        "case_id": "loaded-transfer",
+        "time_s": 2.81,
+        "phase_id": "move_back",
+        "q_rad": [
+          0.9491687420489763,
+          -0.25041562897551184,
+          0.5490648348050984,
+          0.9009351651949017,
+          -0.49896092756122035,
+          0.4494804637806102,
+          -0.3991687420489763
+        ],
+        "torque_Nm": -0.6516479604089952,
+        "speed_rpm": 0.2619744245767424
+      },
+      "speed_peak": {
+        "case_id": "unloaded-transfer",
+        "time_s": 0.6,
+        "phase_id": "move_out",
+        "q_rad": [
+          0.75,
+          -0.6,
+          -0.24999999999999997,
+          1.625,
+          0.35,
+          -0.14999999999999997,
+          0.3
+        ],
+        "torque_Nm": 0.008159557691601142,
+        "speed_rpm": 10.444543140405631
+      },
+      "peak_90pct_window": {
+        "threshold_Nm": 0.5864831643680957,
+        "start_s": 1.3086691404321,
+        "end_s": 3.191330859567897,
+        "duration_s": 1.882661719135797
+      },
+      "combined_rms_Nm": 0.2650129319095881,
+      "interface_peaks": {
+        "axial_force_peak_abs_N": {
+          "value": 14.259692437844777,
+          "case_id": "rated-reach-hold"
+        },
+        "radial_force_peak_N": {
+          "value": 36.54086485497121,
+          "case_id": "rated-reach-hold"
+        },
+        "bending_moment_peak_Nm": {
+          "value": 10.11845940446397,
+          "case_id": "rated-reach-hold"
+        }
+      }
+    },
+    {
+      "id": "joint-6",
+      "name": "J6",
+      "range_deg": [
+        -90,
+        90
+      ],
+      "mass_target_kg": 0.162,
+      "design_target_speed_rpm": 164.6298731342565,
+      "design_acceleration_limit_rad_s2": 86.21,
+      "horizontal_hold_torque_Nm": -4.440762200000001,
+      "checked_static_torque_abs_Nm": 4.440762200000004,
+      "checked_static_signed_Nm": -4.440762200000004,
+      "checked_static_pose_rad": {
+        "source": "local_refinement",
+        "q": {
+          "J1": 1.5707963267948966,
+          "J2": -1.5707963267948966,
+          "J3": 0,
+          "J4": 0,
+          "J5": 0,
+          "J6": 0,
+          "J7": 0
+        }
+      },
+      "dynamic_peak": {
+        "case_id": "rated-reach-hold",
+        "time_s": 1.19,
+        "phase_id": "move_out",
+        "q_rad": [
+          1.0145328373644822,
+          -0.2452189174990848,
+          0.0544930927775744,
+          0.7356567524972544,
+          0,
+          0.1089861855551488,
+          0
+        ],
+        "torque_Nm": -4.5145197198854055,
+        "speed_rpm": -1.4258016177729689
+      },
+      "speed_peak": {
+        "case_id": "unloaded-transfer",
+        "time_s": 0.6,
+        "phase_id": "move_out",
+        "q_rad": [
+          0.75,
+          -0.6,
+          -0.24999999999999997,
+          1.625,
+          0.35,
+          -0.14999999999999997,
+          0.3
+        ],
+        "torque_Nm": -0.07346739736418277,
+        "speed_rpm": -10.444543140405631
+      },
+      "peak_90pct_window": {
+        "threshold_Nm": 4.063067747896865,
+        "start_s": 0,
+        "end_s": 10,
+        "duration_s": 10
+      },
+      "combined_rms_Nm": 2.644518844833296,
+      "interface_peaks": {
+        "axial_force_peak_abs_N": {
+          "value": 10.629770033497156,
+          "case_id": "rated-reach-hold"
+        },
+        "radial_force_peak_N": {
+          "value": 34.197233863941904,
+          "case_id": "rated-reach-hold"
+        },
+        "bending_moment_peak_Nm": {
+          "value": 1.4067650009371702,
+          "case_id": "rated-reach-hold"
+        }
+      }
+    },
+    {
+      "id": "joint-7",
+      "name": "J7",
+      "range_deg": [
+        -90,
+        90
+      ],
+      "mass_target_kg": 0.162,
+      "design_target_speed_rpm": 164.6298731342565,
+      "design_acceleration_limit_rad_s2": 86.21,
+      "horizontal_hold_torque_Nm": 0,
+      "checked_static_torque_abs_Nm": 2.9498000000000024,
+      "checked_static_signed_Nm": 2.9498000000000024,
+      "checked_static_pose_rad": {
+        "source": "local_refinement",
+        "q": {
+          "J1": 3.141592653589793,
+          "J2": -1.5707963267948966,
+          "J3": 0,
+          "J4": 0,
+          "J5": 0,
+          "J6": 0,
+          "J7": 0
+        }
+      },
+      "dynamic_peak": {
+        "case_id": "rated-reach-hold",
+        "time_s": 0,
+        "phase_id": "move_out",
+        "q_rad": [
+          0.55,
+          -0.45,
+          0.1,
+          1.35,
+          0,
+          0.2,
+          0
+        ],
+        "torque_Nm": -0.9344511624073145,
+        "speed_rpm": 0
+      },
+      "speed_peak": {
+        "case_id": "unloaded-transfer",
+        "time_s": 0.6,
+        "phase_id": "move_out",
+        "q_rad": [
+          0.75,
+          -0.6,
+          -0.24999999999999997,
+          1.625,
+          0.35,
+          -0.14999999999999997,
+          0.3
+        ],
+        "torque_Nm": -0.004867061895619094,
+        "speed_rpm": 8.952465548919113
+      },
+      "peak_90pct_window": {
+        "threshold_Nm": 0.841006046166583,
+        "start_s": 0,
+        "end_s": 0.40124663183424625,
+        "duration_s": 0.40124663183424625
+      },
+      "combined_rms_Nm": 0.3281362919668816,
+      "interface_peaks": {
+        "axial_force_peak_abs_N": {
+          "value": 31.997125548506546,
+          "case_id": "rated-reach-hold"
+        },
+        "radial_force_peak_N": {
+          "value": 11.772593149099084,
+          "case_id": "rated-reach-hold"
+        },
+        "bending_moment_peak_Nm": {
+          "value": 2.99896037726739,
+          "case_id": "rated-reach-hold"
+        }
+      }
+    }
+  ],
+  "groups": [
+    {
+      "axes": [
+        "J1"
+      ],
+      "mass_target_per_module_kg": 0.961,
+      "static_max": {
+        "joint": "J1",
+        "value_Nm": 26.956526800000006
+      },
+      "sampled_dynamic_max": {
+        "joint": "J1",
+        "value_Nm": 26.956526800000006
+      },
+      "sampled_speed_max": {
+        "joint": "J1",
+        "value_rpm": 7.3109151584755905
+      },
+      "known_torque_floor_Nm": 26.956526800000006,
+      "design_target_speed_rpm": 23.8732414637843,
+      "max_axis_combined_rms_Nm": 15.167159474778726
+    },
+    {
+      "axes": [
+        "J2",
+        "J3",
+        "J4"
+      ],
+      "mass_target_per_module_kg": 0.485,
+      "static_max": {
+        "joint": "J2",
+        "value_Nm": 25.03538380000001
+      },
+      "sampled_dynamic_max": {
+        "joint": "J4",
+        "value_Nm": 11.947325460827907
+      },
+      "sampled_speed_max": {
+        "joint": "J3",
+        "value_rpm": 10.444543140405631
+      },
+      "known_torque_floor_Nm": 25.03538380000001,
+      "design_target_speed_rpm": 47.7464829275686,
+      "max_axis_combined_rms_Nm": 7.148528908020501
+    },
+    {
+      "axes": [
+        "J5",
+        "J6",
+        "J7"
+      ],
+      "mass_target_per_module_kg": 0.162,
+      "static_max": {
+        "joint": "J6",
+        "value_Nm": 4.440762200000004
+      },
+      "sampled_dynamic_max": {
+        "joint": "J6",
+        "value_Nm": 4.5145197198854055
+      },
+      "sampled_speed_max": {
+        "joint": "J5",
+        "value_rpm": 10.444543140405631
+      },
+      "known_torque_floor_Nm": 4.5145197198854055,
+      "design_target_speed_rpm": 164.6298731342565,
+      "max_axis_combined_rms_Nm": 2.644518844833296
+    }
+  ]
+}

@@ -7,7 +7,7 @@ import {spawn,spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {analyze,toStandardInput,canonicalJSON} from '../lib/statics.mjs';
 const root=fileURLToPath(new URL('../../',import.meta.url));
-const example=async name=>JSON.parse(await readFile(join(root,'assets','examples',name+'.json'),'utf8'));
+const example=async name=>JSON.parse(await readFile(join(root,'scripts','tests','fixtures',name+'.json'),'utf8'));
 const close=(a,b,t=1e-9)=>assert.ok(Math.abs(a-b)<t,`${a} != ${b}`);
 
 test('all bundled examples compute finite outputs and normalize roundtrip',async()=>{
@@ -28,7 +28,7 @@ test('project poses agree with independent established calculations',async()=>{
 test('CLI writes atomic deterministic result and preserves old result on input failure',async()=>{
   const dir=await mkdtemp(join(tmpdir(),'statics-cli-'));
   try{
-    const input=join(root,'assets','examples','simple-two-link.json'),output=join(dir,'result.json'),reports=join(dir,'reports');
+    const input=join(root,'scripts','tests','fixtures','simple-two-link.json'),output=join(dir,'result.json'),reports=join(dir,'reports');
     const run=()=>spawnSync(process.execPath,[join(root,'scripts','run.mjs'),'--input',input,'--output',output,'--report-dir',reports],{encoding:'utf8'});
     const a=run();assert.equal(a.status,0,a.stderr);const result=await readFile(output,'utf8');assert.deepEqual(JSON.parse(result),analyze(await example('simple-two-link')));
     assert.equal(run().status,0);assert.equal(await readFile(output,'utf8'),result);

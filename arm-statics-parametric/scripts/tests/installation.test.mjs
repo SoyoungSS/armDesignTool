@@ -21,7 +21,7 @@ test('installation: upright, inverted and side-mounted rod analytical loads',()=
 });
 
 test('installation: arbitrary world rotation equals base gravity transform, including installed root and local loads',async()=>{
-  const example=JSON.parse(await readFile(new URL('../../assets/examples/project-right-arm.json',import.meta.url),'utf8'));
+  const example=JSON.parse(await readFile(new URL('./fixtures/project-right-arm.json',import.meta.url),'utf8'));
   const source=toStandardInput(example);delete source.search;
   source.model.joints[0].origin={xyz_m:[.1,-.2,.3],rpy_rad:[.2,.1,-.4]};
   source.attachments=[{name:'camera',frame:source.model.joints[2].name,mass_kg:.3,com_m:[.02,-.04,.01]}];
@@ -43,7 +43,7 @@ test('installation: arbitrary world rotation equals base gravity transform, incl
 });
 
 test('installation: prismatic force transforms and search extrema re-evaluate',async()=>{
-  const p=JSON.parse(await readFile(new URL('../../assets/examples/prismatic.json',import.meta.url),'utf8'));
+  const p=JSON.parse(await readFile(new URL('./fixtures/prismatic.json',import.meta.url),'utf8'));
   delete p.gravity_m_s2;p.installation=installation([Math.PI,0,0]);
   const out=analyze(p),old=structuredClone(p);delete old.installation;old.gravity_m_s2=[0,0,9.81];
   out.poses[0].holding_load.forEach((v,i)=>close(v,analyze(old).poses[0].holding_load[i]));

@@ -43,3 +43,19 @@ input[type=checkbox], input[type=radio] {
   cursor:pointer;
 }
 select:disabled { background-color:#eef0f2; color:#687078; cursor:not-allowed; }
+
+#motionRandomForm {
+  margin: 20px 0;
+  padding: 16px;
+  border: 1px solid #d8dcd8;
+  border-radius: 6px;
+}
+.motion-random-fields { margin-top: 16px; }
+
+.module-form { margin-top: 18px; }
+.module-field { display: grid; gap: 5px; }
+.module-joints { margin: 14px 0; }
+.module-joints input[type=text], .module-joints input[type=number] {
+  width: 100%; min-width: 96px; max-width: none; box-sizing: border-box;
+}
+.module-joints td:nth-child(7) input { min-width: 140px; }

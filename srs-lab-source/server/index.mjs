@@ -5,12 +5,20 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { randomUUID, createHash } from 'node:crypto';
+import { prepareRequests } from './module-specs.mjs';
+import { combineResults } from '../dist/module-specifications.mjs';
+import { hash } from '../../arm-kinematics-dynamics/scripts/lib/analyze.mjs';
+import { parseRequestText as parseStaticsText } from '../../arm-statics-parametric/scripts/lib/input-text.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
 const WEB_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../dist');
 const SKILL_DIR = process.env.STATICS_SKILL_DIR;
+const BUNDLED_STATICS_DIR=path.resolve(WEB_DIR,'../../arm-statics-parametric');
 const WORKSPACE_DIR = process.env.WORKSPACE_SKILL_DIR || path.resolve(WEB_DIR,'../../arm-workspace-parametric');
+const MOTION_DIR=process.env.MOTION_SKILL_DIR||path.resolve(WEB_DIR,'../../arm-kinematics-dynamics');
+let motionActive=0;
 let workspaceActive=0;
+let moduleSpecsActive=false;
 const MAX_INPUT_BYTES = 2 * 1024 * 1024;
 const TIMEOUT_MS = Number(process.env.STATICS_TIMEOUT_MS || 120000);
 const CORS_ORIGIN = process.env.WEB_ORIGIN || ''; // empty: same origin only
@@ -34,7 +42,9 @@ function execute(skillDir, input, output, reportDir, timeoutMs=TIMEOUT_MS, signa
   return new Promise((resolve, reject) => {
     signal?.throwIfAborted();
     // Run fixed CLI arguments without shell interpolation; computation belongs to the selected Skill.
-    const child = spawn(process.execPath, ['scripts/run.mjs', '--input', input, '--output', output, '--report-dir', reportDir], {
+    const args = ['scripts/run.mjs', '--input', input, '--output', output];
+    if (reportDir) args.push('--report-dir', reportDir);
+    const child = spawn(process.execPath, args, {
       cwd: skillDir, env: {...process.env}, stdio: ['ignore','pipe','pipe']
     });
     let out = '', err = '', timedOut = false;
@@ -65,7 +75,11 @@ const server = http.createServer(async (req, res) => {
     if(url.pathname==='/shared/kinematics/serial.mjs'){
       try{const data=await readFile(path.resolve(WORKSPACE_DIR,'../shared/kinematics/serial.mjs'));res.writeHead(200,{'content-type':'text/javascript; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(data);}catch{respond(res,503,{ok:false,error:'SHARED_GEOMETRY_UNAVAILABLE'},requestId);}return;
     }
-    const workspaceAssets=new Map([['/workspace-kinematics.mjs','scripts/lib/kinematics.mjs'],['/workspace-exports.mjs','scripts/lib/exports.mjs'],['/workspace-input-text.mjs','scripts/lib/input-text.mjs'],['/workspace-example.jsonc','assets/examples/worksheet-workspace.jsonc'],['/workspace-reachability.jsonc','assets/examples/worksheet-reachability.jsonc'],['/workspace-classification.jsonc','assets/examples/worksheet-classification.jsonc'],['/workspace-dexbot-right.json','assets/examples/dexbot-right-arm.json'],['/workspace-dexbot-left.json','assets/examples/dexbot-left-arm.json']]);
+    const motionAssets=new Map([['/motion-worksheet.json','assets/examples/worksheet-motion.json'],['/motion-fr3.json','assets/examples/franka-fr3-motion.json'],['/motion-worksheet-dynamics.json','assets/examples/worksheet-dynamics.json'],['/motion-export.mjs','scripts/lib/export.mjs']]);
+    if(motionAssets.has(url.pathname)){
+      try{const data=await readFile(path.join(MOTION_DIR,motionAssets.get(url.pathname)));res.writeHead(200,{'content-type':url.pathname.endsWith('.mjs')?'text/javascript; charset=utf-8':'application/json; charset=utf-8','cache-control':'no-store'});res.end(data);}catch{respond(res,503,{ok:false,error:'MOTION_ASSET_UNAVAILABLE'},requestId);}return;
+    }
+    const workspaceAssets=new Map([['/workspace-kinematics.mjs','scripts/lib/kinematics.mjs'],['/workspace-exports.mjs','scripts/lib/exports.mjs'],['/workspace-input-text.mjs','scripts/lib/input-text.mjs'],['/workspace-example.jsonc','assets/examples/worksheet-workspace.jsonc'],['/workspace-reachability.jsonc','assets/examples/worksheet-reachability.jsonc'],['/workspace-classification.jsonc','assets/examples/worksheet-classification.jsonc'],['/workspace-fr3.json','assets/examples/franka-fr3.workspace.json']]);
     workspaceAssets.set('/workspace-voxel-grid.mjs','scripts/lib/voxel-grid.mjs');
     if(workspaceAssets.has(url.pathname)){
       try{const data=await readFile(path.join(WORKSPACE_DIR,workspaceAssets.get(url.pathname)));res.writeHead(200,{'content-type':url.pathname.endsWith('.mjs')?'text/javascript; charset=utf-8':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(data);}catch{respond(res,503,{ok:false,error:'WORKSPACE_ASSET_UNAVAILABLE'},requestId);}return;
@@ -77,7 +91,9 @@ const server = http.createServer(async (req, res) => {
       } catch { respond(res,503,{ok:false,error:'SKILL_PARSER_UNAVAILABLE'},requestId); }
       return;
     }
-    const whitelist = new Map([['/','index.html'],['/index.html','index.html'],['/app.js','app.js'],['/engine.js','engine.js'],['/scene3d.js','scene3d.js'],['/worksheet-critical-poses.js','worksheet-critical-poses.js'],['/statics-client.mjs','statics-client.mjs'],['/workspace-client.mjs','workspace-client.mjs'],['/workspace-scene.js','workspace-scene.js'],['/style.css','style.css'],['/worksheet-minimal.jsonc','worksheet-minimal.jsonc'],['/worksheet-minimal.json','worksheet-minimal.json']]);
+    const whitelist = new Map([['/','index.html'],['/index.html','index.html'],['/app.js','app.js'],['/engine.js','engine.js'],['/scene3d.js','scene3d.js'],['/worksheet-critical-poses.js','worksheet-critical-poses.js'],['/statics-client.mjs','statics-client.mjs'],['/workspace-client.mjs','workspace-client.mjs'],['/workspace-scene.js','workspace-scene.js'],['/motion-page.mjs','motion-page.mjs'],['/motion-client.mjs','motion-client.mjs'],['/style.css','style.css'],['/worksheet-minimal.jsonc','worksheet-minimal.jsonc'],['/worksheet-minimal.json','worksheet-minimal.json']]);
+    whitelist.set('/module-design-page.mjs','module-design-page.mjs');
+    whitelist.set('/module-specifications.mjs','module-specifications.mjs');
     const filename = whitelist.get(url.pathname);
     if (!filename) { respond(res,404,{ok:false,error:'NOT_FOUND'},requestId); return; }
     try {
@@ -86,8 +102,69 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200,{'content-type':type,'cache-control':'no-store','x-content-type-options':'nosniff'});res.end(data);
     } catch { respond(res,500,{ok:false,error:'WEB_ASSET_ERROR'},requestId); }return;
   }
-  if (req.method === 'OPTIONS' && CORS_ORIGIN && ['/api/statics','/api/workspace'].includes(url.pathname)) {
+  if (req.method === 'OPTIONS' && CORS_ORIGIN && ['/api/statics','/api/workspace','/api/motion','/api/module-specs'].includes(url.pathname)) {
     res.writeHead(204, {'access-control-allow-origin': CORS_ORIGIN, 'access-control-allow-methods': 'POST, OPTIONS', 'access-control-allow-headers': 'content-type', 'vary': 'Origin'}); res.end(); return;
+  }
+  if(req.method==='POST'&&url.pathname==='/api/module-specs'){
+    if((req.headers['content-type']||'').split(';')[0].trim()!=='application/json'){
+      respond(res,415,{ok:false,error:'UNSUPPORTED_MEDIA_TYPE'},requestId);return;
+    }
+    if(moduleSpecsActive){respond(res,503,{ok:false,error:'已有规格表任务在运行'},requestId);return;}
+    moduleSpecsActive=true;
+    const controller=new AbortController();
+    res.once('close',()=>{if(!res.writableEnded)controller.abort();});
+    let workDir,stage='model';
+    try{
+      let input;
+      try{input=JSON.parse(await readBody(req));}catch{respond(res,400,{ok:false,error:'请输入有效 JSON'},requestId);return;}
+      const requests=prepareRequests(input?.design_model);
+      const modelHash=hash(requests.motion.design_model);
+      if(input.prepare_only===true){respond(res,200,{ok:true,requests,modelHash},requestId);return;}
+      workDir=await mkdtemp(path.join(tmpdir(),'arm-module-specs-'));
+      const results={},execution={};
+      const directories={statics:SKILL_DIR||BUNDLED_STATICS_DIR,workspace:WORKSPACE_DIR,motion:MOTION_DIR};
+      for(const [skill,directory] of Object.entries(directories)){
+        stage=skill;
+        const inputFile=path.join(workDir,skill+'-request.json');
+        const outputFile=path.join(workDir,skill+'-result.json');
+        await writeFile(inputFile,JSON.stringify(requests[skill]));
+        const started=Date.now();
+        await execute(directory,inputFile,outputFile,undefined,TIMEOUT_MS,controller.signal);
+        results[skill]=JSON.parse(await readFile(outputFile,'utf8'));
+        execution[skill]={request_id:requestId,executed_at:new Date().toISOString(),elapsed_ms:Date.now()-started,
+          execution_mode:'skill_cli',input_sha256:results[skill].input_sha256,engine_version:results[skill].engine_version};
+      }
+      stage='specifications';
+      const specifications=combineResults(requests.motion.design_model,modelHash,results);
+      respond(res,200,{ok:true,requests,modelHash,results,execution,specifications},requestId);
+    }catch(error){
+      if(!controller.signal.aborted)respond(res,error.code==='INVALID_INPUT'||error.inputDetail?422:502,
+        {ok:false,error:'MODULE_SPECS_FAILED',stage,detail:error.inputDetail??error.message},requestId);
+    }finally{
+      moduleSpecsActive=false;
+      if(workDir)await rm(workDir,{recursive:true,force:true}).catch(()=>{});
+    }
+    return;
+  }
+  if(req.method==='GET'&&url.pathname==='/api/motion/health'){
+    let configured=false;try{await readFile(path.join(MOTION_DIR,'scripts/run.mjs'));configured=true;}catch{}
+    respond(res,configured?200:503,{ok:configured,activeJobs:motionActive,maxConcurrentJobs:2},requestId);return;
+  }
+  if(req.method==='POST'&&url.pathname==='/api/motion'){
+    if((req.headers['content-type']||'').split(';')[0].trim()!=='application/json'){respond(res,415,{ok:false,error:'UNSUPPORTED_MEDIA_TYPE'},requestId);return;}
+    if(motionActive>=2){respond(res,503,{ok:false,error:'MOTION_BUSY'},requestId);return;}
+    motionActive++;let workDir;const controller=new AbortController();res.once('close',()=>{if(!res.writableEnded)controller.abort();});
+    try{
+      const raw=await readBody(req);if(!raw.trim())throw Error('EMPTY_INPUT');
+      workDir=await mkdtemp(path.join(tmpdir(),'arm-motion-'));const input=path.join(workDir,'request.json'),output=path.join(workDir,'result.json');await writeFile(input,raw);const start=Date.now();
+      await execute(MOTION_DIR,input,output,undefined,120000,controller.signal);
+      const result=JSON.parse(await readFile(output,'utf8'));
+      const valid=result.schema_name==='arm-motion-result'&&Array.isArray(result.samples)
+        ||result.schema_name==='arm-random-motion-result'&&Array.isArray(result.trajectories);
+      if(!valid||!result.summary)throw Error('INVALID_MOTION_OUTPUT');
+      respond(res,200,{ok:true,result,execution:{execution_mode:'skill_cli',skill_name:'arm-kinematics-dynamics',engine_version:result.engine_version,request_id:requestId,elapsed_ms:Date.now()-start,input_sha256:result.input_sha256}},requestId);
+    }catch(e){if(!controller.signal.aborted)respond(res,e.inputDetail?422:e.message==='EMPTY_INPUT'?400:502,{ok:false,error:e.inputDetail?'INVALID_INPUT':'MOTION_EXECUTION_FAILED',detail:e.inputDetail??e.message,request_id:requestId},requestId);}
+    finally{motionActive--;if(workDir)await rm(workDir,{recursive:true,force:true}).catch(()=>{});}return;
   }
   if(req.method==='GET'&&url.pathname==='/api/workspace/health'){
     let configured=false;try{await readFile(path.join(WORKSPACE_DIR,'scripts/run.mjs'));configured=true;}catch{}
@@ -126,19 +203,23 @@ const server = http.createServer(async (req, res) => {
     respond(res, SKILL_DIR ? 200 : 503, {ok: Boolean(SKILL_DIR), skillConfigured: Boolean(SKILL_DIR)}, requestId); return;
   }
   if (req.method !== 'POST' || url.pathname !== '/api/statics') { respond(res,404,{ok:false,error:'NOT_FOUND'},requestId); return; }
-  if (!SKILL_DIR) { respond(res,503,{ok:false,error:'SKILL_NOT_CONFIGURED'},requestId); return; }
   const type = (req.headers['content-type'] || '').split(';')[0].trim();
   if (!['application/json','application/jsonc'].includes(type)) { respond(res,415,{ok:false,error:'UNSUPPORTED_MEDIA_TYPE'},requestId); return; }
   let workDir;
   try {
     const raw = await readBody(req);
     if (!raw.trim()) throw new Error('EMPTY_INPUT');
+    let directory=SKILL_DIR;
+    if(!directory){
+      try{if(parseStaticsText(raw)?.schema_name==='arm-analysis-request')directory=BUNDLED_STATICS_DIR;}catch{}
+    }
+    if(!directory){respond(res,503,{ok:false,error:'SKILL_NOT_CONFIGURED'},requestId);return;}
     workDir = await mkdtemp(path.join(tmpdir(), 'arm-statics-'));
     const input = path.join(workDir, type === 'application/jsonc' ? 'request.jsonc' : 'request.json');
     const output = path.join(workDir, 'statics_result.json');
     await writeFile(input, raw, 'utf8');
     const start = Date.now();
-    await execute(SKILL_DIR, input, output, workDir);
+    await execute(directory, input, output, workDir);
     const result = JSON.parse(await readFile(output, 'utf8'));
     if (!Array.isArray(result.summary) || !Array.isArray(result.joint_names)) throw new Error('INVALID_SKILL_OUTPUT');
     const meta = {

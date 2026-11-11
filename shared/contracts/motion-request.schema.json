@@ -1,0 +1,617 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schema_name": {
+      "const": "arm-motion-request"
+    },
+    "schema_version": {
+      "const": "1.0"
+    },
+    "dynamics": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "payload_inertia_kg_m2": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "external_wrench_world": {
+          "type": "object",
+          "properties": {
+            "force_N": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "moment_Nm": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            }
+          },
+          "required": [
+            "force_N",
+            "moment_Nm"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "enabled"
+      ],
+      "additionalProperties": false
+    },
+    "design_model": {
+      "type": "object",
+      "properties": {
+        "schema_name": {
+          "const": "arm-design-model"
+        },
+        "schema_version": {
+          "const": "1.0"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "joints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2048
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2048
+              },
+              "type": {
+                "enum": [
+                  "revolute",
+                  "prismatic",
+                  "fixed"
+                ]
+              },
+              "origin": {
+                "type": "object",
+                "properties": {
+                  "xyz_m": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 3,
+                    "maxItems": 3
+                  },
+                  "rpy_rad": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 3,
+                    "maxItems": 3
+                  }
+                },
+                "required": [
+                  "xyz_m",
+                  "rpy_rad"
+                ],
+                "additionalProperties": false
+              },
+              "axis": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 3,
+                "maxItems": 3
+              },
+              "limits": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 2
+              },
+              "components": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 2048
+                    },
+                    "mass_kg": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1000000000
+                    },
+                    "com_m": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "minItems": 3,
+                      "maxItems": 3
+                    },
+                    "inertia_kg_m2": {
+                      "type": "array",
+                      "items": {
+                        "type": "array",
+                        "items": {
+                          "type": "number"
+                        },
+                        "minItems": 3,
+                        "maxItems": 3
+                      },
+                      "minItems": 3,
+                      "maxItems": 3
+                    },
+                    "provenance": {
+                      "type": "object",
+                      "properties": {
+                        "source": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 2048
+                        },
+                        "assumptions": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 2048
+                          },
+                          "minItems": 0,
+                          "maxItems": 500
+                        }
+                      },
+                      "required": [
+                        "source",
+                        "assumptions"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "mass_kg",
+                    "com_m",
+                    "provenance"
+                  ],
+                  "additionalProperties": false
+                },
+                "minItems": 0,
+                "maxItems": 100
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "type",
+              "origin"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1,
+          "maxItems": 64
+        },
+        "tip": {
+          "type": "object",
+          "properties": {
+            "xyz_m": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "rpy_rad": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            }
+          },
+          "required": [
+            "xyz_m",
+            "rpy_rad"
+          ],
+          "additionalProperties": false
+        },
+        "base_in_world": {
+          "type": "object",
+          "properties": {
+            "xyz_m": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "rpy_rad": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            }
+          },
+          "required": [
+            "xyz_m",
+            "rpy_rad"
+          ],
+          "additionalProperties": false
+        },
+        "gravity_world_m_s2": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "mass_kg": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "com_in_tip_m": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "provenance": {
+              "type": "object",
+              "properties": {
+                "source": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2048
+                },
+                "assumptions": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2048
+                  },
+                  "minItems": 0,
+                  "maxItems": 500
+                }
+              },
+              "required": [
+                "source",
+                "assumptions"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "mass_kg",
+            "com_in_tip_m",
+            "provenance"
+          ],
+          "additionalProperties": false
+        },
+        "provenance": {
+          "type": "object",
+          "properties": {
+            "source": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048
+            },
+            "assumptions": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2048
+              },
+              "minItems": 0,
+              "maxItems": 500
+            }
+          },
+          "required": [
+            "source",
+            "assumptions"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "schema_name",
+        "schema_version",
+        "name",
+        "joints",
+        "tip",
+        "provenance"
+      ],
+      "additionalProperties": false
+    },
+    "trajectory": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "waypoints"
+            },
+            "start_q": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 1,
+              "maxItems": 16
+            },
+            "segments": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2048
+                  },
+                  "kind": {
+                    "enum": [
+                      "move",
+                      "hold",
+                      "wait"
+                    ]
+                  },
+                  "duration_s": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 3600
+                  },
+                  "q_target": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 1,
+                    "maxItems": 16
+                  }
+                },
+                "required": [
+                  "id",
+                  "kind",
+                  "duration_s"
+                ],
+                "additionalProperties": false
+              },
+              "minItems": 1,
+              "maxItems": 200
+            },
+            "sample_dt_s": {
+              "type": "number",
+              "minimum": 0.0001,
+              "maximum": 1
+            },
+            "timing_policy": {
+              "enum": [
+                "strict",
+                "stretch"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "start_q",
+            "segments",
+            "sample_dt_s"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "samples"
+            },
+            "joint_ids": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2048
+              },
+              "minItems": 1,
+              "maxItems": 16
+            },
+            "samples": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "time_s": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 10000000
+                  },
+                  "phase_id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2048
+                  },
+                  "q": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 1,
+                    "maxItems": 16
+                  },
+                  "dq": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 1,
+                    "maxItems": 16
+                  },
+                  "ddq": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 1,
+                    "maxItems": 16
+                  }
+                },
+                "required": [
+                  "time_s",
+                  "q"
+                ],
+                "additionalProperties": false
+              },
+              "minItems": 2,
+              "maxItems": 20000
+            },
+            "derivatives": {
+              "enum": [
+                "none",
+                "estimate"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "joint_ids",
+            "samples"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "motion_limits": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "velocity_max": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "acceleration_max": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "jerk_max": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        },
+        "required": [
+          "velocity_max",
+          "acceleration_max"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "singularity": {
+      "type": "object",
+      "properties": {
+        "task": {
+          "enum": [
+            "position",
+            "pose"
+          ]
+        },
+        "characteristic_length_m": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "rank_relative_tolerance": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "near_sigma_threshold": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "condition_warning": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "tcp_offset": {
+      "type": "object",
+      "properties": {
+        "xyz_m": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "rpy_rad": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        }
+      },
+      "required": [
+        "xyz_m",
+        "rpy_rad"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schema_name",
+    "schema_version",
+    "design_model",
+    "trajectory"
+  ],
+  "additionalProperties": false
+}

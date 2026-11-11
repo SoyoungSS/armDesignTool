@@ -11,7 +11,7 @@
 独立调用示例（在包含 shared 同级目录的 bundle 中）：
 
 ```bash
-node scripts/run.mjs --input assets/examples/design-two-link.json --output /tmp/result.json --report-dir /tmp/report
+node scripts/run.mjs --input assets/examples/design-seven-axis.json --output /tmp/result.json --report-dir /tmp/report
 ```
 
 运行时没有 npm 第三方依赖。失败返回非零退出码与结构化 INVALID_INPUT/字段位置，不回退到示例结果。网页不是必需环境。

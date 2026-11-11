@@ -7,6 +7,14 @@ function psd(A,path){
   const det=a[0][0]*(a[1][1]*a[2][2]-a[1][2]*a[2][1])-a[0][1]*(a[1][0]*a[2][2]-a[1][2]*a[2][0])+a[0][2]*(a[1][0]*a[2][1]-a[1][1]*a[2][0]);
   if(det<-eps)invalid(path,'matrix must be positive semidefinite');
 }
+export function validateInertia(I,mass,path){
+  const scale=Math.max(...I.flat().map(Math.abs),1e-30);
+  for(let a=0;a<3;a++)for(let b=0;b<3;b++)if(Math.abs(I[a][b]-I[b][a])>1e-10*scale)invalid(path,'symmetric COM inertia required');
+  psd(I,path);
+  const halfTrace=(I[0][0]+I[1][1]+I[2][2])/2;
+  psd(I.map((r,a)=>r.map((x,b)=>(a===b?halfTrace:0)-x)),path+' (principal-moment triangle inequality)');
+  if(mass===0&&I.some(r=>r.some(x=>x!==0)))invalid(path,'massless component must have zero inertia');
+}
 export function validateDesignModel(model,{require:required='geometry'}={}){
   validateContract('design-model',model);
   unique(model.joints.map(j=>j.id),'$.joints.id');unique(model.joints.map(j=>j.name),'$.joints.name');
@@ -22,11 +30,7 @@ export function validateDesignModel(model,{require:required='geometry'}={}){
     for(const [k,c] of (j.components??[]).entries()){
       const cp=`${p}.components[${k}].inertia_kg_m2`,I=c.inertia_kg_m2;
       if(!I){if(c.mass_kg>0)missingInertia.push(cp);continue;}
-      const scale=Math.max(...I.flat().map(Math.abs),1e-30);
-      for(let a=0;a<3;a++)for(let b=0;b<3;b++)if(Math.abs(I[a][b]-I[b][a])>1e-10*scale)invalid(cp,'symmetric COM inertia required');
-      psd(I,cp);const halfTrace=(I[0][0]+I[1][1]+I[2][2])/2;
-      psd(I.map((r,a)=>r.map((x,b)=>(a===b?halfTrace:0)-x)),cp+' (principal-moment triangle inequality)');
-      if(c.mass_kg===0&&I.some(r=>r.some(x=>x!==0)))invalid(cp,'massless component must have zero inertia');
+      validateInertia(I,c.mass_kg,cp);
     }
   }
   if(!['geometry','mass_properties','inertial_properties'].includes(required))throw Error('Unknown capability: '+required);

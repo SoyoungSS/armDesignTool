@@ -1,7 +1,7 @@
 import {forward,rpy,mv,add} from './workspace-kinematics.mjs';
 export {projectionSVG,pointsCSV,reportMarkdown,WORKSPACE_CATEGORIES,pointColor,pointVisible,voxelColor,voxelSection,voxelSectionSVG} from './workspace-exports.mjs';
 import {parseRequestText} from './workspace-input-text.mjs';
-import {voxelPlan} from './workspace-voxel-grid.mjs';
+import {voxelPlan,conservativeReachBound} from './workspace-voxel-grid.mjs';
 export function fromWebConfig(config,model,installation,mode='joint_sampling'){
   const vectors=config.linkVectors??[0,0,config.upper,config.fore,0,0,config.tool].map(L=>[L,0,0]);
   const request={schema_version:'1.0',mode,model:{name:config.name,joints:model.axes.map((axis,j)=>({name:'J'+(j+1),type:'revolute',origin:{xyz_m:j===0?[0,0,config.baseHeight]:vectors[j-1].slice(),rpy_rad:[0,0,0]},axis:axis.slice(),limits:config.limits[j].map(x=>x*Math.PI/180)})),tip:{xyz_m:vectors[6].slice(),rpy_rad:[0,0,0]}},base_in_world:{xyz_m:[0,0,0],rpy_rad:installation.request.base_orientation_in_world.rpy_rad.slice()},sections:{center_m:[0,0,config.baseHeight],thickness_m:.03,voxel_size_m:.02}};
@@ -15,6 +15,21 @@ export function asDexterityInput(input,settings){
   const {sampling,reachability,dexterity,...request}=input;
   const {time_budget_s,...options}=dexterity??{};
   return {...request,mode:'dexterity_voxels',dexterity:{seed:sampling?.seed??reachability?.seed??42,...options,...settings}};
+}
+// Switch analysis settings while retaining the selected model, installation and provenance.
+export function asWorkspaceMode(input,mode,settings){
+  if(input?.schema_name==='arm-analysis-request'){
+    const adapted=asWorkspaceMode({...input.options,model:input.design_model},mode,settings);
+    const {model,...options}=adapted;return {...input,options};
+  }
+  if(mode==='dexterity_voxels')return asDexterityInput(input,settings);
+  if(input.mode===mode)return input;
+  const {sampling,reachability,dexterity,...base}=input;
+  const seed=sampling?.seed??reachability?.seed??dexterity?.seed??42;
+  if(mode==='joint_sampling')return {...base,mode,sampling:{method:'random',samples:5000,seed}};
+  if(mode!=='pose_reachability')throw Error('未知工作空间分析方式');
+  const bound=conservativeReachBound(input.model);
+  return {...base,mode,reachability:{sphere:{center_m:bound.center_base_m,radius_m:bound.radius_m,radial_steps:2,theta_steps:8,phi_steps:5},orientations_rpy_rad:[[0,0,0],[0,Math.PI/2,0]],orientation_frame:'base',seed,ik:{attempts:2,max_iterations:60}}};
 }
 export function estimateDexterity(request){
   if(request?.schema_name==='arm-analysis-request')request={...request.options,model:request.design_model};

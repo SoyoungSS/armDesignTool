@@ -22,7 +22,7 @@ function check(v,s,p){
   if(Array.isArray(v)){if(v.length<(s.minItems??0)||v.length>(s.maxItems??Infinity))invalid(p,'invalid array length');if(s.items)v.forEach((x,i)=>check(x,s.items,`${p}[${i}]`));}
   if(v!==null&&typeof v==='object'&&!Array.isArray(v)){
     for(const key of s.required??[])if(!Object.hasOwn(v,key))invalid(`${p}.${key}`,'required');
-    for(const [key,x] of Object.entries(v)){if(s.properties?.[key])check(x,s.properties[key],`${p}.${key}`);else if(s.additionalProperties===false)invalid(`${p}.${key}`,'unknown field');}
+    for(const [key,x] of Object.entries(v)){if(s.properties?.[key])check(x,s.properties[key],`${p}.${key}`);else if(s.additionalProperties===false)invalid(`${p}.${key}`,'unknown field');else if(s.additionalProperties&&typeof s.additionalProperties==='object')check(x,s.additionalProperties,`${p}.${key}`);}
   }
 }
 export function validateContract(name,value){

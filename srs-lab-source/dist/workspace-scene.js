@@ -5,7 +5,7 @@ class WorkspaceScene{
  setSection(section,only){this.section=section;this.sectionOnly=only;this.render();}
  render(){
   const cv=this.cv,rect=cv.getBoundingClientRect(),W=rect.width,H=rect.height;if(!W||!H)return;const dpr=root.devicePixelRatio||1;cv.width=W*dpr;cv.height=H*dpr;const ctx=cv.getContext('2d');ctx.scale(dpr,dpr);ctx.clearRect(0,0,W,H);
-  const data=this.result.points,positions=data.map(p=>p.position_world_m),lo=[0,1,2].map(k=>Math.min(...positions.map(p=>p[k]))),hi=[0,1,2].map(k=>Math.max(...positions.map(p=>p[k]))),center=lo.map((v,k)=>(v+hi[k])/2),span=Math.max(.1,...hi.map((v,k)=>v-lo[k]));
+  const data=this.result.points,positions=[...data.map(p=>p.position_world_m),...(this.options.fitPositions??[])],lo=[0,1,2].map(k=>Math.min(...positions.map(p=>p[k]))),hi=[0,1,2].map(k=>Math.max(...positions.map(p=>p[k]))),center=lo.map((v,k)=>(v+hi[k])/2),span=Math.max(.1,...hi.map((v,k)=>v-lo[k]));
   const cy=Math.cos(this.yaw),sy=Math.sin(this.yaw),cp=Math.cos(this.pitch),sp=Math.sin(this.pitch),factor=Math.min(W,H)*.65*this.zoom/span;
   const project=p=>{const [x,y,z]=p.map((v,k)=>v-center[k]);return {x:W/2+factor*(cy*x-sy*y),y:H/2-factor*(-sy*sp*x-cy*sp*y+cp*z),depth:sy*cp*x+cy*cp*y+sp*z};};
   if(this.section){

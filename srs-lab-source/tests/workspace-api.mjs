@@ -19,10 +19,19 @@ const client=await import(pathToFileURL(join(dir,'workspace-client.mjs')));
 
 try{
   await test('common requests retain model and provenance when switching voxel mode',async()=>{
-    const input=JSON.parse(await readFile(new URL('../../arm-workspace-parametric/assets/examples/design-single-link.json',import.meta.url),'utf8'));
+    const input=JSON.parse(await readFile(new URL('../../arm-workspace-parametric/scripts/tests/fixtures/design-single-link.json',import.meta.url),'utf8'));
     const next=client.asDexterityInput(input,{voxel_size_m:.5,orientations_per_voxel:2});
     assert.equal(next.options.mode,'dexterity_voxels');assert.deepEqual(next.design_model,input.design_model);assert.equal(next.options.sampling,undefined);
     assert.ok(client.estimateDexterity(next).centers>0);
+  });
+  await test('FR3 mode switching preserves complete geometry and resets only analysis options',async()=>{
+    const input=JSON.parse(await readFile(new URL('../../arm-workspace-parametric/assets/examples/franka-fr3.workspace.json',import.meta.url),'utf8'));
+    for(const mode of ['joint_sampling','pose_reachability','dexterity_voxels']){
+      const request=client.asWorkspaceMode(input,mode,{voxel_size_m:.2,orientations_per_voxel:2});
+      assert.deepEqual(request.model,input.model);assert.deepEqual(request.metadata,input.metadata);assert.equal(request.mode,mode);
+      if(mode==='pose_reachability'){assert.equal(request.sampling,undefined);assert.ok(request.reachability.sphere.radius_m>0);}
+      if(mode==='dexterity_voxels'){assert.equal(request.sampling,undefined);assert.equal(request.dexterity.orientations_per_voxel,2);}
+    }
   });
   await test('workspace client maps all web templates/custom axes and installation to identical FK; replays q',()=>{
     for(const variant of E.configurations()){
@@ -50,7 +59,9 @@ try{
     await test('workspace server health/assets work independently of statics env configuration',async()=>{
       assert.equal((await fetch(url+'/api/workspace/health')).status,200);
       assert.equal((await fetch(url+'/api/statics/health')).status,503);
-      for(const asset of ['/shared/kinematics/serial.mjs','/workspace-client.mjs','/workspace-scene.js','/workspace-kinematics.mjs','/workspace-exports.mjs','/workspace-input-text.mjs','/workspace-voxel-grid.mjs','/workspace-example.jsonc','/workspace-reachability.jsonc','/workspace-classification.jsonc','/workspace-dexbot-right.json','/workspace-dexbot-left.json'])assert.equal((await fetch(url+asset)).status,200,asset);
+      for(const asset of ['/shared/kinematics/serial.mjs','/workspace-client.mjs','/workspace-scene.js','/workspace-kinematics.mjs','/workspace-exports.mjs','/workspace-input-text.mjs','/workspace-voxel-grid.mjs','/workspace-example.jsonc','/workspace-reachability.jsonc','/workspace-classification.jsonc','/workspace-fr3.json'])assert.equal((await fetch(url+asset)).status,200,asset);
+      assert.equal((await fetch(url+'/workspace-dexbot-right.json')).status,404);
+      assert.equal((await fetch(url+'/workspace-dexbot-left.json')).status,404);
       assert.equal((await fetch(url+'/workspace-../../server/index.mjs')).status,404);
     });
     await test('workspace real CLI result and provenance equal direct analysis for FK and IK',async()=>{

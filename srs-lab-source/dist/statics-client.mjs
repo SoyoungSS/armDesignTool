@@ -28,6 +28,7 @@ export function makeStaticsViewModel({result, execution}) {
   if (!Array.isArray(result?.summary) || !Array.isArray(result?.joint_names)) throw new TypeError('非法 Skill 结果');
   const joints = result.summary.map((r,i) => ({
     name: r.name ?? r.joint_name ?? result.joint_names[i],
+    effortUnit: r.unit ?? 'Nm',
     maxTorqueNm: r.max_abs_checked ?? null,
     requiredNm: r.required_output ?? null,
     capacityNm: r.continuous_available ?? null,

@@ -25,7 +25,7 @@ base_in_world 缺省为单位位姿。工作空间保留平移和旋转；静力
 }
 ```
 
-完整可执行示例位于两个 Skill 的 `assets/examples/design-single-link.json`、`design-two-link.json`、`design-seven-axis.json`。原有请求格式和 CLI 参数继续支持。
+完整可执行示例位于两个 Skill 的 `assets/examples/design-seven-axis.json`。原有请求格式和 CLI 参数继续支持。
 
 静力学 options 支持 poses/search/attachments/wrenches/drives/design_factor；工作空间支持 mode/sampling/reachability/dexterity/sections。不要混用。模型 ID 与名称的映射、来源、假设和模型哈希通过结果 design_model_info/design_model_sha256 保留，原始公共请求保存在 input_snapshot。
 
@@ -45,7 +45,9 @@ JSON Schema 2020-12 文件由 schemas.mjs 导出，测试防止定义漂移。�
 ```bash
 node shared/scripts/package-skill.mjs arm-statics-parametric /tmp/statics-bundle
 cd /tmp
-node /tmp/statics-bundle/arm-statics-parametric/scripts/run.mjs --input /tmp/statics-bundle/arm-statics-parametric/assets/examples/design-two-link.json --output /tmp/statics-result.json --report-dir /tmp/statics-report
+node /tmp/statics-bundle/arm-statics-parametric/scripts/run.mjs --input /tmp/statics-bundle/arm-statics-parametric/assets/examples/design-seven-axis.json --output /tmp/statics-result.json --report-dir /tmp/statics-report
 ```
 
-工作空间将名称替换为 arm-workspace-parametric。目标 bundle 目录必须尚不存在。分发时保留 `<bundle>/<skill>/` 与 `<bundle>/shared/` 的相对位置；整体可放到任意目录，不需要网页、Node 依赖安装或原仓库。打包时包含共享契约和模型/几何模块。
+工作空间将名称替换为 arm-workspace-parametric；轨迹 Skill 使用 arm-kinematics-dynamics（示例路径改为 assets/examples/franka-fr3-motion.json）。目标 bundle 目录必须尚不存在。分发时保留 `<bundle>/<skill>/` 与 `<bundle>/shared/` 的相对位置；整体可放到任意目录，不需要网页、Node 依赖安装或原仓库。打包时包含共享契约和模型/几何模块。
+
+轨迹第一阶段请求为 `arm-motion-request` 1.0，Schema 见 contracts/motion-request.schema.json。其轨迹生成与状态分析已实现，和原 P0 仅定义的未来载荷契约区分。

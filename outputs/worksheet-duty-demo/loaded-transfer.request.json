@@ -1,0 +1,830 @@
+{
+  "schema_name": "arm-motion-request",
+  "schema_version": "1.0",
+  "design_model": {
+    "schema_name": "arm-design-model",
+    "schema_version": "1.0",
+    "base_in_world": {
+      "xyz_m": [
+        0,
+        0,
+        0
+      ],
+      "rpy_rad": [
+        0,
+        0,
+        0
+      ]
+    },
+    "gravity_world_m_s2": [
+      0,
+      0,
+      -9.8
+    ],
+    "payload": {
+      "mass_kg": 1.5,
+      "com_in_tip_m": [
+        0,
+        0,
+        -0.05
+      ],
+      "provenance": {
+        "source": "Hypothetical design task payload",
+        "assumptions": [
+          "COM offset along physical tip negative Z. COM inertia estimated as a uniform solid sphere of radius 0.05 m."
+        ]
+      }
+    },
+    "provenance": {
+      "source": "arm-statics-parametric/assets/examples/worksheet-minimal.json",
+      "assumptions": [
+        "Motion demo limits 1 rad/s and 2 rad/s² are explicit demonstration assumptions, not manufacturer ratings.",
+        "Dynamics demonstration uses approximate sphere inertias; evaluate sensitivity before design decisions.",
+        "Illustrative task timing and joint waypoints. Speed and acceleration limits are design study values from tables 7–8, not actuator ratings."
+      ]
+    },
+    "name": "worksheet_reference",
+    "joints": [
+      {
+        "axis": [
+          0,
+          -1,
+          0
+        ],
+        "components": [
+          {
+            "com_m": [
+              0,
+              0,
+              -0.0175
+            ],
+            "mass_kg": 0.1,
+            "name": "link",
+            "provenance": {
+              "source": "existing worksheet mass/COM conversion",
+              "assumptions": [
+                "Equivalent worksheet mass/COM, not CAD; COM inertia is approximated for this dynamics demo.",
+                "Demo COM inertia assumes a uniform solid sphere with radius 0.04 m; replace with CAD or measured inertia."
+              ]
+            },
+            "inertia_kg_m2": [
+              [
+                0.00006400000000000001,
+                0,
+                0
+              ],
+              [
+                0,
+                0.00006400000000000001,
+                0
+              ],
+              [
+                0,
+                0,
+                0.00006400000000000001
+              ]
+            ]
+          },
+          {
+            "com_m": [
+              0,
+              0,
+              0
+            ],
+            "mass_kg": 0.961,
+            "name": "joint_output_equivalent",
+            "provenance": {
+              "source": "existing worksheet mass/COM conversion",
+              "assumptions": [
+                "Equivalent worksheet mass/COM, not CAD; COM inertia is approximated for this dynamics demo.",
+                "Demo COM inertia assumes a uniform solid sphere with radius 0.04 m; replace with CAD or measured inertia."
+              ]
+            },
+            "inertia_kg_m2": [
+              [
+                0.0006150400000000001,
+                0,
+                0
+              ],
+              [
+                0,
+                0.0006150400000000001,
+                0
+              ],
+              [
+                0,
+                0,
+                0.0006150400000000001
+              ]
+            ]
+          }
+        ],
+        "limits": [
+          -1.5707963267948966,
+          3.141592653589793
+        ],
+        "name": "J1",
+        "origin": {
+          "rpy_rad": [
+            0,
+            0,
+            0
+          ],
+          "xyz_m": [
+            0,
+            0,
+            0
+          ]
+        },
+        "type": "revolute",
+        "id": "joint-1"
+      },
+      {
+        "axis": [
+          1,
+          0,
+          0
+        ],
+        "components": [
+          {
+            "com_m": [
+              0,
+              0,
+              -0.025
+            ],
+            "mass_kg": 0.09,
+            "name": "link",
+            "provenance": {
+              "source": "existing worksheet mass/COM conversion",
+              "assumptions": [
+                "Equivalent worksheet mass/COM, not CAD; COM inertia is approximated for this dynamics demo.",
+                "Demo COM inertia assumes a uniform solid sphere with radius 0.04 m; replace with CAD or measured inertia."
+              ]
+            },
+            "inertia_kg_m2": [
+              [
+                0.0000576,
+                0,
+                0
+              ],
+              [
+                0,
+                0.0000576,
+                0
+              ],
+              [
+                0,
+                0,
+                0.0000576
+              ]
+            ]
+          },
+          {
+            "com_m": [
+              0,
+              0,
+              0
+            ],
+            "mass_kg": 0.485,
+            "name": "joint_output_equivalent",
+            "provenance": {
+              "source": "existing worksheet mass/COM conversion",
+              "assumptions": [
+                "Equivalent worksheet mass/COM, not CAD; COM inertia is approximated for this dynamics demo.",
+                "Demo COM inertia assumes a uniform solid sphere with radius 0.04 m; replace with CAD or measured inertia."
+              ]
+            },
+            "inertia_kg_m2": [
+              [
+                0.0003104,
+                0,
+                0
+              ],
+              [
+                0,
+                0.0003104,
+                0
+              ],
+              [
+                0,
+                0,
+                0.0003104
+              ]
+            ]
+          }
+        ],
+        "limits": [
+          -1.5707963267948966,
+          0
+        ],
+        "name": "J2",
+        "origin": {
+          "rpy_rad": [
+            0,
+            0,
+            0
+          ],
+          "xyz_m": [
+            0,
+            0,
+            -0.035
+          ]
+        },
+        "type": "revolute",
+        "id": "joint-2"
+      },
+      {
+        "axis": [
+          0,
+          0,
+          -1
+        ],
+        "components": [
+          {
+            "com_m": [
+              0,
+              0,
+              -0.125
+            ],
+            "mass_kg": 0.22,
+            "name": "link",
+            "provenance": {
+              "source": "existing worksheet mass/COM conversion",
+              "assumptions": [
+                "Equivalent worksheet mass/COM, not CAD; COM inertia is approximated for this dynamics demo.",
+                "Demo COM inertia assumes a uniform solid sphere with radius 0.04 m; replace with CAD or measured inertia."
+              ]
+            },
+            "inertia_kg_m2": [
+              [
+                0.00014080000000000003,
+                0,
+                0
+              ],
+              [
+                0,
+                0.00014080000000000003,
+                0
+              ],
+              [
+                0,
+                0,
+                0.00014080000000000003
+              ]
+            ]
+          },
+          {
+            "com_m": [
+              0,
+              0,
+              0
+            ],
+            "mass_kg": 0.485,
+            "name": "joint_output_equivalent",
+            "provenance": {
+              "source": "existing worksheet mass/COM conversion",
+              "assumptions": [
+                "Equivalent worksheet mass/COM, not CAD; COM inertia is approximated for this dynamics demo.",
+                "Demo COM inertia assumes a uniform solid sphere with radius 0.04 m; replace with CAD or measured inertia."
+              ]
+            },
+            "inertia_kg_m2": [
+              [
+                0.0003104,
+                0,
+                0
+              ],
+              [
+                0,
+                0.0003104,
+                0
+              ],
+              [
+                0,
+                0,
+                0.0003104
+              ]
+            ]
+          }
+        ],
+        "limits": [
+          -2.356194490192345,
+          2.356194490192345
+        ],
+        "name": "J3",
+        "origin": {
+          "rpy_rad": [
+            0,
+            0,
+            0
+          ],
+          "xyz_m": [
+            0,
+            0,
+            -0.05
+          ]
+        },
+        "type": "revolute",
+        "id": "joint-3"
+      },
+      {
+        "axis": [
+          0,
+          -1,
+          0
+        ],
+        "components": [
+          {
+            "com_m": [
+              0,
+              0,
+              -0.025
+            ],
+            "mass_kg": 0.08,
+            "name": "link",
+            "provenance": {
+              "source": "existing worksheet mass/COM conversion",
+              "assumptions": [
+                "Equivalent worksheet mass/COM, not CAD; COM inertia is approximated for this dynamics demo.",
+                "Demo COM inertia assumes a uniform solid sphere with radius 0.04 m; replace with CAD or measured inertia."
+              ]
+            },
+            "inertia_kg_m2": [
+              [
+                0.000051200000000000004,
+                0,
+                0
+              ],
+              [
+                0,
+                0.000051200000000000004,
+                0
+              ],
+              [
+                0,
+                0,
+                0.000051200000000000004
+              ]
+            ]
+          },
+          {
+            "com_m": [
+              0,
+              0,
+              0
+            ],
+            "mass_kg": 0.485,
+            "name": "joint_output_equivalent",
+            "provenance": {
+              "source": "existing worksheet mass/COM conversion",
+              "assumptions": [
+                "Equivalent worksheet mass/COM, not CAD; COM inertia is approximated for this dynamics demo.",
+                "Demo COM inertia assumes a uniform solid sphere with radius 0.04 m; replace with CAD or measured inertia."
+              ]
+            },
+            "inertia_kg_m2": [
+              [
+                0.0003104,
+                0,
+                0
+              ],
+              [
+                0,
+                0.0003104,
+                0
+              ],
+              [
+                0,
+                0,
+                0.0003104
+              ]
+            ]
+          }
+        ],
+        "limits": [
+          0,
+          2.6179938779914944
+        ],
+        "name": "J4",
+        "origin": {
+          "rpy_rad": [
+            0,
+            0,
+            0
+          ],
+          "xyz_m": [
+            0,
+            0,
+            -0.25
+          ]
+        },
+        "type": "revolute",
+        "id": "joint-4"
+      },
+      {
+        "axis": [
+          0,
+          0,
+          -1
+        ],
+        "components": [
+          {
+            "com_m": [
+              0,
+              0,
+              -0.0815
+            ],
+            "mass_kg": 0.12,
+            "name": "link",
+            "provenance": {
+              "source": "existing worksheet mass/COM conversion",
+              "assumptions": [
+                "Equivalent worksheet mass/COM, not CAD; COM inertia is approximated for this dynamics demo.",
+                "Demo COM inertia assumes a uniform solid sphere with radius 0.04 m; replace with CAD or measured inertia."
+              ]
+            },
+            "inertia_kg_m2": [
+              [
+                0.00007680000000000001,
+                0,
+                0
+              ],
+              [
+                0,
+                0.00007680000000000001,
+                0
+              ],
+              [
+                0,
+                0,
+                0.00007680000000000001
+              ]
+            ]
+          },
+          {
+            "com_m": [
+              0,
+              0,
+              0
+            ],
+            "mass_kg": 0.162,
+            "name": "joint_output_equivalent",
+            "provenance": {
+              "source": "existing worksheet mass/COM conversion",
+              "assumptions": [
+                "Equivalent worksheet mass/COM, not CAD; COM inertia is approximated for this dynamics demo.",
+                "Demo COM inertia assumes a uniform solid sphere with radius 0.04 m; replace with CAD or measured inertia."
+              ]
+            },
+            "inertia_kg_m2": [
+              [
+                0.00010368000000000002,
+                0,
+                0
+              ],
+              [
+                0,
+                0.00010368000000000002,
+                0
+              ],
+              [
+                0,
+                0,
+                0.00010368000000000002
+              ]
+            ]
+          }
+        ],
+        "limits": [
+          -2.356194490192345,
+          2.356194490192345
+        ],
+        "name": "J5",
+        "origin": {
+          "rpy_rad": [
+            0,
+            0,
+            0
+          ],
+          "xyz_m": [
+            0,
+            0,
+            -0.05
+          ]
+        },
+        "type": "revolute",
+        "id": "joint-5"
+      },
+      {
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "components": [
+          {
+            "com_m": [
+              0,
+              0,
+              -0.0235
+            ],
+            "mass_kg": 0.05,
+            "name": "link",
+            "provenance": {
+              "source": "existing worksheet mass/COM conversion",
+              "assumptions": [
+                "Equivalent worksheet mass/COM, not CAD; COM inertia is approximated for this dynamics demo.",
+                "Demo COM inertia assumes a uniform solid sphere with radius 0.04 m; replace with CAD or measured inertia."
+              ]
+            },
+            "inertia_kg_m2": [
+              [
+                0.000032000000000000005,
+                0,
+                0
+              ],
+              [
+                0,
+                0.000032000000000000005,
+                0
+              ],
+              [
+                0,
+                0,
+                0.000032000000000000005
+              ]
+            ]
+          },
+          {
+            "com_m": [
+              0,
+              0,
+              0
+            ],
+            "mass_kg": 0.162,
+            "name": "joint_output_equivalent",
+            "provenance": {
+              "source": "existing worksheet mass/COM conversion",
+              "assumptions": [
+                "Equivalent worksheet mass/COM, not CAD; COM inertia is approximated for this dynamics demo.",
+                "Demo COM inertia assumes a uniform solid sphere with radius 0.04 m; replace with CAD or measured inertia."
+              ]
+            },
+            "inertia_kg_m2": [
+              [
+                0.00010368000000000002,
+                0,
+                0
+              ],
+              [
+                0,
+                0.00010368000000000002,
+                0
+              ],
+              [
+                0,
+                0,
+                0.00010368000000000002
+              ]
+            ]
+          }
+        ],
+        "limits": [
+          -1.5707963267948966,
+          1.5707963267948966
+        ],
+        "name": "J6",
+        "origin": {
+          "rpy_rad": [
+            0,
+            0,
+            0
+          ],
+          "xyz_m": [
+            0,
+            0,
+            -0.163
+          ]
+        },
+        "type": "revolute",
+        "id": "joint-6"
+      },
+      {
+        "axis": [
+          1,
+          0,
+          0
+        ],
+        "components": [
+          {
+            "com_m": [
+              0,
+              0,
+              -0.02
+            ],
+            "mass_kg": 0.05,
+            "name": "link",
+            "provenance": {
+              "source": "existing worksheet mass/COM conversion",
+              "assumptions": [
+                "Equivalent worksheet mass/COM, not CAD; COM inertia is approximated for this dynamics demo.",
+                "Demo COM inertia assumes a uniform solid sphere with radius 0.04 m; replace with CAD or measured inertia."
+              ]
+            },
+            "inertia_kg_m2": [
+              [
+                0.000032000000000000005,
+                0,
+                0
+              ],
+              [
+                0,
+                0.000032000000000000005,
+                0
+              ],
+              [
+                0,
+                0,
+                0.000032000000000000005
+              ]
+            ]
+          },
+          {
+            "com_m": [
+              0,
+              0,
+              0
+            ],
+            "mass_kg": 0.162,
+            "name": "joint_output_equivalent",
+            "provenance": {
+              "source": "existing worksheet mass/COM conversion",
+              "assumptions": [
+                "Equivalent worksheet mass/COM, not CAD; COM inertia is approximated for this dynamics demo.",
+                "Demo COM inertia assumes a uniform solid sphere with radius 0.04 m; replace with CAD or measured inertia."
+              ]
+            },
+            "inertia_kg_m2": [
+              [
+                0.00010368000000000002,
+                0,
+                0
+              ],
+              [
+                0,
+                0.00010368000000000002,
+                0
+              ],
+              [
+                0,
+                0,
+                0.00010368000000000002
+              ]
+            ]
+          }
+        ],
+        "limits": [
+          -1.5707963267948966,
+          1.5707963267948966
+        ],
+        "name": "J7",
+        "origin": {
+          "rpy_rad": [
+            0,
+            0,
+            0
+          ],
+          "xyz_m": [
+            0,
+            0,
+            -0.047
+          ]
+        },
+        "type": "revolute",
+        "id": "joint-7"
+      }
+    ],
+    "tip": {
+      "rpy_rad": [
+        0,
+        0,
+        0
+      ],
+      "xyz_m": [
+        0,
+        0,
+        -0.04
+      ]
+    }
+  },
+  "motion_limits": {
+    "joint-1": {
+      "velocity_max": 2.5,
+      "acceleration_max": 12.5
+    },
+    "joint-2": {
+      "velocity_max": 5,
+      "acceleration_max": 25
+    },
+    "joint-3": {
+      "velocity_max": 5,
+      "acceleration_max": 25
+    },
+    "joint-4": {
+      "velocity_max": 5,
+      "acceleration_max": 25
+    },
+    "joint-5": {
+      "velocity_max": 17.24,
+      "acceleration_max": 86.21
+    },
+    "joint-6": {
+      "velocity_max": 17.24,
+      "acceleration_max": 86.21
+    },
+    "joint-7": {
+      "velocity_max": 17.24,
+      "acceleration_max": 86.21
+    }
+  },
+  "trajectory": {
+    "kind": "waypoints",
+    "start_q": [
+      0.55,
+      -0.45,
+      0.1,
+      1.35,
+      0,
+      0.2,
+      0
+    ],
+    "sample_dt_s": 0.01,
+    "timing_policy": "strict",
+    "segments": [
+      {
+        "id": "move_out",
+        "kind": "move",
+        "duration_s": 1.8,
+        "q_target": [
+          0.95,
+          -0.25,
+          0.55,
+          0.9,
+          -0.5,
+          0.45,
+          -0.4
+        ]
+      },
+      {
+        "id": "hold",
+        "kind": "hold",
+        "duration_s": 0.9
+      },
+      {
+        "id": "move_back",
+        "kind": "move",
+        "duration_s": 1.8,
+        "q_target": [
+          0.55,
+          -0.45,
+          0.1,
+          1.35,
+          0,
+          0.2,
+          0
+        ]
+      },
+      {
+        "id": "wait",
+        "kind": "wait",
+        "duration_s": 1.5
+      }
+    ]
+  },
+  "singularity": {
+    "task": "pose",
+    "characteristic_length_m": 0.6,
+    "near_sigma_threshold": 0.05,
+    "condition_warning": 100
+  },
+  "dynamics": {
+    "enabled": true,
+    "payload_inertia_kg_m2": [
+      [
+        0.0015000000000000005,
+        0,
+        0
+      ],
+      [
+        0,
+        0.0015000000000000005,
+        0
+      ],
+      [
+        0,
+        0,
+        0.0015000000000000005
+      ]
+    ]
+  }
+}

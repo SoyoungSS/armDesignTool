@@ -14,7 +14,7 @@ import {analyze as workspace} from '../../arm-workspace-parametric/scripts/lib/w
 import {forward} from '../kinematics/serial.mjs';
 const root=new URL('../../',import.meta.url);
 const json=async path=>JSON.parse(await readFile(new URL(path,root),'utf8'));
-const models=Object.fromEntries(await Promise.all(['single-link','two-link','seven-axis'].map(async name=>[name,await json(`examples/models/${name}.json`)])));
+const models=Object.fromEntries(await Promise.all(['single-link','two-link','seven-axis'].map(async name=>[name,await json(name==='seven-axis'?`examples/models/${name}.json`:`shared/tests/fixtures/models/${name}.json`)])));
 const request=(m,options)=>({schema_name:'arm-analysis-request',schema_version:'1.0',design_model:structuredClone(m),options});
 const pose=m=>({poses:[{name:'reference',q:Object.fromEntries(m.joints.filter(j=>j.type!=='fixed').map(j=>[j.name,0]))}]});
 const sampling={mode:'joint_sampling',sampling:{method:'random',samples:32,seed:42}};
@@ -65,7 +65,7 @@ test('reject ambiguous, missing, physically invalid and non-JSON model data',()=
   const noPayload=request(models['single-link'],pose(models['single-link']));delete noPayload.design_model.payload;assert.throws(()=>toStaticsRequest(noPayload),/payload/);
 });
 test('P0 trajectory/case/trace/manifest contracts enforce IDs, time and missing-value semantics',async()=>{
-  validateContract('case',await json('examples/cases/single-joint-hold.json'));
+  validateContract('case',await json('shared/tests/fixtures/cases/single-joint-hold.json'));
   const provenance={source:'test',assumptions:[]};
   const t={schema_name:'arm-trajectory',schema_version:'1.0',joint_ids:['J1'],joint_types:['revolute'],samples:[{time_s:0,q:[0],dq:[0],ddq:[0],phase_id:'hold'}],provenance};validateContract('trajectory',t);
   assert.throws(()=>validateContract('trajectory',{...t,samples:[...t.samples,...t.samples]}),/increase/);
@@ -77,8 +77,8 @@ test('relocatable bundles run both CLIs outside repository with reports and shar
   const temp=await mkdtemp(join(tmpdir(),'arm-bundle-'));
   try{for(const skill of ['arm-statics-parametric','arm-workspace-parametric']){
     const bundle=join(temp,skill),build=spawnSync(process.execPath,[fileURLToPath(new URL('../scripts/package-skill.mjs',import.meta.url)),skill,bundle],{cwd:tmpdir(),encoding:'utf8'});assert.equal(build.status,0,build.stderr);
-    const run=spawnSync(process.execPath,[join(bundle,skill,'scripts/run.mjs'),'--input',join(bundle,skill,'assets/examples/design-two-link.json'),'--output',join(bundle,'result.json'),'--report-dir',join(bundle,'reports')],{cwd:tmpdir(),encoding:'utf8'});assert.equal(run.status,0,run.stderr);
-    const output=JSON.parse(await readFile(join(bundle,'result.json'),'utf8'));assert.equal(output.joint_names.length,2);assert.ok(output.design_model_sha256);
+    const run=spawnSync(process.execPath,[join(bundle,skill,'scripts/run.mjs'),'--input',join(bundle,skill,'assets/examples/design-seven-axis.json'),'--output',join(bundle,'result.json'),'--report-dir',join(bundle,'reports')],{cwd:tmpdir(),encoding:'utf8'});assert.equal(run.status,0,run.stderr);
+    const output=JSON.parse(await readFile(join(bundle,'result.json'),'utf8'));assert.equal(output.joint_names.length,7);assert.ok(output.design_model_sha256);
   }}finally{await rm(temp,{recursive:true,force:true});}
 });
 
@@ -97,4 +97,13 @@ test('web installation adapter updates common model without adding legacy root f
     assert.equal(result.installation,undefined);assert.equal(statics(result).summary.length,1);
     const legacy=JSON.parse(await applyInstallationToText(JSON.stringify(toStaticsRequest(input)),mount));assert.deepEqual(legacy.installation,mount);
   }finally{await rm(temp,{recursive:true,force:true});}
+});
+
+test('public model catalog contains only worksheet and geometry-only FR3',async()=>{
+  const {readdir}=await import('node:fs/promises');
+  assert.deepEqual((await readdir(new URL('../../examples/models',import.meta.url))).sort(),['franka-fr3.json','seven-axis.json']);
+  const m=await json('examples/models/franka-fr3.json'),audit=validateDesignModel(m);
+  assert.equal(audit.capabilities.mass_properties,false);assert.equal(audit.capabilities.inertial_properties,false);
+  const r=workspace(request(m,sampling));assert.equal(r.joint_names.length,7);assert.ok(r.joint_names.every(n=>n.startsWith('fr3_joint')));
+  assert.throws(()=>statics(request(m,{search:{samples:1,seed:42}})),e=>e.code==='INVALID_INPUT'&&e.path.includes('components'));
 });

@@ -1,0 +1,8 @@
+{
+  "source_file": "franka_fr3.workspace.json",
+  "sha256": "02c5ad1566d1d518b14a1ff6fee206161ca0a282709f55f171d4efb57a404d85",
+  "imported_on": "2026-11-09",
+  "public_example": "assets/examples/franka-fr3.workspace.json",
+  "copy_policy": "source bytes preserved; no geometry/limits/sample overrides",
+  "scope": "geometry only; no statics or dynamics capability claimed"
+}

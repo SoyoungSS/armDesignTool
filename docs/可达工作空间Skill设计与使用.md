@@ -37,12 +37,12 @@ npm.cmd start
 1. 选择“关节采样 / FK点云”或“球体位置与姿态 / IK可达率”。
 2. 点击“从当前网页模型生成输入”，几何、轴向、限位、肩高及安装角将一起转换；无需填写质量或重力。
 3. 如需更换采样预算、目标或姿态，在JSON文本中修改后运行Skill。
-4. 也可以载入选型表或Dexbot左右臂示例，或上传JSON/JSONC。
+4. 也可以载入选型表七轴单臂或 Franka FR3 示例，或上传JSON/JSONC。
 5. 查看点云、三投影及三剖面；输入点编号，选择已找到的解并显示姿态。
 6. 仅当模型几何、轴、限位、安装角和关节名称均匹配时，“应用到网页七轴模型”可用。
 7. 从工作空间页导出完整Skill结果、点云CSV或报告。顶部旧全流程导出仍是网页概念结果，未合并独立Skill结果。
 
-查看三类空间时，请选择IK模式，或在参考模型中载入“选型表 / 空间与灵巧分类”。通过“显示分类”可筛选全部空间可达点（蓝+绿+橙）、仅灵巧点、部分姿态点、已证明不可达点或待定点。
+查看三类空间时，请选择IK模式，或上传 worksheet-classification.jsonc 工况。通过“显示分类”可筛选全部空间可达点（蓝+绿+橙）、仅灵巧点、部分姿态点、已证明不可达点或待定点。
 仅做FK点云采样时无法判断不可达区域，灵巧空间显示“未评估”。
 
 带注释样例：[worksheet-classification.jsonc](../arm-workspace-parametric/assets/examples/worksheet-classification.jsonc)。当前固定输入产生4个目标：目标0为两个采样朝向全通过；目标1为位置可达但指定朝向均未解；目标2超出0.635m几何外界；目标3在界内未找到位置解，保持待定。它们分别呈绿、蓝、红、灰色。
@@ -55,7 +55,7 @@ npm.cmd start
 cd E:\Robot\armDesignTool\arm-workspace-parametric
 node scripts/run.mjs --input assets/examples/worksheet-workspace.jsonc --output outputs/workspace_result.json --report-dir outputs
 node scripts/run.mjs --input assets/examples/worksheet-reachability.jsonc --output outputs/reachability_result.json --report-dir outputs/ik
-node scripts/run.mjs --input assets/examples/dexbot-right-arm.json --output outputs/right_result.json --report-dir outputs/right
+node scripts/run.mjs --input assets/examples/franka-fr3.workspace.json --output outputs/right_result.json --report-dir outputs/right
 ```
 
 生成主JSON、points.csv、report.md、request.json、projection-xy/xz/yz.svg及section-xy/xz/yz.svg。

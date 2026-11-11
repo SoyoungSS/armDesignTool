@@ -4,7 +4,7 @@ import {cp,mkdir,realpath} from 'node:fs/promises';
 import {resolve,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 const [name,destination]=process.argv.slice(2),root=await realpath(fileURLToPath(new URL('../../',import.meta.url)));
-if(!['arm-statics-parametric','arm-workspace-parametric'].includes(name)||!destination)throw Error('Usage: node package-skill.mjs <skill-name> <new-output-directory>');
+if(!['arm-statics-parametric','arm-workspace-parametric','arm-kinematics-dynamics'].includes(name)||!destination)throw Error('Usage: node package-skill.mjs <skill-name> <new-output-directory>');
 const output=resolve(destination);
 if(output===root||output.startsWith(root+sep))throw Error('Output must be outside source repository');
 await mkdir(output); // Refuse to overwrite an existing bundle.

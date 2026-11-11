@@ -25,7 +25,7 @@ description: 不依赖URDF的参数化机械臂静力学校核。支持标准输
 在技能目录使用Node.js≥20，推荐22/24，无需安装npm依赖：
 
 ```bash
-node scripts/run.mjs --input assets/examples/simple-two-link.json --output /absolute/output/statics_result.json --report-dir /absolute/output/report
+node scripts/run.mjs --input assets/examples/worksheet-minimal.json --output /absolute/output/statics_result.json --report-dir /absolute/output/report
 ```
 
 将示例替换成实际请求。失败返回非零退出码与结构化错误；不得把仍存在的旧结果解释为新请求成功。主JSON在计算及配套导出完成后原子替换，配套文件不是整目录事务。
@@ -51,11 +51,9 @@ node scripts/run.mjs --input assets/examples/simple-two-link.json --output /abso
 
 ## 示例与测试
 
-- assets/examples/simple-two-link.json 和standard-two-link.json：等价物理模型。
-- assets/examples/seven-axis-concept.json：3.612kg概念集中质量，不等同CAD。
-- assets/examples/project-right-arm.json 和project-left-arm.json：项目参数快照，无运行时URDF依赖。
-- assets/examples/prismatic.json：移动关节输出力。
-- assets/examples/side-mounted-two-link.json：世界重力与侧装姿态输入；报告保留世界/基座重力、安装RPY及旋转矩阵。
+- 公开示例仅保留选型表七轴单臂：worksheet-minimal.json/jsonc、worksheet-installation.jsonc 和 design-seven-axis.json。
+- 单杆、两杆、移动关节和历史左右臂数据仅位于 scripts/tests/fixtures，用于回归，不作为用户示例。
+- Franka FR3 尚无质量/COM，不能作为静力学示例。
 - 执行 `node --test scripts/tests/*.test.mjs`。不要将未运行的浏览器或服务检查写成已通过。
 
 只支持固定基座串联刚体链。闭链、柔性、浮动基座、未知接触反力与被动关节平衡不求解。fixed代表几何锁定，不模拟有限容量抱闸。重力静力学不要求惯性张量。
@@ -63,6 +61,6 @@ node scripts/run.mjs --input assets/examples/simple-two-link.json --output /abso
 
 ## 公共参数模型与独立分发（P0/P1）
 
-CLI 与 `analyze(input)` 另外接受 `schema_name: "arm-analysis-request"`、`schema_version: "1.0"` 的公共请求，design_model 内嵌参数模型，options 保留本 Skill 的分析设置。无需网页、CAD 或 URDF。完整示例为 `assets/examples/design-single-link.json`、`design-two-link.json`、`design-seven-axis.json`；读取 [公共输入说明](references/design-model.md) 后再构造这种请求。旧格式继续支持。
+CLI 与 `analyze(input)` 另外接受 `schema_name: "arm-analysis-request"`、`schema_version: "1.0"` 的公共请求，design_model 内嵌参数模型，options 保留本 Skill 的分析设置。无需网页、CAD 或 URDF。完整示例为 `assets/examples/design-seven-axis.json`；读取 [公共输入说明](references/design-model.md) 后再构造这种请求。旧格式继续支持。
 
 独立执行仍使用本 Skill 的 `scripts/run.mjs --input ... --output ... --report-dir ...`。共享代码位于同包根的 `shared/`，单独分发时使用仓库 `shared/scripts/package-skill.mjs` 生成 bundle；保留 skill 与 shared 同级结构，不依赖网页源码或原始仓库路径。
