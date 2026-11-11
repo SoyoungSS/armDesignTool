@@ -1,0 +1,4 @@
+interface:
+  display_name: "机械臂仿真模型生成"
+  short_description: "从运动学参数自动生成连杆网格及 URDF、RViz、MJCF、USD"
+  default_prompt: "使用 $arm-sim-model-generator 从机械臂参数生成可迁移的模型包并逐目标验证。"
