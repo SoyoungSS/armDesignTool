@@ -1,0 +1,3 @@
+-r requirements.txt
+mujoco==3.3.7
+usd-core==25.11

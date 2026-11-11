@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "model": {
+    "name": "two_revolute",
+    "joints": [
+      {"name":"J1","type":"revolute","origin":{"xyz_m":[0,0,0.08],"rpy_rad":[0,0,0]},"axis":[0,0,1],"limits":[-2.5,2.5]},
+      {"name":"J2","type":"revolute","origin":{"xyz_m":[0.32,0,0],"rpy_rad":[0,0,0]},"axis":[0,1,0],"limits":[-1.8,1.8]}
+    ],
+    "tip":{"xyz_m":[0.25,0,0],"rpy_rad":[0,1.5707963267948966,0]}
+  },
+  "export":{"mode":"concept","targets":["urdf","ros1","isaac"],"limit_placeholders":{"effort":10,"velocity":1}}
+}

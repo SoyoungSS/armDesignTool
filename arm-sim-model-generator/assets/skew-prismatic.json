@@ -1,0 +1,319 @@
+{
+  "schema_version": "1.0",
+  "model": {
+    "name": "skew_slider",
+    "joints": [
+      {
+        "name": "shoulder",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0.02,
+            -0.03,
+            0.12
+          ],
+          "rpy_rad": [
+            0.2,
+            -0.3,
+            0.4
+          ]
+        },
+        "axis": [
+          1,
+          1,
+          0.5
+        ],
+        "limits": [
+          -1.2,
+          1.5
+        ],
+        "components": [
+          {
+            "name": "arm_and_module_moving",
+            "mass_kg": 1.4,
+            "com_m": [
+              0.13,
+              0.025,
+              -0.01
+            ],
+            "inertia_kg_m2": [
+              [
+                0.008,
+                0.001,
+                0
+              ],
+              [
+                0.001,
+                0.018,
+                0
+              ],
+              [
+                0,
+                0,
+                0.02
+              ]
+            ],
+            "inertia_frame": "component",
+            "inertia_rpy_rad": [
+              0.1,
+              0.2,
+              0.3
+            ]
+          },
+          {
+            "name": "slider_module_fixed",
+            "mass_kg": 0.3,
+            "com_m": [
+              0.26,
+              0,
+              0.04
+            ],
+            "inertia_kg_m2": [
+              [
+                0.001,
+                0,
+                0
+              ],
+              [
+                0,
+                0.001,
+                0
+              ],
+              [
+                0,
+                0,
+                0.001
+              ]
+            ],
+            "inertia_frame": "link"
+          }
+        ]
+      },
+      {
+        "name": "slide",
+        "type": "prismatic",
+        "origin": {
+          "xyz_m": [
+            0.3,
+            0.02,
+            0.04
+          ],
+          "rpy_rad": [
+            0.15,
+            0.25,
+            -0.4
+          ]
+        },
+        "axis": [
+          0.3,
+          -0.2,
+          1
+        ],
+        "limits": [
+          -0.04,
+          0.12
+        ],
+        "components": [
+          {
+            "name": "carriage",
+            "mass_kg": 0.6,
+            "com_m": [
+              0.04,
+              -0.02,
+              0.03
+            ],
+            "inertia_kg_m2": [
+              [
+                0.002,
+                0,
+                0
+              ],
+              [
+                0,
+                0.003,
+                0.0002
+              ],
+              [
+                0,
+                0.0002,
+                0.0035
+              ]
+            ],
+            "inertia_frame": "link"
+          }
+        ]
+      },
+      {
+        "name": "tool_mount",
+        "type": "fixed",
+        "origin": {
+          "xyz_m": [
+            0.12,
+            0,
+            0.03
+          ],
+          "rpy_rad": [
+            0.2,
+            0.1,
+            -0.2
+          ]
+        },
+        "components": [
+          {
+            "name": "tool",
+            "mass_kg": 0.2,
+            "com_m": [
+              0.035,
+              0.015,
+              0.01
+            ],
+            "inertia_kg_m2": [
+              [
+                0.0002,
+                0,
+                0
+              ],
+              [
+                0,
+                0.0003,
+                0
+              ],
+              [
+                0,
+                0,
+                0.00035
+              ]
+            ],
+            "inertia_frame": "link"
+          }
+        ]
+      }
+    ],
+    "tip": {
+      "xyz_m": [
+        0.075,
+        0.01,
+        0.02
+      ],
+      "rpy_rad": [
+        0.1,
+        1.0,
+        0.2
+      ]
+    }
+  },
+  "physics": {
+    "components": {
+      "base_link": [
+        {
+          "name": "base",
+          "mass_kg": 2,
+          "com_m": [
+            0,
+            0,
+            -0.03
+          ],
+          "inertia_kg_m2": [
+            [
+              0.01,
+              0,
+              0
+            ],
+            [
+              0,
+              0.01,
+              0
+            ],
+            [
+              0,
+              0,
+              0.015
+            ]
+          ],
+          "inertia_frame": "link"
+        }
+      ]
+    },
+    "payload": {
+      "mass_kg": 0.2,
+      "com_in_tip_m": [
+        0,
+        0,
+        0
+      ],
+      "included_in": {
+        "link": "tool_mount",
+        "component": "tool"
+      }
+    }
+  },
+  "installation": {
+    "base_in_world": {
+      "xyz_m": [
+        0.4,
+        -0.2,
+        0.3
+      ],
+      "rpy_rad": [
+        0.1,
+        0.5,
+        -0.2
+      ]
+    },
+    "gravity_world_m_s2": [
+      0,
+      0,
+      -9.81
+    ]
+  },
+  "poses": {
+    "initial": {
+      "shoulder": 0.25,
+      "slide": 0.04
+    },
+    "acceptance": [
+      {
+        "name": "extended",
+        "q": {
+          "shoulder": -0.7,
+          "slide": 0.12
+        }
+      },
+      {
+        "name": "retracted",
+        "q": {
+          "shoulder": 1.1,
+          "slide": -0.04
+        }
+      }
+    ]
+  },
+  "drives": {
+    "shoulder": {
+      "effort": 25,
+      "velocity": 1.5,
+      "mode": "auto",
+      "damping": 0.1,
+      "friction": 0.02
+    },
+    "slide": {
+      "effort": 80,
+      "velocity": 0.3,
+      "mode": "auto",
+      "damping": 0.3
+    }
+  },
+  "export": {
+    "mode": "strict",
+    "targets": [
+      "urdf",
+      "ros1",
+      "mujoco",
+      "isaac"
+    ],
+    "runtime_versions": {
+      "ros1": "Noetic",
+      "isaac": "5.1.0"
+    }
+  }
+}

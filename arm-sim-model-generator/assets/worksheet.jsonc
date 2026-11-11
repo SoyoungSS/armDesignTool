@@ -1,0 +1,20 @@
+{
+  "schema_version":"1.0",
+  "model":{
+    "name":"my_arm",
+    // origin 相对上一输出刚体，轴在 origin 旋转之后表达。
+    "joints":[
+      {"name":"J1","type":"revolute","origin":{"xyz_mm":[0,0,80],"rpy_deg":[0,0,0]},"axis":[0,0,1],"limits_deg":[-150,150]},
+      {"name":"J2","type":"revolute","origin":{"xyz_m":[0.3,0,0],"rpy_rad":[0,0,0]},"axis":[0,1,0],"limits":[-1.5,1.5]}
+    ],
+    "tip":{"xyz_m":[0.25,0,0],"rpy_rad":[0,1.5707963267948966,0]}
+  },
+  // 可选；缺失尺寸按跨度推导，不需要 Mesh/CAD。
+  "dimensions":{"appearance":{"detail_level":1},"links":{"J1_link":{"width_m":0.05,"thickness_m":0.035}}},
+  // 显式概念密度估算；真实质量/COM/惯量写 components。
+  "physics":{"estimation":{"method":"uniform_density","density_kg_m3":800}},
+  "installation":{"base_in_world":{"xyz_m":[0,0,0],"rpy_rad":[0,0,0]},"gravity_world_m_s2":[0,0,-9.81]},
+  "poses":{"initial":{"J1":{"deg":15},"J2":0.2},"acceptance":[{"name":"folded","q":{"J1":0.4,"J2":1.2}}]},
+  // 未指定模式时自动计算位置驱动。占位 effort/velocity 不是硬件额定值。
+  "export":{"mode":"concept","targets":["urdf","ros1","mujoco","isaac"],"limit_placeholders":{"effort":10,"velocity":1},"runtime_versions":{"ros1":"Noetic"}}
+}
