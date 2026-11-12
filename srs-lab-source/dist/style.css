@@ -59,3 +59,6 @@ select:disabled { background-color:#eef0f2; color:#687078; cursor:not-allowed; }
   width: 100%; min-width: 96px; max-width: none; box-sizing: border-box;
 }
 .module-joints td:nth-child(7) input { min-width: 140px; }
+
+#criticalScene{display:block;width:100%;height:clamp(280px,48vh,480px);background:radial-gradient(ellipse at 50% 42%,#fff 8%,#edf3f7 75%,#e3ebf1 100%);border:1px solid #d5dce2;border-radius:12px;touch-action:none;cursor:grab}
+#criticalScene:active{cursor:grabbing}

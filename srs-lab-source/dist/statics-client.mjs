@@ -50,3 +50,36 @@ export function poseToJointAngles(pose, jointNames) {
     return angle; // radians. Apply directly to 3D model; never re-solve statics here.
   });
 }
+
+export async function createCriticalPoseReplay(result, jointName) {
+  const {forward,rpy,mv,add}=await import('./workspace-kinematics.mjs');
+  const {model,installation}=result.normalized_input;
+  const summary=result.summary.find(item=>item.joint===jointName);
+  const initial=poseToJointAngles(summary?.critical_pose,result.joint_names);
+  const joints=model.joints.filter(joint=>joint.type!=='fixed');
+  const origin=result.input_snapshot?.design_model?.base_in_world?.xyz_m??[0,0,0];
+  const rotation=rpy(installation?.base_orientation_in_world?.rpy_rad??[0,0,0]);
+  const world=p=>add(origin,mv(rotation,p));
+  const basis=[[1,0,0],[0,1,0],[0,0,1]];
+  const base_frame={origin_world_m:origin,axes_world:basis.map(axis=>mv(rotation,axis))};
+  function preview(q=initial,selected=jointName) {
+    const fk=forward(model,q);
+    const active=fk.joints.find(joint=>joint.name===selected);
+    return {
+      base_frame,
+      nodes_world_m:fk.nodes.map(world),
+      position_world_m:world(fk.position_m),
+      tip_axes_world:basis.map(axis=>mv(rotation,mv(fk.rotation,axis))),
+      joints_world:fk.joints.map(joint=>({
+        name:joint.name,origin:world(joint.origin),axis:mv(rotation,joint.axis),selected:joint.name===selected,
+      })),
+      selected_joint:active?{name:selected,origin_world_m:world(active.origin)}:null,
+    };
+  }
+  return {initial,joints,preview};
+}
+
+export async function previewCriticalPose(result,jointName) {
+  const replay=await createCriticalPoseReplay(result,jointName);
+  return replay.preview();
+}

@@ -1,0 +1,512 @@
+{
+  "schema_name": "arm-analysis-request",
+  "schema_version": "1.0",
+  "design_model": {
+    "schema_name": "arm-design-model",
+    "schema_version": "1.0",
+    "name": "七轴仿真输入 / serial_arm_7dof",
+    "joints": [
+      {
+        "id": "J1",
+        "name": "J1",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0,
+            0,
+            0.333
+          ],
+          "rpy_rad": [
+            0,
+            0,
+            0
+          ]
+        },
+        "axis": [
+          0,
+          0,
+          1
+        ],
+        "limits": [
+          -2.7437,
+          2.7437
+        ],
+        "components": [
+          {
+            "name": "rigid_body",
+            "mass_kg": 4.970684,
+            "com_m": [
+              0.003875,
+              0.002081,
+              -0.04762
+            ],
+            "inertia_kg_m2": [
+              [
+                0.70337,
+                -0.000139,
+                0.006772
+              ],
+              [
+                -0.000139,
+                0.70661,
+                0.019169
+              ],
+              [
+                0.006772,
+                0.019169,
+                0.009117
+              ]
+            ],
+            "provenance": {
+              "source": "ArmReference/seven_axis_sim_input.json",
+              "assumptions": []
+            }
+          }
+        ]
+      },
+      {
+        "id": "J2",
+        "name": "J2",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0,
+            0,
+            0
+          ],
+          "rpy_rad": [
+            -1.5707963267948966,
+            0,
+            0
+          ]
+        },
+        "axis": [
+          0,
+          0,
+          1
+        ],
+        "limits": [
+          -1.7837,
+          1.7837
+        ],
+        "components": [
+          {
+            "name": "rigid_body",
+            "mass_kg": 0.646926,
+            "com_m": [
+              -0.003141,
+              -0.02872,
+              0.003495
+            ],
+            "inertia_kg_m2": [
+              [
+                0.007962,
+                -0.003925,
+                0.010254
+              ],
+              [
+                -0.003925,
+                0.02811,
+                0.000704
+              ],
+              [
+                0.010254,
+                0.000704,
+                0.025995
+              ]
+            ],
+            "provenance": {
+              "source": "ArmReference/seven_axis_sim_input.json",
+              "assumptions": []
+            }
+          }
+        ]
+      },
+      {
+        "id": "J3",
+        "name": "J3",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0,
+            -0.316,
+            0
+          ],
+          "rpy_rad": [
+            1.5707963267948966,
+            0,
+            0
+          ]
+        },
+        "axis": [
+          0,
+          0,
+          1
+        ],
+        "limits": [
+          -2.9007,
+          2.9007
+        ],
+        "components": [
+          {
+            "name": "rigid_body",
+            "mass_kg": 3.228604,
+            "com_m": [
+              0.027518,
+              0.039252,
+              -0.066502
+            ],
+            "inertia_kg_m2": [
+              [
+                0.037242,
+                -0.004761,
+                -0.011396
+              ],
+              [
+                -0.004761,
+                0.036155,
+                -0.012805
+              ],
+              [
+                -0.011396,
+                -0.012805,
+                0.01083
+              ]
+            ],
+            "provenance": {
+              "source": "ArmReference/seven_axis_sim_input.json",
+              "assumptions": []
+            }
+          }
+        ]
+      },
+      {
+        "id": "J4",
+        "name": "J4",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0.0825,
+            0,
+            0
+          ],
+          "rpy_rad": [
+            1.5707963267948966,
+            0,
+            0
+          ]
+        },
+        "axis": [
+          0,
+          0,
+          1
+        ],
+        "limits": [
+          -3.0421,
+          -0.1518
+        ],
+        "components": [
+          {
+            "name": "rigid_body",
+            "mass_kg": 3.587895,
+            "com_m": [
+              -0.05317,
+              0.104419,
+              0.027454
+            ],
+            "inertia_kg_m2": [
+              [
+                0.025853,
+                0.007796,
+                -0.001332
+              ],
+              [
+                0.007796,
+                0.019552,
+                0.008641
+              ],
+              [
+                -0.001332,
+                0.008641,
+                0.028323
+              ]
+            ],
+            "provenance": {
+              "source": "ArmReference/seven_axis_sim_input.json",
+              "assumptions": []
+            }
+          }
+        ]
+      },
+      {
+        "id": "J5",
+        "name": "J5",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            -0.0825,
+            0.384,
+            0
+          ],
+          "rpy_rad": [
+            -1.5707963267948966,
+            0,
+            0
+          ]
+        },
+        "axis": [
+          0,
+          0,
+          1
+        ],
+        "limits": [
+          -2.8065,
+          2.8065
+        ],
+        "components": [
+          {
+            "name": "rigid_body",
+            "mass_kg": 1.225946,
+            "com_m": [
+              -0.011953,
+              0.041065,
+              -0.038437
+            ],
+            "inertia_kg_m2": [
+              [
+                0.035549,
+                -0.002117,
+                -0.004037
+              ],
+              [
+                -0.002117,
+                0.029474,
+                0.000229
+              ],
+              [
+                -0.004037,
+                0.000229,
+                0.008627
+              ]
+            ],
+            "provenance": {
+              "source": "ArmReference/seven_axis_sim_input.json",
+              "assumptions": []
+            }
+          }
+        ]
+      },
+      {
+        "id": "J6",
+        "name": "J6",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0,
+            0,
+            0
+          ],
+          "rpy_rad": [
+            1.5707963267948966,
+            0,
+            0
+          ]
+        },
+        "axis": [
+          0,
+          0,
+          1
+        ],
+        "limits": [
+          0.5445,
+          4.5169
+        ],
+        "components": [
+          {
+            "name": "rigid_body",
+            "mass_kg": 1.666555,
+            "com_m": [
+              0.060149,
+              -0.014117,
+              -0.010517
+            ],
+            "inertia_kg_m2": [
+              [
+                0.001964,
+                0.000109,
+                -0.001158
+              ],
+              [
+                0.000109,
+                0.004354,
+                0.000341
+              ],
+              [
+                -0.001158,
+                0.000341,
+                0.005433
+              ]
+            ],
+            "provenance": {
+              "source": "ArmReference/seven_axis_sim_input.json",
+              "assumptions": []
+            }
+          }
+        ]
+      },
+      {
+        "id": "J7",
+        "name": "J7",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0.088,
+            0,
+            0
+          ],
+          "rpy_rad": [
+            1.5707963267948966,
+            0,
+            0
+          ]
+        },
+        "axis": [
+          0,
+          0,
+          1
+        ],
+        "limits": [
+          -3.0159,
+          3.0159
+        ],
+        "components": [
+          {
+            "name": "rigid_body",
+            "mass_kg": 0.735522,
+            "com_m": [
+              0.010517,
+              -0.004252,
+              0.061597
+            ],
+            "inertia_kg_m2": [
+              [
+                0.012516,
+                -0.000428,
+                -0.001196
+              ],
+              [
+                -0.000428,
+                0.010027,
+                -0.000741
+              ],
+              [
+                -0.001196,
+                -0.000741,
+                0.004815
+              ]
+            ],
+            "provenance": {
+              "source": "ArmReference/seven_axis_sim_input.json",
+              "assumptions": []
+            }
+          }
+        ]
+      }
+    ],
+    "tip": {
+      "xyz_m": [
+        0,
+        0,
+        0.107
+      ],
+      "rpy_rad": [
+        0,
+        0,
+        0
+      ]
+    },
+    "base_in_world": {
+      "xyz_m": [
+        0,
+        0,
+        0
+      ],
+      "rpy_rad": [
+        0,
+        0,
+        0
+      ]
+    },
+    "gravity_world_m_s2": [
+      0,
+      0,
+      -9.81
+    ],
+    "payload": {
+      "mass_kg": 0,
+      "com_in_tip_m": [
+        0,
+        0,
+        0
+      ],
+      "provenance": {
+        "source": "ArmReference/seven_axis_sim_input.json",
+        "assumptions": []
+      }
+    },
+    "provenance": {
+      "source": "ArmReference/seven_axis_sim_input.json",
+      "assumptions": [
+        "保留七个运动刚体的参考质量、质心和惯量。固定底座不计入关节载荷。",
+        "末端法兰偏移已合入 tip，未额外叠加末端刚体质量。",
+        "参考刚体参数未逐机标定。导出 effort 限值不作为连续保持能力。",
+        "配套轨迹依次经过初始及两个验收姿态再返回。速度取仿真输入固定导出限值，加速度上限 2 rad/s² 为演示设置。"
+      ]
+    }
+  },
+  "options": {
+    "poses": [
+      {
+        "name": "initial",
+        "q": {
+          "J1": 0,
+          "J2": -0.5,
+          "J3": 0,
+          "J4": -1.5,
+          "J5": 0,
+          "J6": 1.5,
+          "J7": 0
+        }
+      },
+      {
+        "name": "pose_a",
+        "q": {
+          "J1": 0.2,
+          "J2": -0.4,
+          "J3": -0.3,
+          "J4": -1.8,
+          "J5": 0.4,
+          "J6": 2.1,
+          "J7": -0.2
+        }
+      },
+      {
+        "name": "pose_b",
+        "q": {
+          "J1": -0.4,
+          "J2": 0.5,
+          "J3": 0.3,
+          "J4": -1.2,
+          "J5": -0.5,
+          "J6": 2.8,
+          "J7": 0.6
+        }
+      }
+    ],
+    "search": {
+      "samples": 2048,
+      "seed": 42
+    },
+    "design_factor": 1
+  }
+}

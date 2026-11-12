@@ -1,0 +1,482 @@
+{
+  "schema_name": "arm-design-model",
+  "schema_version": "1.0",
+  "name": "双臂设计方案 / CAD 右臂",
+  "base_in_world": {
+    "xyz_m": [
+      0,
+      0,
+      0
+    ],
+    "rpy_rad": [
+      0,
+      0,
+      0
+    ]
+  },
+  "gravity_world_m_s2": [
+    0,
+    0,
+    -9.8
+  ],
+  "joints": [
+    {
+      "id": "arm_r_joint_1",
+      "name": "arm_r_joint_1",
+      "type": "revolute",
+      "origin": {
+        "xyz_m": [
+          0.0,
+          -0.17,
+          0.0
+        ],
+        "rpy_rad": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "components": [
+        {
+          "name": "arm_r_link_1",
+          "mass_kg": 0.57296475,
+          "com_m": [
+            0.01036431,
+            0.0030588,
+            1.079e-05
+          ],
+          "inertia_kg_m2": [
+            [
+              0.00036091,
+              1.616e-05,
+              2.2e-07
+            ],
+            [
+              1.616e-05,
+              0.00039917,
+              -1.6e-07
+            ],
+            [
+              2.2e-07,
+              -1.6e-07,
+              0.00042027
+            ]
+          ],
+          "provenance": {
+            "source": "ArmReference/dual_arm/urdf/dual_arm.urdf",
+            "assumptions": []
+          }
+        }
+      ],
+      "axis": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "limits": [
+        -1.5708,
+        3.1416
+      ]
+    },
+    {
+      "id": "arm_r_joint_2",
+      "name": "arm_r_joint_2",
+      "type": "revolute",
+      "origin": {
+        "xyz_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rpy_rad": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "components": [
+        {
+          "name": "arm_r_link_2",
+          "mass_kg": 0.08406072,
+          "com_m": [
+            0.02775457,
+            0.0,
+            -0.02632484
+          ],
+          "inertia_kg_m2": [
+            [
+              4.626e-05,
+              0.0,
+              -1.757e-05
+            ],
+            [
+              0.0,
+              6.192e-05,
+              0.0
+            ],
+            [
+              -1.757e-05,
+              0.0,
+              4.496e-05
+            ]
+          ],
+          "provenance": {
+            "source": "ArmReference/dual_arm/urdf/dual_arm.urdf",
+            "assumptions": []
+          }
+        }
+      ],
+      "axis": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "limits": [
+        -1.5708,
+        0.0
+      ]
+    },
+    {
+      "id": "arm_r_joint_3",
+      "name": "arm_r_joint_3",
+      "type": "revolute",
+      "origin": {
+        "xyz_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rpy_rad": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "components": [
+        {
+          "name": "arm_r_link_3",
+          "mass_kg": 1.20023539,
+          "com_m": [
+            -0.00091699,
+            -0.00091067,
+            -0.18141941
+          ],
+          "inertia_kg_m2": [
+            [
+              0.01538011,
+              -2.94e-06,
+              -4.345e-05
+            ],
+            [
+              -2.94e-06,
+              0.01541336,
+              -0.00011433
+            ],
+            [
+              -4.345e-05,
+              -0.00011433,
+              0.00074648
+            ]
+          ],
+          "provenance": {
+            "source": "ArmReference/dual_arm/urdf/dual_arm.urdf",
+            "assumptions": []
+          }
+        }
+      ],
+      "axis": [
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "limits": [
+        -2.3562,
+        2.3562
+      ]
+    },
+    {
+      "id": "arm_r_joint_4",
+      "name": "arm_r_joint_4",
+      "type": "revolute",
+      "origin": {
+        "xyz_m": [
+          0.0,
+          0.0,
+          -0.3
+        ],
+        "rpy_rad": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "components": [
+        {
+          "name": "arm_r_link_4",
+          "mass_kg": 0.06178252,
+          "com_m": [
+            0.0,
+            -0.01753679,
+            -0.02559457
+          ],
+          "inertia_kg_m2": [
+            [
+              3.905e-05,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              3.456e-05,
+              1.204e-05
+            ],
+            [
+              0.0,
+              1.204e-05,
+              2.431e-05
+            ]
+          ],
+          "provenance": {
+            "source": "ArmReference/dual_arm/urdf/dual_arm.urdf",
+            "assumptions": []
+          }
+        }
+      ],
+      "axis": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "limits": [
+        0.0,
+        2.618
+      ]
+    },
+    {
+      "id": "arm_r_joint_5",
+      "name": "arm_r_joint_5",
+      "type": "revolute",
+      "origin": {
+        "xyz_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rpy_rad": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "components": [
+        {
+          "name": "arm_r_link_5",
+          "mass_kg": 0.2824892,
+          "com_m": [
+            0.0,
+            -0.00233015,
+            -0.09482096
+          ],
+          "inertia_kg_m2": [
+            [
+              0.00082799,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.00082605,
+              -6.551e-05
+            ],
+            [
+              0.0,
+              -6.551e-05,
+              0.00011451
+            ]
+          ],
+          "provenance": {
+            "source": "ArmReference/dual_arm/urdf/dual_arm.urdf",
+            "assumptions": []
+          }
+        }
+      ],
+      "axis": [
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "limits": [
+        -2.3562,
+        2.3562
+      ]
+    },
+    {
+      "id": "arm_r_joint_6",
+      "name": "arm_r_joint_6",
+      "type": "revolute",
+      "origin": {
+        "xyz_m": [
+          0.0,
+          0.0,
+          -0.213
+        ],
+        "rpy_rad": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "components": [
+        {
+          "name": "arm_r_link_6",
+          "mass_kg": 0.37877376,
+          "com_m": [
+            0.00113844,
+            -0.00153662,
+            -0.0234878
+          ],
+          "inertia_kg_m2": [
+            [
+              0.00032184,
+              -3.8e-07,
+              1.246e-05
+            ],
+            [
+              -3.8e-07,
+              0.00032214,
+              1.224e-05
+            ],
+            [
+              1.246e-05,
+              1.224e-05,
+              0.00012578
+            ]
+          ],
+          "provenance": {
+            "source": "ArmReference/dual_arm/urdf/dual_arm.urdf",
+            "assumptions": []
+          }
+        }
+      ],
+      "axis": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "limits": [
+        -1.5708,
+        1.5708
+      ]
+    },
+    {
+      "id": "arm_r_joint_7",
+      "name": "arm_r_joint_7",
+      "type": "revolute",
+      "origin": {
+        "xyz_m": [
+          0.0,
+          0.0,
+          -0.047
+        ],
+        "rpy_rad": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "components": [
+        {
+          "name": "arm_r_link_7",
+          "mass_kg": 0.03878183,
+          "com_m": [
+            0.01097112,
+            0.0,
+            -0.02232723
+          ],
+          "inertia_kg_m2": [
+            [
+              1.947e-05,
+              0.0,
+              -5.62e-06
+            ],
+            [
+              0.0,
+              2.251e-05,
+              0.0
+            ],
+            [
+              -5.62e-06,
+              0.0,
+              1.808e-05
+            ]
+          ],
+          "provenance": {
+            "source": "ArmReference/dual_arm/urdf/dual_arm.urdf",
+            "assumptions": []
+          }
+        }
+      ],
+      "axis": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "limits": [
+        -1.5708,
+        1.5708
+      ]
+    },
+    {
+      "id": "arm_r_joint_8",
+      "name": "arm_r_joint_8",
+      "type": "fixed",
+      "origin": {
+        "xyz_m": [
+          0.0,
+          0.0,
+          -0.04
+        ],
+        "rpy_rad": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "components": []
+    }
+  ],
+  "tip": {
+    "xyz_m": [
+      0,
+      0,
+      0
+    ],
+    "rpy_rad": [
+      0,
+      0,
+      0
+    ]
+  },
+  "payload": {
+    "mass_kg": 3,
+    "com_in_tip_m": [
+      0,
+      0,
+      0
+    ],
+    "provenance": {
+      "source": "纯旋转关节具身双臂平台设计方案文档",
+      "assumptions": [
+        "3 kg 演示负载，质心位于法兰原点。"
+      ]
+    }
+  },
+  "provenance": {
+    "source": "ArmReference/dual_arm/urdf/dual_arm.urdf",
+    "assumptions": [
+      "提取设计文档配套 URDF 的右臂串联链，保留 CAD 质量分布、安装偏移与固定法兰。",
+      "世界系与基座系重合，使用文档中的重力 9.8 m/s²。",
+      "固定末端 arm_r_link_8 无 inertial，作为无质量法兰参考帧。"
+    ]
+  }
+}

@@ -3,7 +3,7 @@ import {dynamicsCSV} from './motion-export.mjs';
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num=(x,n=3)=>x===null||x===undefined?'未提供':Number(x).toFixed(n);
 const $=id=>document.getElementById(id);
-const state={input:'',data:null,busy:false,message:'选择示例并载入；不需要质量、惯量或 URDF。',example:'/motion-worksheet.json',index:0,field:'q',joint:0,token:0,playing:false};
+const state={input:'',data:null,busy:false,message:'请先在「规格与模型」应用模型。',index:0,field:'q',joint:0,token:0,playing:false};
 const randomFields=[
   ['seed','随机种子',42,0,4294967295,1],
   ['trajectory_count','轨迹条数',3,1,10,1],
@@ -29,7 +29,7 @@ function randomHTML(){
     <button type="button" class="button" id="motionRandomSave">下载生成批次 JSON</button>`:'';
   return `<form id="motionRandomForm">
     <h3>关节空间随机生成</h3>
-    <p>沿用下方 JSON 的模型、起点和逐关节运动限制。速度百分比用于调整整段节奏，每个关键点停稳。</p>
+    <p>沿用公共模型、轨迹起点和逐关节运动限制。速度百分比用于调整整段节奏，每个关键点停稳。</p>
     <div class="form-grid motion-random-fields">${fields}</div>
     <div class="actions-row"><button class="button" type="submit" ${disabled}>生成随机轨迹</button>${selection}</div>
   </form>`;
@@ -68,7 +68,7 @@ function resultHTML(){
   card('轨迹状态与几何预览',`<p><b>${esc(r.normalized_model.name)}</b> · ${esc(constraint)}。本页结果独立于主设计模型，不把 FR3 姿态应用到选型表。${r.scope.dynamics_computed?'已计算动态载荷。':'可启用动态载荷计算。'}</p><div class="actions-row"><button class="button" id="motionPlay">播放 / 暂停</button><label for="motionTime">时间游标</label><input id="motionTime" type="range" min="0" max="${r.samples.length-1}" step="1" value="${state.index}" style="width:min(350px,50vw)"><output id="motionTimeLabel"></output></div><p id="motionSampleInfo" role="status"></p><div class="viewport"><canvas id="motionScene" aria-label="轨迹机械臂与TCP路径"></canvas></div><div class="actions-row"><label for="motionJoint">关节</label><select id="motionJoint">${r.joint_names.map((name,i)=>`<option value="${i}" ${i===state.joint?'selected':''}>${esc(name)}</option>`).join('')}</select><label for="motionField">状态量</label><select id="motionField">${[['q','位置'],['dq','速度'],['ddq','加速度'],...(r.scope.dynamics_computed?[['effort','力矩 / 推力']]:[])].map(([k,l])=>`<option value="${k}" ${k===state.field?'selected':''}>${l}</option>`).join('')}</select></div><div id="motionChart">${chart(r)}</div>`)+
   dynamicHTML(r)+card('风险事件与导出',`<p>奇异任务：${esc(r.singularity_settings.task)}，特征长度 ${num(r.singularity_settings.characteristic_length_m)} m；近奇异阈值 ${r.singularity_settings.near_sigma_threshold}。风险区间为采样观察，不能视作精确边界。</p>${s.task_underactuated?'<p>任务维度超过主动关节数，存在结构性欠驱动。</p>':''}<div class="actions-row">${r.events.slice(0,80).map((e,i)=>`<button class="button" data-motion-event="${i}">${esc(e.type)} · ${num(e.time_s??e.start_s??0)} s</button>`).join('')||'<p>未记录风险事件；不代表碰撞或实际任务已验证。</p>'}</div><small>展示前80条事件，完整记录见 JSON。</small><div class="actions-row"><button class="button" id="motionJSON">下载完整结果 JSON</button><button class="button" id="motionCSV">下载关节时序 CSV</button></div><p>${r.warnings.map(esc).join('<br>')}</p>`);
 }
-function html(){let input;try{input=JSON.parse(state.input);}catch{}const generated=input?.trajectory?.kind==='waypoints';return card('独立轨迹、奇异性与动态载荷 Skill',`<p>关节空间关键点停靠轨迹、外部轨迹、TCP 状态和奇异性；FK/雅可比复用公共库。可启用刚体动态载荷计算。示例运动限制和演示惯量带有明确假设。</p><div class="actions-row"><label for="motionExample">模型示例</label><select id="motionExample"><option value="/motion-worksheet.json" ${state.example==='/motion-worksheet.json'?'selected':''}>选型表七轴单臂</option><option value="/motion-fr3.json" ${state.example==='/motion-fr3.json'?'selected':''}>Franka FR3（仅几何）</option></select><button class="button" id="motionLoad" ${state.busy?'disabled':''}>载入轨迹示例</button><button class="button" id="motionRisk" ${state.busy?'disabled':''}>载入选型表奇异工况</button><button class="button primary" id="motionRun" ${state.busy?'disabled':''}>${state.busy?'处理中…':'运行轨迹分析'}</button>${state.busy?'<button class="button" id="motionCancel">取消</button>':''}</div><div class="actions-row"><label><input id="motionDynamics" type="checkbox" ${input?.dynamics?.enabled?'checked':''}> 计算动态载荷（需质量、质心及惯量）</label><button class="button" id="motionDynamicsDemo" ${state.busy?'disabled':''}>载入选型表动力学演示（球体惯量估算）</button></div><div class="actions-row"><label for="motionDuration">每段运动时长 / s</label><input id="motionDuration" type="number" min="0.01" step="0.1" value="${esc(Array.isArray(input?.trajectory?.segments)?input.trajectory.segments.find(s=>s?.kind==='move')?.duration_s??2:2)}" ${generated?'':'disabled'} style="width:90px"><label for="motionDt">采样间隔 / s</label><input id="motionDt" type="number" min="0.0001" step="0.01" value="${esc(input?.trajectory?.sample_dt_s??.02)}" ${generated?'':'disabled'} style="width:90px"><label for="motionTask">奇异性任务</label><select id="motionTask"><option value="pose" ${input?.singularity?.task!=='position'?'selected':''}>完整位姿</option><option value="position" ${input?.singularity?.task==='position'?'selected':''}>仅位置</option></select></div>${randomHTML()}<p>可编辑 JSON 中的 start_q、segments.q_target、duration_s、sample_dt_s 及逐关节 motion_limits。保持/等待阶段无需填写目标位置。</p><textarea id="motionSource" aria-label="轨迹分析请求 JSON" spellcheck="false" style="width:100%;min-height:220px;padding:12px;margin-top:12px;font:12px/1.5 monospace">${esc(state.input)}</textarea><p id="motionMessage" role="status">${esc(state.message)}</p>`)+(state.data?'<div id="motionResults">'+resultHTML()+'</div>':'');}
+function html(){if(!state.input)return card('轨迹与动态载荷', '<p>请先应用公共模型。</p><button class="button" data-go="specs">打开规格与模型</button>');let input;try{input=JSON.parse(state.input);}catch{}const generated=input?.trajectory?.kind==='waypoints';return card('独立轨迹、奇异性与动态载荷 Skill',`<p>关节空间关键点停靠轨迹、外部轨迹、TCP 状态和奇异性；FK/雅可比复用公共库。可启用刚体动态载荷计算。示例运动限制和演示惯量带有明确假设。</p><div class="actions-row"><button class="button primary" id="motionRun" ${state.busy?'disabled':''}>${state.busy?'处理中…':'运行轨迹分析'}</button>${state.busy?'<button class="button" id="motionCancel">取消</button>':''}</div><div class="actions-row"><label><input id="motionDynamics" type="checkbox" ${input?.dynamics?.enabled?'checked':''}> 计算动态载荷（需质量、质心及惯量）</label></div><div class="actions-row"><label for="motionDuration">每段运动时长 / s</label><input id="motionDuration" type="number" min="0.01" step="0.1" value="${esc(Array.isArray(input?.trajectory?.segments)?input.trajectory.segments.find(s=>s?.kind==='move')?.duration_s??2:2)}" ${generated?'':'disabled'} style="width:90px"><label for="motionDt">采样间隔 / s</label><input id="motionDt" type="number" min="0.0001" step="0.01" value="${esc(input?.trajectory?.sample_dt_s??.02)}" ${generated?'':'disabled'} style="width:90px"><label for="motionTask">奇异性任务</label><select id="motionTask"><option value="pose" ${input?.singularity?.task!=='position'?'selected':''}>完整位姿</option><option value="position" ${input?.singularity?.task==='position'?'selected':''}>仅位置</option></select></div>${randomHTML()}<p>几何和质量参数在「规格与模型」编辑。此处可编辑关节轨迹工况。</p><textarea id="motionSource" aria-label="关节轨迹工况 JSON" spellcheck="false" style="width:100%;min-height:220px;padding:12px;margin-top:12px;font:12px/1.5 monospace">${esc(JSON.stringify(input?.trajectory,null,2))}</textarea><p id="motionMessage" role="status">${esc(state.message)}</p>`)+(state.data?'<div id="motionResults">'+resultHTML()+'</div>':'');}
 function render(){const content=$('content');if(!content||location.hash!=='#motion')return;stop();scene=null;content.innerHTML=html();bind();}
 function update(){
   if(!state.data||!$('motionScene')){stop();return;}const r=state.data.result,s=r.samples[state.index];$('motionTime').value=state.index;$('motionTimeLabel').textContent=num(s.time_s)+' s / '+s.phase_id;
@@ -86,7 +86,7 @@ function bind(){
     event.preventDefault();
     if(state.busy)return;
     let template;
-    try{template=JSON.parse(state.input);}catch{$('motionMessage').textContent='请先载入示例或输入有效的轨迹 JSON';return;}
+    try{template=JSON.parse(state.input);template.trajectory=JSON.parse($('motionSource').value);}catch{$('motionMessage').textContent='请先载入示例或输入有效的轨迹 JSON';return;}
     const settings=Object.fromEntries(Object.entries(randomSettings).map(([key,value])=>[key,key.endsWith('_fraction')?value/100:value]));
     state.busy=true;
     const token=++state.token;
@@ -108,30 +108,33 @@ function bind(){
     $('motionRandomSelect').onchange=event=>{useRandomTrajectory(Number(event.target.value));render();};
     $('motionRandomSave').onclick=()=>download('motion-random-batch.json',JSON.stringify(batch,null,2));
   }
-  $('motionSource').oninput=e=>{state.input=e.target.value;invalidate();$('motionResults')?.remove();scene=null;state.message='输入已修改，请重新分析';$('motionMessage').textContent=state.message;};
-  $('motionExample').onchange=e=>state.example=e.target.value;
-  $('motionLoad').onclick=async()=>{try{const response=await fetch(state.example);if(!response.ok)throw Error('示例不可用');const text=await response.text();invalidate();batch=null;state.input=text;state.message='已载入独立轨迹示例，可编辑后运行';render();}catch(e){$('motionMessage').textContent=e.message;}};
-  $('motionRisk').onclick=async()=>{try{const response=await fetch('/motion-worksheet.json');if(!response.ok)throw Error('示例不可用');const input=await response.json();input.trajectory.segments[0].q_target=Array(7).fill(0);invalidate();batch=null;state.example='/motion-worksheet.json';state.input=JSON.stringify(input,null,2);state.message='已载入选型表零位工况；运行后查看奇异区间与对应姿态';render();}catch(e){$('motionMessage').textContent=e.message;}};
-  const edit=fn=>{try{const input=JSON.parse($('motionSource').value);fn(input);state.input=JSON.stringify(input,null,2);$('motionSource').value=state.input;invalidate();$('motionResults')?.remove();scene=null;$('motionMessage').textContent='设置已修改，请重新分析';}catch(e){$('motionMessage').textContent=e.message;}};
-  $('motionDynamics').onchange=event=>edit(input=>{input.dynamics={...input.dynamics,enabled:event.target.checked};});
-  $('motionDynamicsDemo').onclick=async()=>{
+  const edit=fn=>{
     try{
-      const response=await fetch('/motion-worksheet-dynamics.json');
-      if(!response.ok)throw Error('动力学演示不可用，请重启网页服务');
-      const input=await response.json();
+      const input=JSON.parse(state.input);
+      input.trajectory=JSON.parse($('motionSource').value);
+      fn(input);
+      state.input=JSON.stringify(input,null,2);
       invalidate();
       batch=null;
-      state.field='q';
-      state.example='/motion-worksheet.json';
-      state.input=JSON.stringify(input,null,2);
-      state.message='已载入选型表动力学演示。部件按半径 0.04 m 均匀实心球估算惯量，负载按 0.05 m 实心球估算，可在 JSON 中替换。';
+      state.message='设置已修改，请重新分析。';
       render();
-    }catch(error){$('motionMessage').textContent=error.message;}
+    }catch(e){$('motionMessage').textContent=e.message;}
   };
+  $('motionSource').oninput=()=>{
+    invalidate();
+    $('motionResults')?.remove();
+    const input=JSON.parse(state.input);
+    try{
+      input.trajectory=JSON.parse($('motionSource').value);
+      state.input=JSON.stringify(input,null,2);
+      $('motionMessage').textContent='轨迹已修改，请重新分析。';
+    }catch{$('motionMessage').textContent='请输入有效的轨迹 JSON。';}
+  };
+  $('motionDynamics').onchange=event=>edit(input=>{input.dynamics={...input.dynamics,enabled:event.target.checked};});
   $('motionDuration').onchange=e=>edit(input=>input.trajectory.segments.filter(s=>s.kind==='move').forEach(s=>s.duration_s=e.target.valueAsNumber));
   $('motionDt').onchange=e=>edit(input=>input.trajectory.sample_dt_s=e.target.valueAsNumber);
   $('motionTask').onchange=e=>edit(input=>{input.singularity={...input.singularity,task:e.target.value};});
-  $('motionRun').onclick=async()=>{if(state.busy)return;try{JSON.parse(state.input);}catch{$('motionMessage').textContent='请先载入示例或输入有效 JSON';return;}stop();window.ModuleDesignPage?.record('motion',null);state.data=null;state.busy=true;const token=++state.token,raw=state.input;controller=new AbortController();state.message='独立 CLI 正在分析…';render();try{const data=await runMotion(raw,{signal:controller.signal});if(token!==state.token||state.input!==raw){state.message='输入已改变，丢弃过期结果';}else{state.data=data;window.ModuleDesignPage?.record('motion',data.result);state.index=0;state.joint=0;state.field='q';state.message='Skill 执行完成 · '+data.result.summary.constraint_status;}}catch(e){state.message=controller.signal.aborted?'已取消':e.message;}finally{state.busy=false;controller=null;render();}};
+  $('motionRun').onclick=async()=>{if(state.busy)return;try{const input=JSON.parse(state.input);input.trajectory=JSON.parse($('motionSource').value);state.input=JSON.stringify(input,null,2);}catch{$('motionMessage').textContent='请输入有效的轨迹 JSON';return;}stop();window.ModuleDesignPage?.record('motion',null);state.data=null;state.busy=true;const token=++state.token,raw=state.input;controller=new AbortController();state.message='独立 CLI 正在分析…';render();try{const data=await runMotion(raw,{signal:controller.signal});if(token!==state.token||state.input!==raw){state.message='输入已改变，丢弃过期结果';}else{state.data=data;window.ModuleDesignPage?.record('motion',data.result);state.index=0;state.joint=0;state.field='q';state.message='Skill 执行完成 · '+data.result.summary.constraint_status;}}catch(e){state.message=controller.signal.aborted?'已取消':e.message;}finally{state.busy=false;controller=null;render();}};
   if($('motionCancel'))$('motionCancel').onclick=()=>controller?.abort();
   if(state.data){
     const r=state.data.result;scene=null;update();
@@ -160,10 +163,10 @@ window.addEventListener('hashchange',()=>{if(location.hash!=='#motion')stop();})
 export const MotionPage={html,bind,applyRequest(request,data){
   invalidate();
   batch=null;
-  state.input=JSON.stringify(request,null,2);
+  state.input=request?JSON.stringify(request,null,2):'';
   state.data=data??null;
   state.field='q';
   state.index=0;
   state.joint=0;
-  state.message=data?'已载入同模型的联算结果。':'已应用公共模型，可运行轨迹分析。';
+  state.message=data?'已载入同模型的联算结果。':request?'已应用公共模型，可运行轨迹分析。':'请先在「规格与模型」应用模型。';
 }};

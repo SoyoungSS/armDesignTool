@@ -110,6 +110,47 @@ try{
  sandbox.window.WorkspaceClient.runWorkspaceSkill=async()=>{vm.runInContext("workspaceInput='new request'",sandbox);return payload;};
  await nodes.workspaceRun.onclick();assert.equal(vm.runInContext('workspaceCurrent()',sandbox),false);
  assert.ok(vm.runInContext('workspaceMessage',sandbox).includes('过期'));
+ // Replay real FR3 critical poses using the same browser FK module and a translated, rotated installation.
+ fs.copyFileSync('dist/statics-client.mjs',path.join(workspaceTemp,'statics-client.mjs'));
+ const staticsClient=await import(url.pathToFileURL(path.join(workspaceTemp,'statics-client.mjs')).href);
+ const {analyze:analyzeStatics}=await import(url.pathToFileURL(path.resolve('../arm-statics-parametric/scripts/lib/statics.mjs')).href);
+ const request=JSON.parse(fs.readFileSync('../examples/cases/franka-fr3-flange-preset/statics.json'));
+ request.design_model.base_in_world={xyz_m:[1,2,3],rpy_rad:[0,0,Math.PI/2]};
+ delete request.options.search;
+ const staticResult=analyzeStatics(request);
+ for(const joint of staticResult.summary){
+  const preview=await staticsClient.previewCriticalPose(staticResult,joint.joint);
+  const pose=staticResult.poses.find(p=>p.name===joint.critical_pose.name);
+  const [x,y,z]=pose.tip_pose_in_base.position_m;
+  assert.deepEqual(preview.base_frame.origin_world_m,[1,2,3]);
+  assert.equal(preview.selected_joint.name,joint.joint);
+  assert.ok(preview.position_world_m.every((v,i)=>Math.abs(v-[1-y,2+x,3+z][i])<1e-10));
+ }
+ sandbox.window.SkillClient=staticsClient;
+ sandbox.window.ModuleDesignPage={bind:noop,modelName:()=>request.design_model.name};
+ const execution={elapsed_ms:1};
+ sandbox.centralRequest=JSON.stringify(request);
+ sandbox.centralStatics={payload:{result:staticResult,execution},view:staticsClient.makeStaticsViewModel({result:staticResult,execution})};
+ sandbox.requestAnimationFrame=noop;
+ vm.runInContext("tab='statics';skillInput=centralRequest;skillData=centralStatics;skillRunSignature=skillKey();render()",sandbox);
+ assert.match(nodes.content.innerHTML,/id="criticalScene"/);
+ assert.match(nodes.content.innerHTML,/data-skill-pose="fr3_joint7"/);
+ vm.runInContext("selectCriticalPose('fr3_joint7')",sandbox);
+ assert.match(nodes.content.innerHTML,/value="fr3_joint7" selected/);
+ nodes.criticalPosePick.value='fr3_joint7';
+ await vm.runInContext('setupCriticalScene()',sandbox);
+ assert.equal(vm.runInContext('criticalScene.preview.selected_joint.name',sandbox),'fr3_joint7');
+ const hit=vm.runInContext('criticalScene.jointHits.find(point=>point.name==="fr3_joint7")',sandbox);
+ const original=vm.runInContext('JSON.stringify(criticalScene.preview.tip_axes_world)',sandbox);
+ const criticalCanvas=nodes.criticalScene;
+ criticalCanvas.onpointerdown(event(hit.x,hit.y));
+ criticalCanvas.onpointermove(event(hit.x+24,hit.y));
+ criticalCanvas.onpointerup();
+ assert.notEqual(vm.runInContext('JSON.stringify(criticalScene.preview.tip_axes_world)',sandbox),original);
+ assert.match(nodes.criticalSceneStatus.textContent,/手动预览/);
+ nodes.criticalReset.onclick();
+ assert.equal(vm.runInContext('JSON.stringify(criticalScene.preview.tip_axes_world)',sandbox),original);
+
 }catch(e){console.error('Workspace UI failure:',e);throw e;}
 finally{fs.rmSync(workspaceTemp,{recursive:true,force:true});}
 console.log('PASS: original views, scene controls, Skill results and critical joint binding, invalidation after model changes; original historical-snapshot assertions replaced.');})();

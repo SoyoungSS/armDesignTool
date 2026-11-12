@@ -22,6 +22,27 @@ try{
     assert.equal((await fetch(url+'/shared/contracts/schemas.mjs')).status,404);
     assert.equal((await fetch(url+'/shared/kinematics/other.mjs')).status,404);
   });
+  await test('each model selector example runs all three Skills with a shared model',async()=>{
+    for(const [key,file] of [
+      ['worksheet','seven-axis'],['design-right-arm','design-right-arm'],
+      ['seven-axis-sim','seven-axis-sim'],['franka-fr3','franka-fr3-flange-preset'],
+    ]){
+      const example=await fetch(url+'/model-examples/'+key+'.json');
+      assert.equal(example.status,200);
+      const design_model=await example.json();
+      const expected=JSON.parse(await readFile(new URL('../../examples/models/'+file+'.json',import.meta.url)));
+      assert.deepEqual(design_model,expected);
+      const response=await fetch(url+'/api/module-specs',{
+        method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({design_model}),
+      });
+      const body=await response.json();
+      assert.equal(response.status,200,JSON.stringify(body.detail??body.error));
+      assert.equal(body.specifications.model_name,design_model.name);
+      for(const result of Object.values(body.results)){
+        assert.equal(result.design_model_sha256,body.modelHash);
+      }
+    }
+  });
   await test('edited common model flows through all three CLIs into the module table',async()=>{
     const template=JSON.parse(await readFile(new URL('../../arm-kinematics-dynamics/assets/examples/worksheet-dynamics.json',import.meta.url)));
     const model=template.design_model;

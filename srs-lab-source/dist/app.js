@@ -2,7 +2,7 @@
 const $=s=>document.querySelector(s),fmt=(n,d=2)=>Number(n).toFixed(d),esc=s=>String(s).replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
 let config=SRS.defaults('WORKSHEET-7R'),result=null,tab='overview',dirty=false,q=[0,-.5,.15,1.1,.1,-.4,0],showCloud=false,ikResult=null;
 try{const stored=localStorage.getItem('srs-config-v1');if(stored){const saved=JSON.parse(stored);if(!localStorage.getItem('srs-custom-axes-migrated')&&saved.configuration==='SRS-7R-YZX'&&saved.jointAxes==null){const standard=JSON.stringify(saved.limits)===JSON.stringify(SRS.defaults('SRS-7R-YZX').limits);saved.configuration='SRS-7R-XYZ';if(standard)saved.limits=SRS.defaults('SRS-7R-XYZ').limits;}if(saved.configuration!=='WORKSHEET-7R'){localStorage.setItem('srs-config-before-example-cleanup',stored);}else{const c={...SRS.defaults(saved.configuration),...saved};SRS.validate(c);config=c;}}localStorage.setItem('srs-custom-axes-migrated','1');}catch(e){}
-const names={motion:['TRAJECTORY ANALYSIS','沿轨迹，看清运动状态。','独立 Skill 生成关节轨迹，分析 TCP 状态、奇异性及关节动态载荷。'],overview:['PROJECT OVERVIEW','从设计规格，到关节需求。','以统一的 SRS 模型，串联机械臂正向设计的每一步。'],specs:['DESIGN SPECIFICATIONS','定义你的机械臂。','统一单位、坐标与参数来源，让后续计算始终基于同一个模型。'],kinematics:['KINEMATICS','每个关节，如何决定末端。','正运动学、几何雅可比与位置逆解；使用同一套局部旋转轴定义。'],workspace:['REACHABLE WORKSPACE','探索机械臂的可达边界。','独立 Skill 计算关节点云、目标位姿可达率和三平面投影剖面。'],statics:['STATIC ANALYSIS','看清静止时的关节负担。','负载与运动刚体自重共同作用，计算各关节的重力补偿力矩。'],dynamics:['DYNAMIC ANALYSIS','让设计进入运动。','刚体拉格朗日逆动力学，计算示例运动周期内的力矩需求。'],sizing:['JOINT MODULE REQUIREMENTS','把运动需求，转成规格。','按关节输出电机、减速器与制动保持需求，作为后续供应商匹配的输入。'],skills:['MODULAR DESIGN PIPELINE','每项能力，一个 Skill。','共用确定性计算内核与版本化数据契约，可单独运行，也可顺序编排。'],notes:['MODEL & EVIDENCE','让每项结果，都能追溯。','区分已有参数与工程假设，保留计算公式、模型范围及待补齐项。']};
+const names={motion:['TRAJECTORY ANALYSIS','轨迹、运动学与动力学','独立 Skill 生成关节轨迹，分析 TCP 状态、奇异性及关节动态载荷。'],overview:['PROJECT OVERVIEW','从设计规格，到关节需求。','以统一的 SRS 模型，串联机械臂正向设计的每一步。'],specs:['DESIGN SPECIFICATIONS','定义你的机械臂。','统一单位、坐标与参数来源，让后续计算始终基于同一个模型。'],kinematics:['KINEMATICS','每个关节，如何决定末端。','正运动学、几何雅可比与位置逆解；使用同一套局部旋转轴定义。'],workspace:['REACHABLE WORKSPACE','探索机械臂的可达边界。','独立 Skill 计算关节点云、目标位姿可达率和三平面投影剖面。'],statics:['STATIC ANALYSIS','看清静止时的关节负担。','负载与运动刚体自重共同作用，计算各关节的重力补偿力矩。'],dynamics:['DYNAMIC ANALYSIS','让设计进入运动。','刚体拉格朗日逆动力学，计算示例运动周期内的力矩需求。'],sizing:['JOINT MODULE REQUIREMENTS','把运动需求，转成规格。','按关节输出电机、减速器与制动保持需求，作为后续供应商匹配的输入。'],skills:['MODULAR DESIGN PIPELINE','每项能力，一个 Skill。','共用确定性计算内核与版本化数据契约，可单独运行，也可顺序编排。'],notes:['MODEL & EVIDENCE','让每项结果，都能追溯。','区分已有参数与工程假设，保留计算公式、模型范围及待补齐项。']};
 const stages=[['构型建模','model'],['运动学','kinematics'],['可达空间','workspace'],['静力学','statics'],['动力学','dynamics'],['模组规格','sizing']];
 function variantInfo(){return SRS.configurations().find(v=>v.id===config.configuration);}
 function axisLabels(){return SRS.model(config).axisLabels;}
@@ -14,10 +14,11 @@ function card(title,body,meta=''){return `<section class="card"><div class="card
 function kpi(label,value,unit,small,icon=''){return `<div class="kpi"><div class="label">${label}</div><span class="icon">${icon}</span><strong>${value}</strong><span class="unit">${unit}</span><small>${small}</small></div>`;}
 function list(rows){return `<dl class="data-list">${rows.map(([a,b])=>`<div><dt>${a}</dt><dd>${b}</dd></div>`).join('')}</dl>`;}
 function worksheet(){return config.configuration==='WORKSHEET-7R';}
-let criticalJoint=null;
+let criticalJoint=null,criticalScene=null;
 let skillData=null, skillMessage='尚未运行静力学 Skill', skillBusy=false, skillInput='', skillInputSignature=null, skillRunSignature=null;
-const skillKey=()=>JSON.stringify(config);
-function invalidateSkill(){window.ModuleDesignPage?.record('statics',null);skillData=null;criticalJoint=null;skillRunSignature=null;skillMessage='参数发生变化，请重新准备对应模型的 Skill 输入并计算';}
+let sharedModelRevision=0;
+const skillKey=()=>window.ModuleDesignPage?sharedModelRevision:JSON.stringify(config);
+function invalidateSkill(){window.ModuleDesignPage?.record('statics',null);skillData=null;criticalJoint=null;criticalScene=null;skillRunSignature=null;skillMessage='参数发生变化，请重新准备对应模型的 Skill 输入并计算';}
 function skillCurrent(){return !!skillData&&!dirty&&skillRunSignature===skillKey();}
 let workspaceData=null,workspaceInput='',workspaceBusy=false,workspaceMessage='尚未运行工作空间 Skill',workspaceSignature=null,workspacePoint=0,workspaceSolution=0,workspaceScene=null,workspaceMode='joint_sampling',workspaceFilter='all';
 let workspaceExampleUrl='/workspace-example.jsonc';
@@ -34,9 +35,11 @@ function dexterityView(result){
  card('导出灵巧空间',`<div class="card-body"><p>剖面沿基座坐标轴移动。每格对应一个体素，悬停可查看中心坐标和通过数。</p><div class="actions-row"><button class="button" id="workspaceExport">下载完整 Skill JSON</button><button class="button" id="workspaceCSV">下载体素 CSV</button><button class="button" id="workspaceReport">下载分析报告</button><button class="button" id="voxelExportSection">下载当前剖面 SVG</button></div></div>`);
 }
 function workspaceView(){
+ const shared=!!window.ModuleDesignPage;
+ const options=shared&&workspaceInput&&workspaceMode!=='dexterity_voxels'?JSON.parse(workspaceInput).options:null;
  const ok=workspaceCurrent(),r=workspaceData?.result,s=r?.summary;
- let html=card('独立可达工作空间 Skill',`<div class="card-body"><p>提供选型表七轴单臂和 Franka FR3 两个示例；FR3 仅用于几何与工作空间分析。由服务端独立 CLI 计算；当前为 CPU 确定性求解，不需要 CUDA。未检查碰撞和带载约束。</p><div class="actions-row"><label for="workspaceMode">分析方式</label><select id="workspaceMode"><option value="joint_sampling" ${workspaceMode==='joint_sampling'?'selected':''}>关节采样 / FK 点云</option><option value="pose_reachability" ${workspaceMode==='pose_reachability'?'selected':''}>空间 / 灵巧 / 不可达分类（IK）</option><option value="dexterity_voxels" ${workspaceMode==='dexterity_voxels'?'selected':''}>体素灵巧空间（IK）</option></select><button id="workspaceFromModel" class="button">从当前网页模型生成输入</button><label for="workspaceExample">参考模型</label><select id="workspaceExample"><option value="/workspace-example.jsonc" ${workspaceExampleUrl==='/workspace-example.jsonc'?'selected':''}>选型表七轴单臂</option><option value="/workspace-fr3.json" ${workspaceExampleUrl==='/workspace-fr3.json'?'selected':''}>Franka FR3（仅几何）</option></select><button class="button" id="workspaceLoadExample">载入示例</button><button class="button" id="workspaceUpload">上传 JSON / JSONC</button><input id="workspaceFile" type="file" accept=".json,.jsonc" hidden><button id="workspaceRun" class="button primary" ${workspaceBusy?'disabled':''}>${workspaceBusy?'计算中…':'运行工作空间 Skill'}</button>${workspaceBusy?'<button id="workspaceCancel" class="button">取消计算</button>':''}</div>${workspaceMode==='dexterity_voxels'?`<div class="actions-row"><label for="voxelSize">体素边长 / cm</label><input id="voxelSize" type="number" min="0.1" step="any" value="${voxelSettings.voxel_size_m*100}" style="width:90px"><label for="voxelOrientations">每点朝向数</label><input id="voxelOrientations" type="number" min="2" max="100" step="1" value="${voxelSettings.orientations_per_voxel}" style="width:90px"><output id="voxelEstimate" for="voxelSize voxelOrientations" aria-live="polite"></output><small>按本机 FR3 实测速度估算。计算不限时，可手动取消。</small></div>`:''}<textarea id="workspaceSource" spellcheck="false" style="box-sizing:border-box;width:100%;min-height:200px;margin-top:14px;font:12px/1.5 monospace" aria-label="工作空间请求 JSONC">${esc(workspaceInput)}</textarea><p id="workspaceState" role="status">${esc(workspaceMessage)}</p><small>关节采样不是笛卡尔均匀采样；IK失败表示预算内未找到解。上传其他模型时，预览根据Skill模型绘制，不套用当前网页机械臂。</small></div>`);
- if(!ok)return html+card('结果与点云',`<div class="card-body">请生成或载入输入后运行 Skill。本页不使用网页旧点云替代校核结果。</div>`);
+ let html=card('独立可达工作空间 Skill',`<div class="card-body"><p>${shared?'使用「规格与模型」中的公共模型。':'提供选型表七轴单臂和 Franka FR3 两个示例。'} 未检查碰撞和带载约束。</p><div class="actions-row"><label for="workspaceMode">分析方式</label><select id="workspaceMode"><option value="joint_sampling" ${workspaceMode==='joint_sampling'?'selected':''}>关节采样 / FK 点云</option><option value="pose_reachability" ${workspaceMode==='pose_reachability'?'selected':''}>空间 / 灵巧 / 不可达分类（IK）</option><option value="dexterity_voxels" ${workspaceMode==='dexterity_voxels'?'selected':''}>体素灵巧空间（IK）</option></select>${shared?'':`<button id="workspaceFromModel" class="button">从当前网页模型生成输入</button><label for="workspaceExample">参考模型</label><select id="workspaceExample"><option value="/workspace-example.jsonc" ${workspaceExampleUrl==='/workspace-example.jsonc'?'selected':''}>选型表七轴单臂</option><option value="/workspace-fr3.json" ${workspaceExampleUrl==='/workspace-fr3.json'?'selected':''}>Franka FR3（仅几何）</option></select><button class="button" id="workspaceLoadExample">载入示例</button><button class="button" id="workspaceUpload">上传 JSON / JSONC</button><input id="workspaceFile" type="file" accept=".json,.jsonc" hidden>`}<button id="workspaceRun" class="button primary" ${workspaceBusy?'disabled':''}>${workspaceBusy?'计算中…':'运行工作空间 Skill'}</button>${workspaceBusy?'<button id="workspaceCancel" class="button">取消计算</button>':''}</div>${workspaceMode==='dexterity_voxels'?`<div class="actions-row"><label for="voxelSize">体素边长 / cm</label><input id="voxelSize" type="number" min="0.1" step="any" value="${voxelSettings.voxel_size_m*100}" style="width:90px"><label for="voxelOrientations">每点朝向数</label><input id="voxelOrientations" type="number" min="2" max="100" step="1" value="${voxelSettings.orientations_per_voxel}" style="width:90px"><output id="voxelEstimate" for="voxelSize voxelOrientations" aria-live="polite"></output><small>按本机 FR3 实测速度估算。计算不限时，可手动取消。</small></div>`:''}${shared&&!workspaceInput?'<button class="button" data-go="specs">打开规格与模型</button>':''}${options?`<label for="workspaceOptions">工作空间工况 JSON</label><textarea id="workspaceOptions" rows="8" style="width:100%" ${workspaceBusy?'disabled':''}>${esc(JSON.stringify(options,null,2))}</textarea>`:''}<textarea ${shared?'hidden':''} id="workspaceSource" spellcheck="false" style="box-sizing:border-box;width:100%;min-height:200px;margin-top:14px;font:12px/1.5 monospace" aria-label="工作空间请求 JSONC">${esc(workspaceInput)}</textarea><p id="workspaceState" role="status">${esc(workspaceMessage)}</p><small>关节采样不是笛卡尔均匀采样；IK失败表示预算内未找到解。预览使用本次计算的模型。</small></div>`);
+ if(!ok)return html+card('结果与点云',`<div class="card-body">应用公共模型后即可运行工作空间分析。</div>`);
  if(r.dexterity)return html+dexterityView(r);
  html+=`<div class="kpis">${kpi('采样目标 / 末端点',s.point_count,'点','完整数据可导出')}${kpi('已找到解的点',s.reachable_point_count,'点',r.mode==='joint_sampling'?'FK样本均为限位内姿态':'失败点不代表数学上不可达')}${kpi(r.scope.orientation_checked?'已采样姿态成功率':'位置 IK 成功率',s.sampled_orientation_success_rate===null?'—':fmt(s.sampled_orientation_success_rate*100,2),'%',r.mode==='joint_sampling'?'FK模式不计算IK成功率':'仅适用于输入的离散目标集合')}${kpi('独立 CLI 耗时',workspaceData.execution.elapsed_ms,'ms','Skill版本 '+r.engine_version)}</div>`;
  html+=card('空间可达性与灵巧空间',`<div class="kpis">${kpi('空间位置可达',s.spatial_reachable_point_count??s.reachable_point_count,'点','包括下述灵巧点和部分姿态点')}${kpi('灵巧空间 · 已采样姿态',s.sampled_dexterous_point_count===null?'未评估':s.sampled_dexterous_point_count,'点','至少两个不同姿态全部找到解')}${kpi('不可达 · 几何证明',s.proven_unreachable_point_count??0,'点','仅超出保守几何外界的点')}${kpi('位置解未找到 · 待定',s.unresolved_point_count??0,'点','不能把IK未收敛当作不可达证明')}</div><div class="card-body"><p>空间位置可达：至少存在一个满足位置要求的关节解。灵巧空间在此仅表示<b>输入的不同离散姿态全部找到解</b>，没有证明任意连续朝向均可达；只检查一个姿态或重复姿态不算灵巧空间。</p><div class="actions-row">${Object.values(window.WorkspaceClient.WORKSPACE_CATEGORIES).map(v=>`<span><i style="display:inline-block;width:10px;height:10px;background:${v.color}"></i> ${esc(v.label)}</span>`).join('')}</div><div class="actions-row"><label for="workspaceFilter">显示分类</label><select id="workspaceFilter">${[['all','全部点'],['spatial','空间位置可达（含灵巧点）'],...Object.entries(window.WorkspaceClient.WORKSPACE_CATEGORIES).map(([key,value])=>[key,value.label])].map(([key,label])=>`<option value="${key}" ${workspaceFilter===key?'selected':''}>${esc(label)}</option>`).join('')}</select></div><small>分类筛选同步作用于三维点云和投影/剖面。FK模式只显示已采到的可达点，不能显示未采样区域中的不可达点；请用IK目标采样模式分析三类空间。</small></div>`);
@@ -49,6 +52,7 @@ function workspaceView(){
  return html;
 }
 function workspaceMatchesWeb(){
+ if(window.ModuleDesignPage)return false;
  if(!workspaceCurrent()||!window.WorkspaceClient)return false;
  const expected=window.WorkspaceClient.fromWebConfig(config,SRS.model(config),SRS.installationInfo(config));
  const actual=workspaceData.result.normalized_input;
@@ -76,11 +80,18 @@ async function runWorkspace(){
  if(workspaceBusy)return;
  if(dirty)return message('请先运行全流程，更新网页模型参数');
  let raw=$('#workspaceSource')?.value??workspaceInput;
+ const optionsEditor=$('#workspaceOptions');
+ if(optionsEditor){
+  try{
+   const options=JSON.parse(optionsEditor.value);
+   raw=JSON.stringify({...JSON.parse(workspaceInput),options:{...options,mode:workspaceMode}},null,2);
+  }catch{return message('请输入有效的工作空间工况 JSON');}
+ }
  if(workspaceMode==='dexterity_voxels'){
   try{raw=window.WorkspaceClient.formatInput(workspaceVoxelRequest(raw));}
   catch(e){return message(e.message);}
  }
- if(!raw.trim())return message('请先生成或载入工作空间输入');workspaceInput=raw;
+ if(!raw.trim())return message('请先在「规格与模型」应用模型');workspaceInput=raw;
  const signature=skillKey(),controller=new AbortController();workspaceAbort=controller;workspaceBusy=true;workspaceMessage='独立工作空间 Skill 正在计算…';render();
  const started=Date.now(),timer=workspaceMode==='dexterity_voxels'?setInterval(()=>{const state=$('#workspaceState');if(state)state.textContent=`独立工作空间 Skill 正在计算，已等待 ${Math.floor((Date.now()-started)/1000)} 秒。`;},1000):null;
  try{const payload=await window.WorkspaceClient.runWorkspaceSkill(raw,{signal:controller.signal});if(signature!==skillKey()||raw!==workspaceInput||dirty){invalidateWorkspace();workspaceMessage='模型或输入已改变，丢弃过期工作空间结果';}else{window.ModuleDesignPage?.record('workspace',payload.result);workspaceData=payload;workspaceSignature=signature;workspacePoint=0;workspaceSolution=0;workspaceFilter='all';voxelLayer=null;workspaceMessage=payload.result.dexterity?.completed===false?'这份结果仅包含部分已完成体素。':'Skill执行成功；结果来源：arm-workspace-parametric';}}
@@ -152,18 +163,88 @@ function setInstallationValue(kind,index,value){
  const output=$('#installationGravity');if(output){try{output.textContent=SRS.installationInfo(config).gravity_m_s2.map(x=>fmt(x,5)).join(' / ');}catch{output.textContent='安装参数无效';}}
 }
 function staticsView(){
- let shared=false;
- try{shared=JSON.parse(skillInput).schema_name==='arm-analysis-request';}catch{}
+ const central=!!window.ModuleDesignPage;
+ let shared=central;
+ try{shared=central||JSON.parse(skillInput).schema_name==='arm-analysis-request';}catch{}
  const ok=skillCurrent(),rows=ok?skillData.view.joints:[];
+ if(central){
+   const options=skillInput?JSON.parse(skillInput).options:null;
+   return card('独立静力学校核 Skill',`<div class="card-body"><p>使用「规格与模型」中的质量、质心、安装和重力参数。</p>
+   ${options?`<label for="staticsOptions">校核工况 JSON</label><textarea id="staticsOptions" rows="9" style="width:100%" ${skillBusy?'disabled':''}>${esc(JSON.stringify(options,null,2))}</textarea>
+   <button id="runSkill" class="button primary" ${skillBusy?'disabled':''}>${skillBusy?'正在运行…':'运行静力学 Skill'}</button>`:'<button class="button" data-go="specs">打开规格与模型</button>'}
+   <p id="skillState" role="status">${esc(skillMessage)}</p></div>`)+(skillCurrent()?staticsResults(true)+sharedCriticalView(): '');
+ }
  const controls=`<div class="card-body"><p>静力学结果只能由 <b>arm-statics-parametric</b> 独立 Skill 返回。该输入必须包含完整轴向、长度、质量、质心、限位、姿态或搜索配置；<b>仅当输入几何、关节轴和限位与当前三维模型一致，姿态预览才有物理意义。</b> 本页不从简化概念参数推测真实质心。</p><div class="actions-row"><button id="loadWorksheet" class="button">载入选型表 3.612kg 示例</button><button id="pickSkillFile" class="button">上传 JSON / JSONC</button><input id="skillFile" type="file" accept=".json,.jsonc" hidden>${shared?'':'<button class="button" id="applySkillInstallation">应用网页安装设置到输入</button>'}<button class="button primary" id="runSkill" ${skillBusy?'disabled':''}>${skillBusy?'正在运行…':'运行静力学 Skill'}</button></div><textarea id="skillSource" spellcheck="false" style="box-sizing:border-box;width:100%;min-height:150px;margin-top:14px;font:12px/1.5 monospace" placeholder="在此粘贴 Skill JSON / JSONC 输入（必须与当前三维模型一致）">${esc(skillInput)}</textarea><p id="skillState" role="status">${esc(skillMessage)}</p></div>`;
  let html=(shared?'':installationPanel())+card('独立静力学校核 Skill · V10',controls,'<span class="chip accent">唯一静力学结果来源：Skill CLI</span>');
- if(ok){const v=skillData.view,e=skillData.payload.execution;
-   html+=`<div class="kpis">${kpi('已校核关节数',v.joints.length,'','来自 Skill 的 summary')}${(shared?kpi('已检查姿态',v.poses.length,'','指定工况'):kpi('最大已检查重力矩',fmt(Math.max(...v.joints.map(j=>j.maxTorqueNm??0)),3),'N·m','已检查工况，非全局证明'))}${kpi('计算耗时',e.elapsed_ms,'ms','外部 Skill 进程')}${kpi('计算版本',esc(v.engineVersion),'','输入哈希可追溯')}</div>`;
-   html+=card('关节静力学结果',table(['关节','最大保持载荷','设计输出端','连续能力','裕量','临界姿态'],v.joints.map(j=>[esc(j.name),j.maxTorqueNm==null?'—':fmt(j.maxTorqueNm,4),j.requiredNm==null?'—':fmt(j.requiredNm,4)+' '+esc(j.effortUnit??'Nm'),j.capacityNm==null?'未提供':fmt(j.capacityNm,4),j.margin==null?'待选型':fmt(j.margin*100,1)+'%',shared?esc(JSON.stringify(j.criticalPose?.q??{})):`<button class="button" data-skill-pose="${esc(j.name)}" ${j.criticalPose?'':'disabled'}>显示姿态</button>`])));
-   html+=card('执行依据',`<div class="card-body">${list([['运行 ID',esc(v.runId)],['版本',esc(v.engineVersion)],['输入哈希',esc(v.inputSha256||'未返回')],['执行时间',esc(v.executedAt)],['执行类型',esc(e.execution_mode)]])}<p>${v.warnings.map(w=>esc(typeof w==='string'?w:JSON.stringify(w))).join('<br>')||'搜索不能证明全局最大，未做结构、碰撞与热保持校核。'}</p><div class="actions-row"><button class="button" id="skillExportJson">下载 Skill JSON</button></div></div>`);
- }
+ if(ok)html+=staticsResults(shared);
  if(!shared)html+=card('三维临界姿态预览',criticalOptions()+viewport(),'<span class="meta">姿态来自本次 Skill 搜索结果；关节角以弧度传递至原 SRS 三维渲染器</span>');
  return html;
+}
+function staticsResults(shared){
+ const v=skillData.view,e=skillData.payload.execution;
+   let html=`<div class="kpis">${kpi('已校核关节数',v.joints.length,'','来自 Skill 的 summary')}${(skillData.payload.result.design_model_info?kpi('已检查姿态',v.poses.length,'','指定工况'):kpi('最大已检查重力矩',fmt(Math.max(...v.joints.map(j=>j.maxTorqueNm??0)),3),'N·m','已检查工况，非全局证明'))}${kpi('计算耗时',e.elapsed_ms,'ms','外部 Skill 进程')}${kpi('计算版本',esc(v.engineVersion),'','输入哈希可追溯')}</div>`;
+   html+=card('关节静力学结果',table(['关节','最大保持载荷','设计输出端','连续能力','裕量','临界姿态'],v.joints.map(j=>[esc(j.name),j.maxTorqueNm==null?'—':fmt(j.maxTorqueNm,4),j.requiredNm==null?'—':fmt(j.requiredNm,4)+' '+esc(j.effortUnit??'Nm'),j.capacityNm==null?'未提供':fmt(j.capacityNm,4),j.margin==null?'待选型':fmt(j.margin*100,1)+'%',shared&&!window.ModuleDesignPage?esc(JSON.stringify(j.criticalPose?.q??{})):`<button class="button" data-skill-pose="${esc(j.name)}" ${j.criticalPose?'':'disabled'}>显示姿态</button>`])));
+   html+=card('执行依据',`<div class="card-body">${list([['运行 ID',esc(v.runId)],['版本',esc(v.engineVersion)],['输入哈希',esc(v.inputSha256||'未返回')],['执行时间',esc(v.executedAt)],['执行类型',esc(e.execution_mode)]])}<p>${v.warnings.map(w=>esc(typeof w==='string'?w:JSON.stringify(w))).join('<br>')||'搜索不能证明全局最大，未做结构、碰撞与热保持校核。'}</p><div class="actions-row"><button class="button" id="skillExportJson">下载 Skill JSON</button></div></div>`);
+ return html;
+}
+function sharedCriticalView(){
+ const joints=skillData.view.joints.filter(joint=>joint.criticalPose);
+ if(!joints.length)return '';
+ const selected=joints.find(joint=>joint.name===criticalJoint)??joints[0];
+ return card('三维临界姿态预览',`<div class="card-body">
+   <div class="actions-row"><label for="criticalPosePick">关节</label>
+   <select id="criticalPosePick">${joints.map(joint=>`<option value="${esc(joint.name)}" ${joint===selected?'selected':''}>${esc(joint.name)} · ${fmt(joint.maxTorqueNm,3)} ${esc(joint.effortUnit)}</option>`).join('')}</select>
+   <button class="button" id="criticalReset" disabled>恢复临界姿态</button></div>
+   <p id="criticalPoseValues"></p><canvas id="criticalScene" aria-label="最大已检查保持载荷对应的三维姿态"></canvas>
+   <p id="criticalSceneStatus" role="status">显示所选关节最大已检查保持载荷对应的姿态。拖动关节调整姿态，拖动空白处旋转视角，滚轮缩放。外壳为示意几何。</p>
+ </div>`);
+}
+async function setupCriticalScene(){
+ const canvas=$('#criticalScene');
+ const result=skillData.payload.result;
+ const joint=$('#criticalPosePick').value;
+ try{
+   const replay=await window.SkillClient.createCriticalPoseReplay(result,joint);
+   if(canvas!==$('#criticalScene'))return;
+   const previous=criticalScene;
+   const initial=replay.preview();
+   let q=replay.initial.slice();
+   const values=$('#criticalPoseValues'),reset=$('#criticalReset'),status=$('#criticalSceneStatus');
+   const help=status.textContent;
+   function updateValues(){
+     values.textContent=replay.joints.map(({name,type},i)=>{
+       const linear=type==='prismatic';
+       return `${name} ${fmt(q[i]*(linear?1000:180/Math.PI))} ${linear?'mm':'°'}`;
+     }).join(' · ');
+   }
+   criticalScene=new WorkspaceScene(canvas,{points:[]},initial,{
+     fitPositions:initial.nodes_world_m,solidLinks:true,
+     dragJoint(name,delta){
+       const index=replay.joints.findIndex(item=>item.name===name);
+       const {type,limits:[min,max]}=replay.joints[index];
+       const step=type==='prismatic'?delta*(max-min)/Math.PI:delta;
+       q[index]=Math.max(min,Math.min(max,q[index]+step));
+       updateValues();
+       status.textContent='手动预览姿态。结果表仍显示 Skill 计算的临界载荷。';
+       return replay.preview(q,name);
+     },
+   });
+   updateValues();
+   reset.disabled=false;
+   reset.onclick=()=>{
+     q=replay.initial.slice();
+     criticalScene.preview=initial;
+     criticalScene.render();
+     updateValues();
+     status.textContent=help;
+   };
+   if(previous){
+     Object.assign(criticalScene,{yaw:previous.yaw,pitch:previous.pitch,zoom:previous.zoom});
+     criticalScene.render();
+   }
+ }catch(error){
+   if(canvas===$('#criticalScene'))$('#criticalSceneStatus').textContent=error.message;
+ }
 }
 function criticalOptions(){
  if(!skillCurrent())return '<div class="card-body"><p class="meta">请先运行静力学 Skill；搜索得到的临界姿态将出现在此处。</p></div>';
@@ -186,16 +267,31 @@ function refreshCritical(){}
 function criticalCompatible(){return skillCurrent();}
 function selectCriticalPose(joint){
  if(!skillCurrent())return message('请先运行当前模型对应的 Skill');
- const j=skillData.view.joints.find(item=>item.name===joint);if(!j)return;
+ const j=skillData.view.joints.find(item=>item.name===joint);if(!j?.criticalPose)return;
+ if(window.ModuleDesignPage){criticalJoint=joint;render();return;}
  let angles;
  try {angles=window.SkillClient.poseToJointAngles(j.criticalPose,skillData.payload.result.joint_names);}catch(e){return message(e.message);}
  if(angles.length!==7||angles.some((v,i)=>v<SRS.rad(config.limits[i][0])-1e-8||v>SRS.rad(config.limits[i][1])+1e-8))return message('姿态不符合当前三维模型的关节限位，已拒绝应用。');
  q=angles.slice();criticalJoint=joint;selectedJoint=skillData.payload.result.joint_names.indexOf(joint);render();
 }
 async function runSkill(){
+ if(skillBusy)return;
  if(dirty)return message('请先运行全流程，更新当前安装与模型参数');
+ const optionsEditor=$('#staticsOptions');
+ if(optionsEditor){
+   try{
+     const options=JSON.parse(optionsEditor.value);
+     const request=JSON.parse(skillInput);
+     if(!options||Array.isArray(options)||typeof options!=='object')throw Error('工况必须为 JSON 对象');
+     if(Object.keys(options).some(key=>!['poses','search','wrenches','design_factor'].includes(key))){
+       return message('静力学工况可编辑 poses、search、wrenches 和 design_factor；模型参数请在「规格与模型」维护。');
+     }
+     request.options=options;
+     skillInput=JSON.stringify(request,null,2);
+   }catch{return message('请输入有效的静力学校核工况 JSON');}
+ }
  const raw=$('#skillSource')?.value??skillInput;skillInput=raw;
- if(!raw.trim())return message('请先提供完整的 Skill JSON / JSONC 输入');
+ if(!raw.trim())return message('请先在「规格与模型」应用模型');
  skillBusy=true;skillMessage='Skill 正在计算…';render();
  const signature=skillKey(),inputSignature=skillInput;
  try{
@@ -203,7 +299,7 @@ async function runSkill(){
    const view=window.SkillClient.makeStaticsViewModel(payload);
    if(signature!==skillKey()||inputSignature!==skillInput||dirty){invalidateSkill();skillMessage='模型已改变，丢弃过期结果';}
    else if(!payload.result.design_model_info&&(payload.result.joint_names.length!==7||view.joints.length!==7))throw Error('结果不是 7R 模型，拒绝加载');
-   else{const n=payload.result.normalized_input;if(n&&!payload.result.design_model_info){const info=SRS.installationInfo(config);if(!Array.isArray(n.gravity_m_s2)||n.gravity_m_s2.some((v,i)=>Math.abs(v-info.gravity_m_s2[i])>1e-9))throw Error('Skill 重力与当前网页安装设置不一致，请应用网页安装设置到输入');if(n.installation&&n.installation.rotation_base_to_world.some((row,i)=>row.some((v,j)=>Math.abs(v-info.rotation_base_to_world[i][j])>1e-9)))throw Error('Skill 安装朝向与当前网页不一致，请应用网页安装设置到输入');}skillData={payload,view};window.ModuleDesignPage?.record('statics',payload.result);skillRunSignature=signature;skillMessage='Skill 执行成功；请确认 Skill 输入模型与当前网页三维模型一致';}
+   else{const n=payload.result.normalized_input;if(n&&!payload.result.design_model_info){const info=SRS.installationInfo(config);if(!Array.isArray(n.gravity_m_s2)||n.gravity_m_s2.some((v,i)=>Math.abs(v-info.gravity_m_s2[i])>1e-9))throw Error('Skill 重力与当前网页安装设置不一致，请应用网页安装设置到输入');if(n.installation&&n.installation.rotation_base_to_world.some((row,i)=>row.some((v,j)=>Math.abs(v-info.rotation_base_to_world[i][j])>1e-9)))throw Error('Skill 安装朝向与当前网页不一致，请应用网页安装设置到输入');}skillData={payload,view};window.ModuleDesignPage?.record('statics',payload.result);skillRunSignature=signature;skillMessage=payload.result.design_model_info?'静力学校核完成。':'Skill 执行成功；请确认 Skill 输入模型与当前网页三维模型一致';}
  }catch(e){invalidateSkill();skillMessage='Skill 执行失败：'+e.message;}finally{skillBusy=false;render();}
 }
 function bindSkillPage(){
@@ -223,8 +319,8 @@ function viewport(cloud=false){return `<div class="viewport"><canvas id="scene" 
 function bars(a,b,height=160){let mx=Math.max(...a,...b,.1);return `<div class="bar-chart" style="height:${height}px">${a.map((v,i)=>`<div class="bar-column"><b>${fmt(Math.max(v,b[i]),1)}</b><div class="bars"><div class="bar gray" style="height:${Math.max(1,v/mx*100)}%" title="J${i+1} 重力峰值 ${fmt(v)} Nm"></div><div class="bar" style="height:${Math.max(1,b[i]/mx*100)}%" title="J${i+1} 动态峰值 ${fmt(b[i])} Nm"></div></div><small>J${i+1}</small></div>`).join('')}</div>`;}
 function table(headers,rows){return `<div class="table-scroll"><table><thead><tr>${headers.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${rows.map(row=>`<tr>${row.map(v=>`<td>${v}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;}
 function field(key,label,unit,help='',factor=1,step='any'){return `<div class="field"><label for="f-${key}">${label}</label><div class="input-wrap"><input id="f-${key}" data-key="${key}" data-factor="${factor}" type="number" step="${step}" value="${Number((config[key]*factor).toFixed(factor===1000?3:8))}"><span>${unit}</span></div><small class="${help.includes('假设')?'assumption':''}">${help}</small></div>`;}
-function render(){const n=names[tab];$('#eyebrow').textContent=n[0];$('#heading').textContent=n[1];$('#subtitle').textContent=n[2];$('#projectLabel').textContent=(['specs','sizing'].includes(tab)?window.ModuleDesignPage?.modelName():null)??config.name;document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));let html='';const r=result;
-if(tab==='overview'){
+function render(){const n=names[tab];$('#eyebrow').textContent=n[0];$('#heading').textContent=n[1];$('#subtitle').textContent=n[2];$('#projectLabel').textContent=window.ModuleDesignPage?.modelName()??config.name;document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));let html='';const r=result;
+if(tab==='overview'&&!window.ModuleDesignPage){
 html=`<div class="actions-row"><label for="overviewConfiguration">机械臂构型 </label><select id="overviewConfiguration">${SRS.configurations().filter(v=>v.id==='WORKSHEET-7R').map(v=>`<option value="${v.id}" ${config.configuration===v.id?'selected':''}>${esc(v.label)}</option>`).join('')}</select></div>${worksheet()?note('选型表单臂：J1–J7轴向 −Y / X / −Z / −Y / −Z / Y / X；J1到末端635 mm，J2到末端600 mm；自重3.612 kg，负载3 kg。模块尺寸为示意，轴心间距使用输入实际值。','neutral'):''}<div class="kpis">${kpi('肩到法兰臂展',fmt(config.reach*1000,0),'mm','前期概念参数 · 可编辑','↔')}${kpi('末端附加负载',fmt(config.payload,1),'kg','点质量 · 工具质量另计','↧')}${kpi('运动部分自重',fmt(config.selfMass,worksheet()?3:1),'kg',worksheet()?'选型表质量 · 中点/轴心质心近似':'工程假设 · 不含固定底座','◇')}${kpi('驱动关节',7,'DOF','3 肩 + 1 肘 + 3 腕','⌁')}</div><div class="grid-main"><div>${card('SRS 构型预览',viewport()+`<div class="visual-footer"><span><i class="legend-dot"></i>独立关节与连接臂杆</span><span><i class="legend-dot cloud"></i>可达位置点云</span><span>右手坐标系 / Z 向上</span></div>`,`<span class="chip accent">${esc(SRS.model(config).label)}</span>`)}${card('关节力矩需求',bars(r.statics.peak,r.dynamics.peak),`<span class="meta">灰：旧内核静态估算（非 Skill 校核）　酒红：动力学轨迹峰值 / N·m</span>`)}</div><div>${card('当前设计规格',`<div class="card-body">${list([['上臂 / S → E',fmt(config.upper*1000,0)+' mm'],['前臂 / E → W',fmt(config.fore*1000,0)+' mm'],['腕 → 法兰',fmt(config.tool*1000,0)+' mm'],['关节速度上限',fmt(config.speed,0)+' °/s'],['关节加速度上限',fmt(config.accel,0)+' °/s²'],['统一减速比',fmt(config.ratio,0)+' : 1'],['安全系数',fmt(config.safety,1)]])}<div class="actions-row"><button class="inline-link" data-go="specs">编辑规格参数 →</button></div></div>`)}${card('计算摘要',`<div class="card-body">${list([['位置采样',config.samples.toLocaleString()+' 点'],['采样最大肩距',fmt(r.workspace.maxShoulderRadius*1000,0)+' mm'],['旧概念重力估算',fmt(Math.max(...r.statics.peak),1)+' N·m'],['动力学周期',fmt(r.dynamics.period,2)+' s']])}${note('当前结果为<b>概念设计需求</b>。质量、惯量及示例工况均可替换；尚未进行热与寿命校核。')}</div>`)}</div></div>${card('正向设计流程',`<div class="process">${stages.map(([a,b],i)=>`<div class="process-item"><div class="number">${String(i+1).padStart(2,'0')}</div>${a}<small>${i===0?'指定 SRS 模板':['workspace','statics'].includes(b)?'独立 Skill · 另行运行':'概念计算已完成'}</small></div>`).join('')}</div>`,`<button class="inline-link" data-go="skills">查看 Skill 数据契约 →</button>`)}`;
 }
 if(tab==='specs'&&window.ModuleDesignPage)html=window.ModuleDesignPage.specsHTML();
@@ -236,21 +332,34 @@ html+=(worksheet()?card('七段几何 / 当前输出坐标系',table(['段 / 到
 html+=card('03 / 关节轴、质量与限位',table(['关节 / 局部轴','局部方向（可指定）','转动后局部平移','质量占比 %','下限 °','上限 °'],SRS.model(config).axes.map((a,j)=>[`<span id="axisLabel${j}">J${j+1} / ${axisLabels()[j]}</span>`,axisEditor(j,a),fmt(SRS.model(config).lengths[j]*1000,0)+' mm',`<input class="small" type="number" data-mass="${j}" value="${fmt(config.massFractions[j]*100,1)}" aria-label="J${j+1}质量百分比">`,`<input class="small" type="number" data-limit="${j},0" value="${config.limits[j][0]}" aria-label="J${j+1}下限">`,`<input class="small" type="number" data-limit="${j},1" value="${config.limits[j][1]}" aria-label="J${j+1}上限">`]))+`<div class="card-body">${note('关节轴在上游关节变换后的局部坐标中定义；可选±X/±Y/±Z，或输入任意非零向量，计算时归一化。修改后点击“计算此方案”。'+(SRS.model(config).warnings.length?' '+esc(SRS.model(config).warnings.join(' ')):'') ,'neutral')}${worksheet()?note('本构型自重来自选型表；bodyComs采用同段模组轴心质量与连杆中点质量的加权质心。与静力学skill的重力矩等价，惯量与动态工况仍为概念估算。','neutral'):''}${note('质量占比合计须为100%。默认长连杆质心位于中点，球关节刚体质心位于轴线共点。默认惯量由半径35 mm的均匀杆/球估计。可在输入JSON中提供 <code>bodyComs[7][3]</code> 和 <code>inertias[7][3]</code> 替换；惯量为局部坐标系中的对角主惯量。','neutral')}<div class="actions-row"><button class="button primary" id="apply">计算此方案</button><button class="button" id="restoreAxes">恢复模板轴向</button><button class="button" id="saveConfig">导出输入 JSON</button><button class="button" id="importConfig">导入输入 JSON</button><input type="file" id="fileInput" accept=".json,application/json" hidden><button class="button quiet" id="reset">恢复示例参数</button></div></div>`);
 }
 if(tab==='motion'){html=window.MotionPage?window.MotionPage.html():card('轨迹模块不可用','<div class="card-body">请重启服务并刷新，检查模块加载。</div>');}
-if(tab==='kinematics'){
+if(tab==='kinematics'&&!window.ModuleDesignPage){
 const f=SRS.fk(config,q),J=SRS.jacAt(f,f.p);html=`<div class="grid-main"><div>${card('关节姿态预览',viewport(),'<span class="chip">正运动学 · 即时计算</span>')}${card('关节角度控制',`<div class="card-body"><div class="sliders">${q.map((v,j)=>`<div class="slider"><label for="q${j}">J${j+1}<output id="qo${j}">${fmt(v*180/Math.PI,1)}°</output></label><input id="q${j}" type="range" data-q="${j}" min="${config.limits[j][0]}" max="${config.limits[j][1]}" step="0.1" value="${v*180/Math.PI}"></div>`).join('')}</div><div class="actions-row"><button class="button" id="zeroQ">零位伸展</button><button class="button" id="foldQ">折叠示例</button></div></div>`)}</div><div>${card('法兰位姿 / 基坐标系',`<div class="card-body" id="poseInfo">${poseInfo(f)}</div>`)}${card('位置逆运动学',`<div class="card-body"><p style="margin-top:0;margin-bottom:15px">阻尼最小二乘 · 6次初值尝试。只解位置，不约束末端姿态。</p><div class="stack">${['X','Y','Z'].map((a,i)=>`<div class="field"><label>目标 ${a} / mm</label><div class="input-wrap"><input type="number" id="ik${i}" value="${[350,150,250][i]}"><span>mm</span></div></div>`).join('')}</div><div class="actions-row"><button class="button primary" id="solveIK">求解并应用</button></div><p id="ikStatus">${ikResult?esc(ikResult):'输入目标点，计算一组限位内位置解。'}</p></div>`)}</div></div>${card('几何雅可比 J / 6 × 7',`<div class="card-body"><p>前3行为线速度映射，后3行为角速度映射；列对应J1–J7。单位 m/rad 与 rad/rad。</p><div class="matrix" id="jacobian">${jacText(f,J)}</div></div>`)}`;
 }
 if(tab==='workspace')html=workspaceView();
 if(tab==='statics')html=staticsView();
-if(tab==='dynamics') html=`<div class="kpis">${kpi('运动周期',fmt(r.dynamics.period,2),'s','各关节相差0.3 rad相位的正弦轨迹')}${kpi('运动占空比',fmt(config.duty*100,0),'%','其余时间在中心姿态保持')}${kpi('轨迹采样',64,'点/周期','每点计算完整逆动力学')}${kpi('最大轨迹力矩',fmt(Math.max(...r.dynamics.peak),2),'N·m','惯性 + 速度积 + 重力 + 摩擦')}</div>${card('关节力矩曲线 / 一个运动周期',`<div class="card-body"><canvas id="torquePlot" class="plot" aria-label="七个关节的力矩时间曲线"></canvas><p>J1–J7以不同深浅颜色显示；RMS包含非运动时段的中心姿态重力保持，不按零力矩处理。</p></div>`,'<span class="chip accent">刚体逆动力学 · 假设惯量</span>')}${card('示例工况结果',table(['关节','峰值 / N·m','整周期RMS / N·m','保持 / N·m','峰值速度 / °/s','峰值加速度 / °/s²','峰值机械功率 / W'],r.dynamics.peak.map((v,j)=>['J'+(j+1),fmt(v,3),fmt(r.dynamics.rms[j],3),fmt(r.dynamics.hold[j],3),fmt(r.dynamics.speed[j]*180/Math.PI,1),fmt(r.dynamics.accel[j]*180/Math.PI,1),fmt(r.dynamics.power[j],2)])))}<div class="formula">τ = M(q)q̈ + C(q,q̇)q̇ + G(q) + Bq̇ + τc sign(q̇)<br>M = Σ (m Jvᵀ Jv + Jωᵀ R ICOM Rᵀ Jω)</div>${note('已实现刚体惯性与科氏/离心项；质量矩阵偏导采用中心差分。默认惯量来自均匀杆/球估计，附加负载按点质量处理。示例轨迹不能覆盖实际任务全部工况，速度上限变化也可能受加速度上限约束。')}`;
+if(tab==='dynamics'&&!window.ModuleDesignPage) html=`<div class="kpis">${kpi('运动周期',fmt(r.dynamics.period,2),'s','各关节相差0.3 rad相位的正弦轨迹')}${kpi('运动占空比',fmt(config.duty*100,0),'%','其余时间在中心姿态保持')}${kpi('轨迹采样',64,'点/周期','每点计算完整逆动力学')}${kpi('最大轨迹力矩',fmt(Math.max(...r.dynamics.peak),2),'N·m','惯性 + 速度积 + 重力 + 摩擦')}</div>${card('关节力矩曲线 / 一个运动周期',`<div class="card-body"><canvas id="torquePlot" class="plot" aria-label="七个关节的力矩时间曲线"></canvas><p>J1–J7以不同深浅颜色显示；RMS包含非运动时段的中心姿态重力保持，不按零力矩处理。</p></div>`,'<span class="chip accent">刚体逆动力学 · 假设惯量</span>')}${card('示例工况结果',table(['关节','峰值 / N·m','整周期RMS / N·m','保持 / N·m','峰值速度 / °/s','峰值加速度 / °/s²','峰值机械功率 / W'],r.dynamics.peak.map((v,j)=>['J'+(j+1),fmt(v,3),fmt(r.dynamics.rms[j],3),fmt(r.dynamics.hold[j],3),fmt(r.dynamics.speed[j]*180/Math.PI,1),fmt(r.dynamics.accel[j]*180/Math.PI,1),fmt(r.dynamics.power[j],2)])))}<div class="formula">τ = M(q)q̈ + C(q,q̇)q̇ + G(q) + Bq̇ + τc sign(q̇)<br>M = Σ (m Jvᵀ Jv + Jωᵀ R ICOM Rᵀ Jω)</div>${note('已实现刚体惯性与科氏/离心项；质量矩阵偏导采用中心差分。默认惯量来自均匀杆/球估计，附加负载按点质量处理。示例轨迹不能覆盖实际任务全部工况，速度上限变化也可能受加速度上限约束。')}`;
 if(tab==='sizing'&&window.ModuleDesignPage)html=window.ModuleDesignPage.specificationsHTML();
 if(tab==='sizing'&&!window.ModuleDesignPage) html=`<div class="kpis">${kpi('关节规格输出',7,'组','每个关节独立计算需求包络')}${kpi('统一减速比',fmt(config.ratio,0),': 1','当前用户输入值，未进行速比寻优')}${kpi('传动效率',fmt(config.efficiency*100,0),'%','电机侧换算采用驱动效率')}${kpi('转矩安全系数',fmt(config.safety,1),'×','应用于负载转矩和转子加速')}</div>${card('旧概念选型估算（非 Skill 校核）',table(['关节','额定输出转矩 ≥ N·m','峰值输出转矩 ≥ N·m','最高输出转速 ≥ rpm','电机侧制动矩 ≥ N·m'],r.joints.map(j=>[j.joint,fmt(j.outputRated,3),fmt(j.outputPeak,3),fmt(config.speed/6,1),fmt(j.brakeHolding,3)])))}${card('电机轴端需求',table(['关节','额定转矩 ≥ N·m','峰值转矩 ≥ N·m','最高转速 ≥ rpm','保守转矩×转速包络 / W'],r.joints.map(j=>[j.joint,fmt(j.motorRated,3),fmt(j.motorPeak,3),fmt(j.motorRpm,0),fmt(j.motorPowerEnvelope,1)])))}<div class="small-grid">${card('计算关系',`<div class="card-body"><div class="formula">Tred,peak = K · max(Tg,sampled, Tdyn,peak)<br>Tred,rated = K · max(Trms, |Thold|)<br>Tmotor = Tred / (i·η) + K·Jrotor·i·αmax<br>nmotor = i · ωmax · 60 / (2π)</div><p>电机额定转矩额外叠加最大转子加速力矩，属于保守需求。功率列为峰值转矩与最高转速的乘积包络，不是额定功率或实际同时发生的功率。</p></div>`)}${card('供应商匹配前还需补齐',`<div class="card-body">${note('当前输出为<b>规格需求</b>，未接入产品目录，未宣称选定具体电机或减速器型号。')}<p>补齐实际任务轨迹、CAD质量/惯量、减速器惯量、转矩–转速曲线、热阻与温升、制动工况、轴承力/力矩、寿命与刚度。模组质量变化应回写模型并重新运行。</p><div class="actions-row"><button class="button" id="exportCsv">↓ 导出规格 CSV</button></div></div>`)}</div>`;
-if(tab==='skills'){
+if(tab==='skills'&&!window.ModuleDesignPage){
 const defs=[['构型选择与参数建模','arm-configure','规格 JSON','标准化 model.json','选择肩部轴序模板，验证臂展、限位、质量分配、坐标约定。当前仅支持指定构型，后续扩展多构型候选评分。'],['运动学计算','arm-kinematics','规格 + 关节角 / 目标点','位姿、6×7雅可比、位置IK','统一局部轴线定义，正运动学与阻尼位置逆解；不宣称已校核目标姿态。'],['可达空间计算','arm-workspace-parametric','串联几何 + 采样 / 目标姿态','点云、IK成功率、投影与剖面','调用独立CLI；固定种子关节采样或目标位姿IK，保留关节解与来源；不检查碰撞或带载。'],['静力学校核','arm-statics','规格 + 质量 / 质心','独立 Skill 的扭矩、极值与临界姿态','仅由服务端 arm-statics-parametric 计算；不复用浏览器静力学数值。'],['动力学计算','arm-dynamics','规格 + 惯量 / 速度 / 加速度','力矩时序、RMS、峰值、速度','以质量矩阵与Christoffel系数求逆动力学；当前内置正弦工况。'],['关节模组规格','arm-sizing','静力学 + 动力学输出','每关节电机/减速器需求','同输入快照检查；统一安全系数、效率、速比及转子加速项；输出产品匹配前的需求。']];
 html=card('统一数据流',`<div class="card-body"><div class="process" style="padding:8px 0 20px">${stages.map(([a,b],i)=>`<div class="process-item"><div class="number">${i+1}</div>${a}<small>JSON → JSON</small></div>`).join('')}</div>${note('静力学分析页面通过服务端调用独立 Skill；其他概念设计功能保留原浏览器内核。<b>需将实际 Skill 部署至服务端</b>；Skill可在Codex中独立执行，也可由总控Skill顺序运行。','neutral')}<p>总控：<code>$arm-design-pipeline</code>。每次输出携带schema版本、完整输入快照、计算方法和假设。修改任何几何、负载或运动参数后，重新运行下游结果；禁止混用不同输入版本的静力学与动力学数据。</p></div>`);
 html+=`<div class="skill-grid">${defs.map(([title,id,inp,out,desc],i)=>`<section class="skill-card"><div class="num">SKILL ${String(i+1).padStart(2,'0')} / ${id}</div><h2>${title}</h2><p>${desc}</p><div class="io"><b>INPUT</b> ${inp}<br><b>OUTPUT</b> ${out}</div><div class="actions-row"><button class="inline-link" data-go="${['specs','kinematics','workspace','statics','dynamics','sizing'][i]}">打开功能 →</button></div></section>`).join('')}</div>`;
 }
-if(tab==='notes')html=card('示例参数的来源与解释',`<div class="card-body">${list([['600 mm / 3 kg','前期“机械臂概念学习”示例'],['300 / 213 / 87 mm','原图为等效投影距离；本版作为理想几何假设'],[worksheet()?'3.612 kg / 3 kg / 9.8 m/s²':'8 kg / 60°/s / 120°/s²',worksheet()?'选型表单臂及本次静力学输入；速度、惯量为概念假设':'本版工程假设，尚无原始规格依据'],['肩与腕轴线','肩部'+axisLabels().slice(0,3).join('–')+'；肘Y；腕X–Y–X'],['旧版 reachability.py','保留旋转后平移方法；重新定义SRS轴线几何']])}<p>旧 example_input.json 是7段串联旋转链，长度总和760 mm，不能直接当作600 mm SRS模型。前期示意图中的DH表也未作为计算输入。当前使用明确的轴线—平移模型，${worksheet()?'本构型零位沿−Z下垂、七段轴心分离；重力9.8 m/s²':'零位沿+X伸展、基坐标Z向上'}，重力沿−Z。类人肩部模板现为J1绕X、J2绕Y、J3绕Z。可在规格表中逐关节覆盖方向；正转遵循右手定则。前伸零位下J1绕臂轴旋转，J2负角抬臂。</p></div>`)+card('计算假设与验证范围',`<div class="card-body text-body"><ul>${r.assumptions.map(s=>`<li>${esc(s)}</li>`).join('')}</ul><p>质量矩阵采用刚体动能推导，逆动力学包含惯性、速度积、重力与摩擦项。数学依据：<a href="https://modernrobotics.northwestern.edu/nu-gm-book-resource/chapter-8-1-lagrangian-formulation-of-dynamics-part-1-of-2/" target="_blank" rel="noopener">Northwestern · Modern Robotics / Lagrangian Dynamics ↗</a>。</p><p>惯量输入限定为各连杆局部坐标中的对角主惯量。若CAD惯量含非零积惯量，需要先将模型坐标变换至主轴或扩展内核支持完整3×3张量。</p></div>`)+card('工程闭环的后续接口',`<div class="card-body text-body">${table(['阶段','需要补充','回写内容'],[['多构型寻优','候选构型、任务点、障碍与评价权重','构型、杆长、冗余利用率'],['真实任务校核','位姿轨迹、周期、停留与接触力','全工况力矩、速度、功率'],['产品与寿命匹配','厂商目录、热、轴承载荷、寿命曲线','实际模组质量、惯量与效率'],['结构与仿真验证','CAD、URDF、接触/碰撞模型','更新后的几何与动力学参数']])}<p>后续调度服务建议采用任务队列调用确定性计算脚本，Skill负责输入检查、知识检索与结果解释；网页通过任务API提交输入并查看真实执行状态。不能仅凭SKILL.md在网页中自动运行大模型。</p></div>`);
-$('#content').innerHTML=html;bindPage();requestAnimationFrame(()=>{if($('#scene'))setupScene(tab==='workspace');if($('#torquePlot'))plot();if($('#workspaceScene'))setupWorkspaceScene();});}
+if(tab==='notes'&&!window.ModuleDesignPage)html=card('示例参数的来源与解释',`<div class="card-body">${list([['600 mm / 3 kg','前期“机械臂概念学习”示例'],['300 / 213 / 87 mm','原图为等效投影距离；本版作为理想几何假设'],[worksheet()?'3.612 kg / 3 kg / 9.8 m/s²':'8 kg / 60°/s / 120°/s²',worksheet()?'选型表单臂及本次静力学输入；速度、惯量为概念假设':'本版工程假设，尚无原始规格依据'],['肩与腕轴线','肩部'+axisLabels().slice(0,3).join('–')+'；肘Y；腕X–Y–X'],['旧版 reachability.py','保留旋转后平移方法；重新定义SRS轴线几何']])}<p>旧 example_input.json 是7段串联旋转链，长度总和760 mm，不能直接当作600 mm SRS模型。前期示意图中的DH表也未作为计算输入。当前使用明确的轴线—平移模型，${worksheet()?'本构型零位沿−Z下垂、七段轴心分离；重力9.8 m/s²':'零位沿+X伸展、基坐标Z向上'}，重力沿−Z。类人肩部模板现为J1绕X、J2绕Y、J3绕Z。可在规格表中逐关节覆盖方向；正转遵循右手定则。前伸零位下J1绕臂轴旋转，J2负角抬臂。</p></div>`)+card('计算假设与验证范围',`<div class="card-body text-body"><ul>${r.assumptions.map(s=>`<li>${esc(s)}</li>`).join('')}</ul><p>质量矩阵采用刚体动能推导，逆动力学包含惯性、速度积、重力与摩擦项。数学依据：<a href="https://modernrobotics.northwestern.edu/nu-gm-book-resource/chapter-8-1-lagrangian-formulation-of-dynamics-part-1-of-2/" target="_blank" rel="noopener">Northwestern · Modern Robotics / Lagrangian Dynamics ↗</a>。</p><p>惯量输入限定为各连杆局部坐标中的对角主惯量。若CAD惯量含非零积惯量，需要先将模型坐标变换至主轴或扩展内核支持完整3×3张量。</p></div>`)+card('工程闭环的后续接口',`<div class="card-body text-body">${table(['阶段','需要补充','回写内容'],[['多构型寻优','候选构型、任务点、障碍与评价权重','构型、杆长、冗余利用率'],['真实任务校核','位姿轨迹、周期、停留与接触力','全工况力矩、速度、功率'],['产品与寿命匹配','厂商目录、热、轴承载荷、寿命曲线','实际模组质量、惯量与效率'],['结构与仿真验证','CAD、URDF、接触/碰撞模型','更新后的几何与动力学参数']])}<p>后续调度服务建议采用任务队列调用确定性计算脚本，Skill负责输入检查、知识检索与结果解释；网页通过任务API提交输入并查看真实执行状态。不能仅凭SKILL.md在网页中自动运行大模型。</p></div>`);
+if(window.ModuleDesignPage){
+ if(tab==='overview')html=card('当前公共模型',`<div class="card-body"><p>${esc(window.ModuleDesignPage.modelName()??'正在读取模型…')}</p>
+ <div class="actions-row"><button class="button primary" data-go="specs">打开规格与模型</button><button class="button" data-go="statics">静力学分析</button><button class="button" data-go="workspace">可达空间</button><button class="button" data-go="motion">轨迹、运动学与动力学</button></div></div>`);
+ if(tab==='skills'){
+   const skills=[
+     ['statics','arm-statics-parametric','静力学分析','保持载荷及各关节的临界姿态'],
+     ['workspace','arm-workspace-parametric','可达空间','FK 点云、位置和姿态可达性、体素灵巧空间'],
+     ['motion','arm-kinematics-dynamics','轨迹、运动学与动力学','关节与 TCP 运动、奇异性和刚体动态载荷'],
+   ];
+   html=`<div class="skill-grid">${skills.map(([page,id,title,summary])=>card(title,`<div class="card-body"><p><code>${id}</code></p><p>${summary}</p><button class="button" data-go="${page}">打开${title}</button></div>`)).join('')}</div>`;
+ }
+ if(tab==='notes')html=window.ModuleDesignPage.provenanceHTML();
+}
+$('#content').innerHTML=html;bindPage();requestAnimationFrame(()=>{if($('#scene'))setupScene(tab==='workspace');if($('#torquePlot'))plot();if($('#workspaceScene'))setupWorkspaceScene();if($('#criticalScene'))setupCriticalScene();});}
 function poseInfo(f){return list(['X','Y','Z'].map((a,i)=>[a+' / mm',fmt(f.p[i]*1000,2)]))+`<p>旋转矩阵 R（无量纲）</p><div class="matrix">${f.R.map(r=>r.map(v=>fmt(v,4).padStart(8)).join(' ')).join('\n')}</div>`;}
 function jacText(f,J){return Array.from({length:6},(_,i)=>Array.from({length:7},(_,j)=>fmt(i<3?J[j][i]:f.axes[j][i-3],4).padStart(8)).join(' ')).join('\n');}
 function message(t){$('#message').textContent=t;$('#message').style.display=t?'block':'none';}
@@ -260,7 +369,18 @@ async function calculate(){invalidateSkill();invalidateWorkspace();const b=$('#r
 async function switchConfiguration(id){criticalJoint=null;if(id==='WORKSHEET-7R'||worksheet()){const installation=config.installation;config=SRS.defaults(id);if(installation)config.installation=installation;q=id==='WORKSHEET-7R'?[.65,-.65,.2,1,0,0,0]:Array(7).fill(0);selectedJoint=0;markDirty();await calculate();return;}const previous=SRS.defaults(config.configuration),newDefaults=SRS.defaults(id),standardLimits=JSON.stringify(config.limits)===JSON.stringify(previous.limits);config.configuration=id;config.jointAxes=null;if(standardLimits)config.limits=newDefaults.limits;config.provenance={...config.provenance,configuration:'用户选择：'+variantInfo().label};q=Array(7).fill(0);selectedJoint=0;markDirty();await calculate();}
 function setJointAxis(j,vector,skipComponent=null){const axes=config.jointAxes?config.jointAxes.map(v=>v.slice()):SRS.model(config).axes.map(v=>v.slice());axes[j]=vector.slice();config.jointAxes=axes;config.provenance={...config.provenance,jointAxes:'用户逐关节指定局部方向'};q=Array(7).fill(0);for(let k=0;k<3;k++){const el=$('#axis'+j+'_'+k);if(el&&k!==skipComponent)el.value=vector[k];}const preset=$('#axisPreset'+j),valid=vector.every(Number.isFinite)&&Math.hypot(...vector)>1e-10,label=valid?SRS.labelAxis(vector.map(x=>x/Math.hypot(...vector))):'custom';if(preset)preset.value=Object.prototype.hasOwnProperty.call(AXIS_PRESETS,label)?label:'custom';if($('#axisLabel'+j))$('#axisLabel'+j).textContent='J'+(j+1)+' / '+(valid?label:'待校验');markDirty();}
 function setAxisComponent(j,k,value){const v=(config.jointAxes?config.jointAxes:SRS.model(config).axes)[j].slice();v[k]=value;setJointAxis(j,v,k);}
+function clearSharedModel(){
+ sharedModelRevision++;
+ skillInput='';
+ workspaceInput='';
+ workspaceAbort?.abort();
+ invalidateSkill();
+ invalidateWorkspace();
+ window.MotionPage?.applyRequest(null);
+ $('#state').textContent='公共模型待应用';
+}
 function applySharedModel(data){
+ sharedModelRevision++;
  const {requests,results,execution}=data;
  $('#state').textContent=results?'三个 Skill 已联算':'公共模型已应用';
  skillInput=JSON.stringify(requests.statics,null,2);
@@ -281,7 +401,7 @@ function applySharedModel(data){
  }
 }
 function bindPage(){
- window.ModuleDesignPage?.bind({render,go,download,apply:applySharedModel},tab);
+ window.ModuleDesignPage?.bind({render,go,download,apply:applySharedModel,clear:clearSharedModel},tab);
  bindSkillPage();bindWorkspacePage();if(tab==='motion')window.MotionPage?.bind();
  if($('#installationPreset'))$('#installationPreset').onchange=async e=>{const angles={upright:[0,0,0],inverted:[Math.PI,0,0],side:[0,Math.PI/2,0]}[e.target.value];if(!angles)return;const next=SRS.installationInfo(config).request;next.base_orientation_in_world.rpy_rad=angles;config.installation=next;markDirty();await calculate();};
  document.querySelectorAll('[data-mount]').forEach(el=>el.oninput=()=>setInstallationValue('angle',+el.dataset.mount,SRS.rad(el.valueAsNumber)));
@@ -292,7 +412,7 @@ document.querySelectorAll('[data-vector]').forEach(el=>el.oninput=()=>{const [j,
 document.querySelectorAll('[data-pose]').forEach(el=>el.onclick=()=>{const poses={zero:[0,0,0,0,0,0,0],forward:[Math.PI/2,0,0,0,0,0,0],side:[0,-Math.PI/2,0,0,0,0,0],natural:[.65,-.65,.2,1,0,0,0]};q=poses[el.dataset.pose].map((v,j)=>Math.max(SRS.rad(config.limits[j][0]),Math.min(SRS.rad(config.limits[j][1]),v)));render();});document.querySelectorAll('[data-axis-preset]').forEach(el=>el.onchange=()=>{if(el.value==='custom'){$('#axis'+el.dataset.axisPreset+'_0')?.focus();return;}setJointAxis(+el.dataset.axisPreset,AXIS_PRESETS[el.value]);});document.querySelectorAll('[data-axis-component]').forEach(el=>el.oninput=()=>{const [j,k]=el.dataset.axisComponent.split(',').map(Number);setAxisComponent(j,k,el.valueAsNumber);});if($('#restoreAxes'))$('#restoreAxes').onclick=()=>{config.jointAxes=null;q=Array(7).fill(0);calculate();};if($('#configurationPick'))$('#configurationPick').onchange=e=>switchConfiguration(e.target.value);document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));document.querySelectorAll('[data-key]').forEach(el=>el.oninput=()=>{const key=el.dataset.key,old=config[key],v=el.valueAsNumber/Number(el.dataset.factor);config[key]=v;config.provenance={...config.provenance,[key]:'用户在网页中编辑'};if(key==='reach'&&v>0&&old>0){['upper','fore','tool'].forEach(k=>config[k]*=v/old);syncInputs();}else if(['upper','fore','tool'].includes(key)){config.reach=config.upper+config.fore+config.tool;const reach=$('#f-reach');if(reach)reach.value=fmt(config.reach*1000,1);}markDirty();});if($('#projectName'))$('#projectName').oninput=e=>{config.name=e.target.value;markDirty();};document.querySelectorAll('[data-mass]').forEach(el=>el.oninput=()=>{config.massFractions[+el.dataset.mass]=el.valueAsNumber/100;markDirty();});document.querySelectorAll('[data-limit]').forEach(el=>el.oninput=()=>{const [j,k]=el.dataset.limit.split(',').map(Number);config.limits[j][k]=el.valueAsNumber;markDirty();});
 if($('#apply'))$('#apply').onclick=calculate;if($('#saveConfig'))$('#saveConfig').onclick=()=>downloadConfig();if($('#reset'))$('#reset').onclick=()=>{config=SRS.defaults('WORKSHEET-7R');q=[.65,-.65,.2,1,0,0,0];calculate();};if($('#importConfig')){$('#importConfig').onclick=()=>$('#fileInput').click();$('#fileInput').onchange=async e=>{try{const file=e.target.files[0];if(!file)return;if(file.size>1000000)throw Error('输入JSON文件须小于1 MB');const raw=JSON.parse(await file.text());if(raw.configuration&&raw.configuration!=='WORKSHEET-7R')throw Error('主设计页只保留选型表模型；其他串联几何请在可达空间页导入');const next={...SRS.defaults('WORKSHEET-7R'),...raw};SRS.validate(next);config=next;await calculate();}catch(e){message('导入失败：'+e.message);}};}
 document.querySelectorAll('[data-q]').forEach(el=>el.oninput=()=>updateJoint(+el.dataset.q,SRS.rad(el.valueAsNumber)));if($('#zeroQ'))$('#zeroQ').onclick=()=>{q=Array(7).fill(0).map((v,j)=>Math.max(SRS.rad(config.limits[j][0]),Math.min(SRS.rad(config.limits[j][1]),0)));render();};if($('#foldQ'))$('#foldQ').onclick=()=>{q=(config.configuration==='SRS-7R-YZX'?[-.5,0,.15,1.1,.1,-.4,0]:[0,-.5,.15,1.1,.1,-.4,0]).map((v,j)=>Math.max(SRS.rad(config.limits[j][0]),Math.min(SRS.rad(config.limits[j][1]),v)));render();};if($('#solveIK'))$('#solveIK').onclick=()=>{try{const target=[0,1,2].map(i=>$('#ik'+i).valueAsNumber/1000),ik=SRS.ik(config,target,q);if(ik.converged)q=ik.q;ikResult=(ik.converged?'位置逆解收敛':'未收敛，保留原姿态')+'；位置残差 '+fmt(ik.error*1000,3)+' mm。姿态未约束。';render();}catch(e){message(e.message);}};if($('#exportCsv'))$('#exportCsv').onclick=()=>{if(dirty)return message('请先重算更新结果。');exportData('csv');};}
-function go(t){if(dirty&&t!=='specs'&&t!=='motion'){message('请先在“规格与模型”修正参数并运行全流程，再查看更新结果。');return;}tab=t;history.replaceState(null,'','#'+t);render();window.scrollTo({top:0});}
+function go(t){if(window.ModuleDesignPage&&['kinematics','dynamics'].includes(t))t='motion';if(dirty&&t!=='specs'&&t!=='motion'){message('请先在“规格与模型”修正参数并运行全流程，再查看更新结果。');return;}tab=t;history.replaceState(null,'','#'+t);render();window.scrollTo({top:0});}
 let sceneState=null,selectedJoint=1;
 function updateJoint(j,value){q[j]=Math.max(SRS.rad(config.limits[j][0]),Math.min(SRS.rad(config.limits[j][1]),value));const slider=$('#q'+j),out=$('#qo'+j);if(slider)slider.value=q[j]*180/Math.PI;if(out)out.textContent=fmt(q[j]*180/Math.PI,1)+'°';const f=SRS.fk(config,q);if($('#poseInfo'))$('#poseInfo').innerHTML=poseInfo(f);if($('#jacobian'))$('#jacobian').textContent=jacText(f,SRS.jacAt(f,f.p));refreshCritical();drawScene();}
 function setupScene(cloud){const cv=$('#scene');sceneState=new Arm3D(cv,{cloud:cloud||showCloud,state:()=>({c:config,q,points:result?.points||[]}),change:updateJoint,select:j=>{selectedJoint=j;},drawn:(j,value)=>{const pick=$('#jointPick'),angle=$('#sceneAngle');if(pick)pick.value=String(j);if(angle)angle.textContent=fmt(value*180/Math.PI,1)+'°';}});sceneState.selected=selectedJoint;$('#jointPick').onchange=e=>{selectedJoint=+e.target.value;sceneState.choose(selectedJoint);};$('#homeView').onclick=()=>sceneState.reset();$('#cloudView').onclick=()=>{sceneState.cloud=!sceneState.cloud;showCloud=sceneState.cloud;drawScene();};drawScene();}
@@ -307,6 +427,10 @@ function exportData(kind){if(window.ModuleDesignPage&&kind==='config'){$('#expor
    return;
  }
  if(kind==='config')return downloadConfig();if(dirty)return message('请先运行全流程更新计算结果。');if(kind==='json')download('srs-design-results.json',JSON.stringify(result,null,2));if(kind==='csv'){const keys=Object.keys(result.joints[0]),rows=[keys.join(','),...result.joints.map(j=>keys.map(k=>'"'+String(j[k]).replace(/"/g,'""')+'"').join(','))];rows.push('');rows.push('"NOTE","SI units: torque Nm, speed rpm; preliminary requirements. See full JSON for assumptions."');download('srs-joint-requirements.csv','\ufeff'+rows.join('\r\n'),'text/csv;charset=utf-8');}if(kind==='report'){const report=`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>SRS设计分析报告</title><style>body{font:14px/1.8 sans-serif;max-width:1000px;margin:45px auto;color:#303840}h1{color:#84384c}table{border-collapse:collapse;width:100%;font-size:12px}td,th{border:1px solid #ddd;padding:10px}th{background:#f5f1f2}code{background:#f5f5f3}pre{white-space:pre-wrap;font-size:11px}@media print{body{margin:10mm}h2{break-after:avoid}tr{break-inside:avoid}}</style><h1>${esc(config.name)} · 机械臂概念设计报告</h1><p>生成时间：${esc(result.generated_at)}　内核：${result.engine_version}</p><h2>规格与模型</h2><p>${esc(variantInfo().label)}；肩部轴序 ${axisLabels().slice(0,3).join('–')}；肩到法兰臂展 ${fmt(config.reach*1000,0)} mm；负载 ${config.payload} kg；运动部分自重 ${config.selfMass} kg。默认质量与惯量为工程估计。</p><h2>关节需求</h2>${table(['关节','减速器额定 Nm','减速器峰值 Nm','电机额定 Nm','电机峰值 Nm','电机最高 rpm'],result.joints.map(j=>[j.joint,fmt(j.outputRated,3),fmt(j.outputPeak,3),fmt(j.motorRated,3),fmt(j.motorPeak,3),fmt(j.motorRpm,0)]))}<h2>安装与重力</h2><p>安装 RPY / rad：${esc(JSON.stringify(SRS.installationInfo(config).request.base_orientation_in_world.rpy_rad))}；世界重力 / m/s²：${esc(JSON.stringify(SRS.installationInfo(config).request.gravity_world_m_s2))}；基座重力 / m/s²：${esc(JSON.stringify(SRS.installationInfo(config).gravity_m_s2))}。</p><h2>结果解释</h2><p>工作空间 ${config.samples} 个关节姿态样本；位置可达性未检查碰撞或姿态。静态峰值为采样估计。动力学采用 ${fmt(result.dynamics.period)} s正弦运动周期、64点采样，运动占空比 ${config.duty}。</p><h2>方法</h2><p>τ=Mq̈+Cq̇+G+Bq̇+τc sign(q̇)。电机转矩按速比与效率换算，额外叠加最大转子加速力矩。功率包络不等于额定功率。<a href="${result.sources[0]}">Modern Robotics数学依据</a></p><h2>假设和未校核项</h2><ul>${result.assumptions.map(s=>`<li>${esc(s)}</li>`).join('')}</ul><h2>完整输入快照（SI单位）</h2><pre>${esc(JSON.stringify(config,null,2))}</pre></html>`;download('srs-design-report.html',report,'text/html;charset=utf-8');}$('#exports').close();}
-$('#nav').onclick=e=>{const b=e.target.closest('[data-tab]');if(b)go(b.dataset.tab);};$('#run').onclick=()=>window.ModuleDesignPage?window.ModuleDesignPage.run():calculate();$('#export').onclick=()=>$('#exports').showModal();$('#closeExport').onclick=()=>$('#exports').close();document.querySelectorAll('[data-export]').forEach(b=>b.onclick=()=>exportData(b.dataset.export));window.addEventListener('resize',()=>{drawScene();if(workspaceScene&&document.body.contains(workspaceScene.cv))workspaceScene.render();if($('#torquePlot'))plot();});
+$('#nav').onclick=e=>{const b=e.target.closest('[data-tab]');if(b)go(b.dataset.tab);};$('#run').onclick=()=>window.ModuleDesignPage?window.ModuleDesignPage.run():calculate();$('#export').onclick=()=>$('#exports').showModal();$('#closeExport').onclick=()=>$('#exports').close();document.querySelectorAll('[data-export]').forEach(b=>b.onclick=()=>exportData(b.dataset.export));window.addEventListener('resize',()=>{drawScene();if(workspaceScene&&document.body.contains(workspaceScene.cv))workspaceScene.render();if(criticalScene&&document.body.contains(criticalScene.cv))criticalScene.render();if($('#torquePlot'))plot();});
 if(new URLSearchParams(location.search).get('model')==='worksheet'){config=SRS.defaults('WORKSHEET-7R');q=[.65,-.65,.2,1,0,0,0];}
-const hash=location.hash.slice(1);if(names[hash])tab=hash;calculate();
+const hash=location.hash.slice(1);
+if(window.ModuleDesignPage&&['kinematics','dynamics'].includes(hash)){
+ tab='motion';history.replaceState(null,'','#motion');
+}else if(names[hash])tab=hash;
+if(window.ModuleDesignPage)render();else calculate();

@@ -10,6 +10,12 @@ import { combineResults } from '../dist/module-specifications.mjs';
 import { hash } from '../../arm-kinematics-dynamics/scripts/lib/analyze.mjs';
 import { parseRequestText as parseStaticsText } from '../../arm-statics-parametric/scripts/lib/input-text.mjs';
 
+const MODEL_EXAMPLES = new Map([
+  ['/model-examples/worksheet.json', 'seven-axis.json'],
+  ['/model-examples/design-right-arm.json', 'design-right-arm.json'],
+  ['/model-examples/seven-axis-sim.json', 'seven-axis-sim.json'],
+  ['/model-examples/franka-fr3.json', 'franka-fr3-flange-preset.json'],
+]);
 const PORT = Number(process.env.PORT || 8787);
 const WEB_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../dist');
 const SKILL_DIR = process.env.STATICS_SKILL_DIR;
@@ -74,6 +80,16 @@ const server = http.createServer(async (req, res) => {
     // Fixed allowlist; load the same bundled geometry version as the selected workspace Skill.
     if(url.pathname==='/shared/kinematics/serial.mjs'){
       try{const data=await readFile(path.resolve(WORKSPACE_DIR,'../shared/kinematics/serial.mjs'));res.writeHead(200,{'content-type':'text/javascript; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(data);}catch{respond(res,503,{ok:false,error:'SHARED_GEOMETRY_UNAVAILABLE'},requestId);}return;
+    }
+    if (MODEL_EXAMPLES.has(url.pathname)) {
+      try {
+        const data = await readFile(path.resolve(WEB_DIR, '../../examples/models', MODEL_EXAMPLES.get(url.pathname)));
+        res.writeHead(200, {'content-type':'application/json; charset=utf-8','cache-control':'no-store'});
+        res.end(data);
+      } catch {
+        respond(res,404,{ok:false,error:'MODEL_EXAMPLE_UNAVAILABLE'},requestId);
+      }
+      return;
     }
     const motionAssets=new Map([['/motion-worksheet.json','assets/examples/worksheet-motion.json'],['/motion-fr3.json','assets/examples/franka-fr3-motion.json'],['/motion-worksheet-dynamics.json','assets/examples/worksheet-dynamics.json'],['/motion-export.mjs','scripts/lib/export.mjs']]);
     if(motionAssets.has(url.pathname)){

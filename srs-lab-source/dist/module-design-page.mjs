@@ -3,30 +3,33 @@ const esc=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>
 const card=(title,body)=>`<section class="card"><div class="card-head"><h2>${title}</h2></div><div class="card-body">${body}</div></section>`;
 const fixed2=value=>Number(value).toFixed(2);
 const zero=[0,0,0];
-const state={model:null,edits:{},busy:false,message:'正在读取选型表模型…',spec:null,applied:null,loading:null};
+const state={model:null,edits:{},busy:false,message:'正在读取选型表模型…',spec:null,applied:null};
 const toDeg=value=>value*180/Math.PI;
 const toRad=value=>value*Math.PI/180;
 const mm=values=>values.map(value=>value*1000);
 const meters=values=>values.map(value=>value/1000);
 const skillLabels={statics:'静力学校核',workspace:'可达空间',motion:'运动学与动力学'};
+const examples=[
+  ['worksheet','选型表七轴单臂'],
+  ['design-right-arm','双臂设计方案 CAD 右臂'],
+  ['seven-axis-sim','七轴仿真输入'],
+  ['franka-fr3','Franka FR3 法兰质量预设'],
+];
 let hooks;
 
 function loadModel(model){
+  hooks.clear();
   state.model=model;
   state.edits={};
   state.spec=null;
   state.applied=null;
 }
-async function loadExample(){
-  if(!state.loading){
-    state.loading=(async()=>{
-      const response=await fetch('/motion-worksheet-dynamics.json');
-      if(!response.ok)throw Error('选型表模型无法载入');
-      loadModel((await response.json()).design_model);
-      state.message='已载入选型表模型，可编辑后计算。';
-    })().finally(()=>{state.loading=null;});
-  }
-  return state.loading;
+async function loadExample(key=examples[0][0]){
+  const response=await fetch('/model-examples/'+key+'.json');
+  if(!response.ok)throw Error('示例模型无法载入');
+  loadModel(await response.json());
+  state.example=key;
+  state.message='已载入示例模型。';
 }
 const value=(key,original)=>state.edits[key]??(Array.isArray(original)?original.map(x=>Number.isFinite(x)?Number(x.toFixed(6)):x).join(', '):String(original));
 const input=(key,original,label,type='text')=>
@@ -41,7 +44,8 @@ function bodyProperties(joint){
 }
 function specsHTML(){
   const model=state.model,disabled=state.busy?'disabled':'';
-  const options=`<div class="actions-row"><button class="button" id="moduleExample" ${disabled}>载入选型表示例</button>
+  const options=`<div class="actions-row"><label for="moduleExample">示例模型</label>
+    <select id="moduleExample" ${disabled}><option value="">选择示例</option>${examples.map(([key,label])=>`<option value="${key}" ${state.example===key?'selected':''}>${label}</option>`).join('')}</select>
     <label for="moduleFile">导入模型 JSON</label><input id="moduleFile" type="file" accept=".json,application/json" ${disabled}></div>`;
   if(!model)return card('公共模型',options+`<p id="moduleStatus" role="status">${esc(state.message)}</p>`);
   const rows=model.joints.map((joint,i)=>{
@@ -49,6 +53,7 @@ function specsHTML(){
     const range=rotary?joint.limits.map(toDeg):joint.limits?.map(x=>x*1000);
     return `<tr><td>${esc(joint.name)}</td><td>${{revolute:'旋转',prismatic:'移动',fixed:'固定'}[joint.type]}</td>
       <td>${input(key+'origin',mm(joint.origin.xyz_m),joint.name+' 原点 XYZ / mm')}</td>
+      <td>${input(key+'rpy',joint.origin.rpy_rad.map(toDeg),joint.name+' 安装 RPY / °')}</td>
       <td>${joint.axis?input(key+'axis',joint.axis,joint.name+' 轴向 XYZ'):'—'}</td>
       <td>${range?input(key+'range',range,joint.name+' 限位 '+(rotary?'°':'mm')):'—'}</td>
       <td>${input(key+'mass',mass,joint.name+' 运动体质量 / kg','number')}</td>
@@ -57,12 +62,15 @@ function specsHTML(){
   return card('三个 Skill 共用的模型',`${options}<div class="form-grid module-form">
     ${field('name',model.name,'模型名称')}
     ${field('tip',mm(model.tip.xyz_m),'末端 XYZ / mm')}
+    ${field('tipRPY',model.tip.rpy_rad.map(toDeg),'末端 RPY / °')}
+    ${field('baseXYZ',mm(model.base_in_world?.xyz_m??zero),'基座 XYZ / mm')}
+    ${field('gravity',model.gravity_world_m_s2??[0,0,-9.8],'世界重力 XYZ / m/s²')}
     ${field('mount',(model.base_in_world?.rpy_rad??zero).map(toDeg),'安装 RPY / °')}
     ${field('payload',model.payload?.mass_kg??0,'末端负载 / kg','number')}
     ${field('payloadCOM',mm(model.payload?.com_in_tip_m??zero),'负载质心 XYZ / mm')}
     </div>
     <p>向量用逗号分隔。原点相对上一级关节，质心相对该关节运动后的坐标系。旋转限位用度，移动限位用毫米。</p>
-    <div class="table-scroll module-joints"><table><thead><tr><th>关节</th><th>类型</th><th>原点 XYZ / mm</th><th>轴向 XYZ</th><th>限位下界、上界</th><th>运动体质量 / kg</th><th>质心 XYZ / mm</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="table-scroll module-joints"><table><thead><tr><th>关节</th><th>类型</th><th>原点 XYZ / mm</th><th>安装 RPY / °</th><th>轴向 XYZ</th><th>限位下界、上界</th><th>运动体质量 / kg</th><th>质心 XYZ / mm</th></tr></thead><tbody>${rows}</tbody></table></div>
     <details><summary>概念计算假设</summary><p>缺少部件惯量时按半径 40 mm 的均匀实心球估算，负载采用 50 mm。修改某行质量或质心后，该行按一个等效运动体计算。可导入带完整部件属性的模型。</p>
     <p>规格表使用中位往返轨迹，旋转关节默认 1 rad/s、2 rad/s²，移动关节默认 0.2 m/s、0.5 m/s²。固定安装、关节坐标系旋转及部件属性从模型保留。缺省重力为世界系 Z 向下 9.8 m/s²。</p></details>
     <div class="actions-row">
@@ -86,7 +94,12 @@ function buildModel(){
   const model=structuredClone(state.model);
   if(edited('name'))model.name=state.edits.name.trim();
   if(edited('tip'))model.tip.xyz_m=meters(vector('tip',3,'末端 XYZ'));
-  if(edited('mount'))model.base_in_world={xyz_m:model.base_in_world?.xyz_m??zero,rpy_rad:vector('mount',3,'安装 RPY').map(toRad)};
+  if(edited('tipRPY'))model.tip.rpy_rad=vector('tipRPY',3,'末端 RPY').map(toRad);
+  if(edited('gravity'))model.gravity_world_m_s2=vector('gravity',3,'世界重力');
+  if(edited('mount')||edited('baseXYZ'))model.base_in_world={
+    xyz_m:edited('baseXYZ')?meters(vector('baseXYZ',3,'基座 XYZ')):model.base_in_world?.xyz_m??zero,
+    rpy_rad:edited('mount')?vector('mount',3,'安装 RPY').map(toRad):model.base_in_world?.rpy_rad??zero,
+  };
   if(edited('payload')||edited('payloadCOM')){
     model.payload??={mass_kg:0,com_in_tip_m:zero,provenance:{source:'网页输入',assumptions:[]}};
     if(edited('payload'))model.payload.mass_kg=numeric('payload','负载质量');
@@ -96,6 +109,7 @@ function buildModel(){
   for(const [i,joint] of model.joints.entries()){
     const key='j'+i;
     if(edited(key+'origin'))joint.origin.xyz_m=meters(vector(key+'origin',3,joint.name+' 原点'));
+    if(edited(key+'rpy'))joint.origin.rpy_rad=vector(key+'rpy',3,joint.name+' 安装 RPY').map(toRad);
     if(edited(key+'axis'))joint.axis=vector(key+'axis',3,joint.name+' 轴向');
     if(edited(key+'range')){
       const limits=vector(key+'range',2,joint.name+' 限位');
@@ -144,7 +158,7 @@ function csv(spec){
   ]);
   return '\ufeff'+[header,...rows].map(row=>row.map(encode).join(',')).join('\r\n')+'\r\n';
 }
-async function action(mode){
+async function action(mode,load){
   if(state.busy)return;
   state.busy=true;
   state.message=mode==='run'?'正在运行静力学、可达空间及运动学与动力学 Skill…':'正在验证模型…';
@@ -153,7 +167,8 @@ async function action(mode){
   else hooks.render();
   let showSizing=false;
   try{
-    if(!state.model)await loadExample();
+    if(load)await load();
+    else if(!state.model)await loadExample();
     if(mode==='run')state.message='正在运行静力学、可达空间及运动学与动力学 Skill…';
     const response=await fetch('/api/module-specs',{method:'POST',headers:{'content-type':'application/json'},
       body:JSON.stringify({design_model:buildModel(),prepare_only:mode!=='run'})});
@@ -172,38 +187,36 @@ async function action(mode){
   }catch(error){state.message=error.message;}
   finally{state.busy=false;if(showSizing)hooks.go('sizing');else hooks.render();}
 }
-function bind(nextHooks,tab){
+function bind(nextHooks){
   hooks=nextHooks;
-  if(['specs','sizing'].includes(tab)&&!state.model&&!state.loading&&!state.busy&&state.message==='正在读取选型表模型…'){
-    loadExample().catch(error=>{state.message=error.message;}).finally(()=>hooks.render());
+  if(!state.model&&!state.busy&&state.message==='正在读取选型表模型…'){
+    queueMicrotask(()=>{if(!state.model&&!state.busy)action('apply');});
   }
-  if($('moduleExample'))$('moduleExample').onclick=async()=>{
-    state.busy=true;hooks.render();
-    try{await loadExample();}catch(error){state.message=error.message;}
-    finally{state.busy=false;hooks.render();}
+  if($('moduleExample'))$('moduleExample').onchange=event=>{
+    const key=event.target.value;
+    if(examples.some(([id])=>id===key))return action('apply',()=>loadExample(key));
   };
   if($('moduleFile'))$('moduleFile').onchange=async event=>{
     const file=event.target.files[0];
     if(!file)return;
-    state.busy=true;hooks.render();
-    try{
+    return action('apply',async()=>{
       if(file.size>2*1024*1024)throw Error('模型文件不可超过 2 MiB');
       const raw=JSON.parse(await file.text());
       const model=raw.design_model??raw;
       if(model?.schema_name!=='arm-design-model'||!Array.isArray(model.joints)||!model.joints.length||model.joints.length>64||
-        !Array.isArray(model.tip?.xyz_m)||!model.tip.xyz_m.every(Number.isFinite)||
+        !Array.isArray(model.tip?.xyz_m)||!model.tip.xyz_m.every(Number.isFinite)||!Array.isArray(model.tip.rpy_rad)||
         (model.base_in_world&&!Array.isArray(model.base_in_world.rpy_rad))||
-        (model.payload&&!Array.isArray(model.payload.com_in_tip_m))||model.joints.some(joint=>!Array.isArray(joint?.origin?.xyz_m)||
+        (model.payload&&!Array.isArray(model.payload.com_in_tip_m))||model.joints.some(joint=>!Array.isArray(joint?.origin?.xyz_m)||!Array.isArray(joint.origin.rpy_rad)||
         !['revolute','prismatic','fixed'].includes(joint.type)||(joint.type!=='fixed'&&(!Array.isArray(joint.axis)||!Array.isArray(joint.limits)))||
         (joint.components!==undefined&&(!Array.isArray(joint.components)||joint.components.some(c=>!Array.isArray(c?.com_m)))))){
         throw Error('请选择有效的 arm-design-model JSON');
       }
       loadModel(model);
-      state.message='已导入模型，可补齐质量和质心后应用。';
-    }catch(error){state.message=error.message;}
-    finally{state.busy=false;hooks.render();}
+      state.example='';
+    });
   };
   document.querySelectorAll('[data-module-field]').forEach(control=>control.oninput=()=>{
+    if(state.applied)hooks.clear();
     state.edits[control.dataset.moduleField]=control.value;
     state.spec=null;
     state.applied=null;
@@ -231,7 +244,17 @@ function record(skill,result){
     ?skillLabels[skill]+'结果使用了其他模型，请重新应用公共模型。'
     :'等待三个 Skill 完成同模型计算。';
 }
-export const ModuleDesignPage={modelName:()=>state.model?value('name',state.model.name):null,specsHTML,specificationsHTML,bind,record,run:()=>action('run'),save:()=>action('download'),
+function provenanceHTML(){
+  const model=state.model;
+  if(!model)return card('公共模型来源','<p>请在「规格与模型」选择或导入模型。</p>');
+  const provenance=[model.provenance,model.payload?.provenance,...model.joints.flatMap(joint=>(joint.components??[]).map(component=>component.provenance))].filter(Boolean);
+  const sources=[...new Set(provenance.map(item=>item.source))];
+  const assumptions=[...new Set(provenance.flatMap(item=>item.assumptions??[]))];
+  return card('公共模型来源',`<p>${esc(value('name',model.name))}</p>
+    <ul>${[...sources,...assumptions].map(text=>'<li>'+esc(text)+'</li>').join('')}</ul>
+    <button class="button" data-go="specs">打开规格与模型</button>`);
+}
+export const ModuleDesignPage={modelName:()=>state.model?value('name',state.model.name):null,specsHTML,specificationsHTML,provenanceHTML,bind,record,run:()=>action('run'),save:()=>action('download'),
   exportSpecifications:kind=>{
     if(!state.spec)return false;
     if(kind==='csv')hooks.download('arm-module-requirements.csv',csv(state.spec),'text/csv;charset=utf-8');

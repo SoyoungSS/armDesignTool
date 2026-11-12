@@ -9,7 +9,7 @@
     ],
     "rpy_rad": [
       0,
-      0,
+      1.5707963267948966,
       0
     ]
   },
@@ -33,7 +33,8 @@
   "provenance": {
     "source": "arm-statics-parametric/assets/examples/worksheet-minimal.json",
     "assumptions": [
-      "Separate from CAD URDF reference; no inferred inertia."
+      "Separate from CAD URDF reference; no inferred inertia.",
+      "基座安装面为 YZ 平面，法向为世界 +X。基座 Pitch +90°，J1 安装 Pitch -90° 保持原零位下垂几何。J1 正轴改为 +Y 并反向映射原限位，保持相同物理行程。"
     ]
   },
   "name": "worksheet_reference",
@@ -41,7 +42,7 @@
     {
       "axis": [
         0,
-        -1,
+        1,
         0
       ],
       "components": [
@@ -77,14 +78,14 @@
         }
       ],
       "limits": [
-        -1.5707963267948966,
-        3.141592653589793
+        -3.141592653589793,
+        1.5707963267948966
       ],
       "name": "J1",
       "origin": {
         "rpy_rad": [
           0,
-          0,
+          -1.5707963267948966,
           0
         ],
         "xyz_m": [
