@@ -137,6 +137,21 @@
                 "minItems": 2,
                 "maxItems": 2
               },
+              "simulation_limits": {
+                "type": "object",
+                "properties": {
+                  "effort": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "velocity": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  }
+                },
+                "required": [],
+                "additionalProperties": false
+              },
               "components": {
                 "type": "array",
                 "items": {
@@ -273,6 +288,79 @@
             "rpy_rad"
           ],
           "additionalProperties": false
+        },
+        "base_components": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2048
+              },
+              "mass_kg": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1000000000
+              },
+              "com_m": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 3,
+                "maxItems": 3
+              },
+              "inertia_kg_m2": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 3,
+                  "maxItems": 3
+                },
+                "minItems": 3,
+                "maxItems": 3
+              },
+              "provenance": {
+                "type": "object",
+                "properties": {
+                  "source": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2048
+                  },
+                  "assumptions": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 2048
+                    },
+                    "minItems": 0,
+                    "maxItems": 500
+                  }
+                },
+                "required": [
+                  "source",
+                  "assumptions"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "name",
+              "mass_kg",
+              "com_m",
+              "provenance"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 0,
+          "maxItems": 100
         },
         "gravity_world_m_s2": {
           "type": "array",

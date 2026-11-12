@@ -5,6 +5,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { randomUUID, createHash } from 'node:crypto';
+import { exportSimulation, simulationEnvironments } from './simulation-export.mjs';
 import { prepareRequests } from './module-specs.mjs';
 import { combineResults } from '../dist/module-specifications.mjs';
 import { hash } from '../../arm-kinematics-dynamics/scripts/lib/analyze.mjs';
@@ -25,6 +26,7 @@ const MOTION_DIR=process.env.MOTION_SKILL_DIR||path.resolve(WEB_DIR,'../../arm-k
 let motionActive=0;
 let workspaceActive=0;
 let moduleSpecsActive=false;
+let simulationActive=false;
 const MAX_INPUT_BYTES = 2 * 1024 * 1024;
 const TIMEOUT_MS = Number(process.env.STATICS_TIMEOUT_MS || 120000);
 const CORS_ORIGIN = process.env.WEB_ORIGIN || ''; // empty: same origin only
@@ -120,6 +122,40 @@ const server = http.createServer(async (req, res) => {
   }
   if (req.method === 'OPTIONS' && CORS_ORIGIN && ['/api/statics','/api/workspace','/api/motion','/api/module-specs'].includes(url.pathname)) {
     res.writeHead(204, {'access-control-allow-origin': CORS_ORIGIN, 'access-control-allow-methods': 'POST, OPTIONS', 'access-control-allow-headers': 'content-type', 'vary': 'Origin'}); res.end(); return;
+  }
+  if(req.method==='GET'&&url.pathname==='/api/simulation-environments'){
+    const environments=await simulationEnvironments();
+    respond(res,200,{environments},requestId);
+    return;
+  }
+  if(req.method==='POST'&&url.pathname==='/api/simulation-export'){
+    if((req.headers['content-type']||'').split(';')[0].trim()!=='application/json'){
+      respond(res,415,{ok:false,error:'UNSUPPORTED_MEDIA_TYPE'},requestId);return;
+    }
+    if(simulationActive){
+      respond(res,503,{ok:false,error:'已有仿真模型生成任务在运行'},requestId);return;
+    }
+    simulationActive=true;
+    try{
+      let input;
+      try{input=JSON.parse(await readBody(req));}catch{respond(res,400,{ok:false,error:'请输入有效 JSON'},requestId);return;}
+      if(!input||typeof input!=='object'||Array.isArray(input)){
+        respond(res,400,{ok:false,error:'请输入有效的生成请求'},requestId);return;
+      }
+      const result=await exportSimulation(input);
+      if(res.destroyed)return;
+      res.writeHead(200,{
+        'content-type':'application/zip',
+        'content-disposition':`attachment; filename="${result.filename}"`,
+        'content-length':result.archive.length,
+        'cache-control':'no-store',
+        'x-simulation-targets':JSON.stringify(result.targets),
+      });
+      res.end(result.archive);
+    }catch(error){
+      if(!res.destroyed)respond(res,error.code==='INVALID_INPUT'?422:500,{ok:false,error:'SIMULATION_EXPORT_FAILED',detail:error.inputDetail??error.message},requestId);
+    }finally{simulationActive=false;}
+    return;
   }
   if(req.method==='POST'&&url.pathname==='/api/module-specs'){
     if((req.headers['content-type']||'').split(';')[0].trim()!=='application/json'){

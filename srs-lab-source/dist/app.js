@@ -2,7 +2,7 @@
 const $=s=>document.querySelector(s),fmt=(n,d=2)=>Number(n).toFixed(d),esc=s=>String(s).replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
 let config=SRS.defaults('WORKSHEET-7R'),result=null,tab='overview',dirty=false,q=[0,-.5,.15,1.1,.1,-.4,0],showCloud=false,ikResult=null;
 try{const stored=localStorage.getItem('srs-config-v1');if(stored){const saved=JSON.parse(stored);if(!localStorage.getItem('srs-custom-axes-migrated')&&saved.configuration==='SRS-7R-YZX'&&saved.jointAxes==null){const standard=JSON.stringify(saved.limits)===JSON.stringify(SRS.defaults('SRS-7R-YZX').limits);saved.configuration='SRS-7R-XYZ';if(standard)saved.limits=SRS.defaults('SRS-7R-XYZ').limits;}if(saved.configuration!=='WORKSHEET-7R'){localStorage.setItem('srs-config-before-example-cleanup',stored);}else{const c={...SRS.defaults(saved.configuration),...saved};SRS.validate(c);config=c;}}localStorage.setItem('srs-custom-axes-migrated','1');}catch(e){}
-const names={motion:['TRAJECTORY ANALYSIS','轨迹、运动学与动力学','独立 Skill 生成关节轨迹，分析 TCP 状态、奇异性及关节动态载荷。'],overview:['PROJECT OVERVIEW','从设计规格，到关节需求。','以统一的 SRS 模型，串联机械臂正向设计的每一步。'],specs:['DESIGN SPECIFICATIONS','定义你的机械臂。','统一单位、坐标与参数来源，让后续计算始终基于同一个模型。'],kinematics:['KINEMATICS','每个关节，如何决定末端。','正运动学、几何雅可比与位置逆解；使用同一套局部旋转轴定义。'],workspace:['REACHABLE WORKSPACE','探索机械臂的可达边界。','独立 Skill 计算关节点云、目标位姿可达率和三平面投影剖面。'],statics:['STATIC ANALYSIS','看清静止时的关节负担。','负载与运动刚体自重共同作用，计算各关节的重力补偿力矩。'],dynamics:['DYNAMIC ANALYSIS','让设计进入运动。','刚体拉格朗日逆动力学，计算示例运动周期内的力矩需求。'],sizing:['JOINT MODULE REQUIREMENTS','把运动需求，转成规格。','按关节输出电机、减速器与制动保持需求，作为后续供应商匹配的输入。'],skills:['MODULAR DESIGN PIPELINE','每项能力，一个 Skill。','共用确定性计算内核与版本化数据契约，可单独运行，也可顺序编排。'],notes:['MODEL & EVIDENCE','让每项结果，都能追溯。','区分已有参数与工程假设，保留计算公式、模型范围及待补齐项。']};
+const names={simulation:['SIMULATION EXPORT','仿真模型生成','使用当前公共模型生成可下载的仿真文件和检查报告。'],motion:['TRAJECTORY ANALYSIS','轨迹、运动学与动力学','独立 Skill 生成关节轨迹，分析 TCP 状态、奇异性及关节动态载荷。'],overview:['PROJECT OVERVIEW','从设计规格，到关节需求。','以统一的 SRS 模型，串联机械臂正向设计的每一步。'],specs:['DESIGN SPECIFICATIONS','定义你的机械臂。','统一单位、坐标与参数来源，让后续计算始终基于同一个模型。'],kinematics:['KINEMATICS','每个关节，如何决定末端。','正运动学、几何雅可比与位置逆解；使用同一套局部旋转轴定义。'],workspace:['REACHABLE WORKSPACE','探索机械臂的可达边界。','独立 Skill 计算关节点云、目标位姿可达率和三平面投影剖面。'],statics:['STATIC ANALYSIS','看清静止时的关节负担。','负载与运动刚体自重共同作用，计算各关节的重力补偿力矩。'],dynamics:['DYNAMIC ANALYSIS','让设计进入运动。','刚体拉格朗日逆动力学，计算示例运动周期内的力矩需求。'],sizing:['JOINT MODULE REQUIREMENTS','把运动需求，转成规格。','按关节输出电机、减速器与制动保持需求，作为后续供应商匹配的输入。'],skills:['MODULAR DESIGN PIPELINE','每项能力，一个 Skill。','共用确定性计算内核与版本化数据契约，可单独运行，也可顺序编排。'],notes:['MODEL & EVIDENCE','让每项结果，都能追溯。','区分已有参数与工程假设，保留计算公式、模型范围及待补齐项。']};
 const stages=[['构型建模','model'],['运动学','kinematics'],['可达空间','workspace'],['静力学','statics'],['动力学','dynamics'],['模组规格','sizing']];
 function variantInfo(){return SRS.configurations().find(v=>v.id===config.configuration);}
 function axisLabels(){return SRS.model(config).axisLabels;}
@@ -349,11 +349,13 @@ if(tab==='notes'&&!window.ModuleDesignPage)html=card('示例参数的来源与�
 if(window.ModuleDesignPage){
  if(tab==='overview')html=card('当前公共模型',`<div class="card-body"><p>${esc(window.ModuleDesignPage.modelName()??'正在读取模型…')}</p>
  <div class="actions-row"><button class="button primary" data-go="specs">打开规格与模型</button><button class="button" data-go="statics">静力学分析</button><button class="button" data-go="workspace">可达空间</button><button class="button" data-go="motion">轨迹、运动学与动力学</button></div></div>`);
+ if(tab==='simulation')html=window.ModuleDesignPage.simulationHTML();
  if(tab==='skills'){
    const skills=[
      ['statics','arm-statics-parametric','静力学分析','保持载荷及各关节的临界姿态'],
      ['workspace','arm-workspace-parametric','可达空间','FK 点云、位置和姿态可达性、体素灵巧空间'],
      ['motion','arm-kinematics-dynamics','轨迹、运动学与动力学','关节与 TCP 运动、奇异性和刚体动态载荷'],
+     ['simulation','arm-sim-model-generator','仿真模型生成','URDF、ROS1、MuJoCo 和 Isaac Sim 模型'],
    ];
    html=`<div class="skill-grid">${skills.map(([page,id,title,summary])=>card(title,`<div class="card-body"><p><code>${id}</code></p><p>${summary}</p><button class="button" data-go="${page}">打开${title}</button></div>`)).join('')}</div>`;
  }

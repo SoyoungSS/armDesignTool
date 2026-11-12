@@ -62,7 +62,11 @@
               "assumptions": []
             }
           }
-        ]
+        ],
+        "simulation_limits": {
+          "effort": 87,
+          "velocity": 2
+        }
       },
       {
         "id": "J2",
@@ -120,7 +124,11 @@
               "assumptions": []
             }
           }
-        ]
+        ],
+        "simulation_limits": {
+          "effort": 87,
+          "velocity": 1
+        }
       },
       {
         "id": "J3",
@@ -178,7 +186,11 @@
               "assumptions": []
             }
           }
-        ]
+        ],
+        "simulation_limits": {
+          "effort": 87,
+          "velocity": 1.5
+        }
       },
       {
         "id": "J4",
@@ -236,7 +248,11 @@
               "assumptions": []
             }
           }
-        ]
+        ],
+        "simulation_limits": {
+          "effort": 87,
+          "velocity": 1.25
+        }
       },
       {
         "id": "J5",
@@ -294,7 +310,11 @@
               "assumptions": []
             }
           }
-        ]
+        ],
+        "simulation_limits": {
+          "effort": 12,
+          "velocity": 3
+        }
       },
       {
         "id": "J6",
@@ -352,7 +372,11 @@
               "assumptions": []
             }
           }
-        ]
+        ],
+        "simulation_limits": {
+          "effort": 12,
+          "velocity": 1.5
+        }
       },
       {
         "id": "J7",
@@ -410,7 +434,11 @@
               "assumptions": []
             }
           }
-        ]
+        ],
+        "simulation_limits": {
+          "effort": 12,
+          "velocity": 3
+        }
       }
     ],
     "tip": {
@@ -457,12 +485,44 @@
     "provenance": {
       "source": "ArmReference/seven_axis_sim_input.json",
       "assumptions": [
-        "保留七个运动刚体的参考质量、质心和惯量。固定底座不计入关节载荷。",
+        "保留七个运动刚体的参考质量、质心和惯量。固定底座物理参数随模型用于仿真导出，不计入关节载荷。",
         "末端法兰偏移已合入 tip，未额外叠加末端刚体质量。",
         "参考刚体参数未逐机标定。导出 effort 限值不作为连续保持能力。",
         "配套轨迹依次经过初始及两个验收姿态再返回。速度取仿真输入固定导出限值，加速度上限 2 rad/s² 为演示设置。"
       ]
-    }
+    },
+    "base_components": [
+      {
+        "name": "rigid_body",
+        "mass_kg": 0.629769,
+        "com_m": [
+          -0.041018,
+          -0.00014,
+          0.049974
+        ],
+        "inertia_kg_m2": [
+          [
+            0.00315,
+            8.2904e-7,
+            0.00015
+          ],
+          [
+            8.2904e-7,
+            0.00388,
+            0.0000082299
+          ],
+          [
+            0.00015,
+            0.0000082299,
+            0.004285
+          ]
+        ],
+        "provenance": {
+          "source": "ArmReference/seven_axis_sim_input.json#physics.components.base_link",
+          "assumptions": []
+        }
+      }
+    ]
   },
   "motion_limits": {
     "J1": {

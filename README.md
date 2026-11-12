@@ -448,6 +448,24 @@ node arm-kinematics-dynamics/scripts/run.mjs --input arm-kinematics-dynamics/ass
 
 启用「计算动态载荷」可查看关节力矩、接口载荷及 RMS，并导出动态载荷 CSV。示例惯量和运动限制的来源见[示例目录](docs/examples-catalog.md)。
 
+### 网页生成并下载仿真模型
+
+1. 在「规格与模型」选择、导入或编辑公共模型，再打开「仿真模型生成」。生成时读取当前表单的模型参数。
+2. 选择 URDF、ROS1/RViz、MuJoCo MJCF 或 Isaac Sim USD，填写导出模型名。各活动关节的输出和速度上限会从公共模型的 `simulation_limits` 自动带入，只需填写缺项。「七轴仿真输入」示例已包含关节限值及基座和运动刚体的质量属性，可直接以严格模式生成。其他模型可在「规格与模型」的「基座质量属性」中选填 `base_components`。需要对缺项做概念估算时，显式启用几何代理并填写密度。
+3. 点击「生成并下载 ZIP」。压缩包包含成功生成的模型、资源和 `report/manifest.json`。如果只有部分目标成功，网页会显示各目标状态。运行时检查取决于服务端已安装的仿真环境。
+
+网页分析需要 Node.js。仿真导出另需 Python ≥3.10 和 NumPy。在工程根目录配置并启动：
+
+```bash
+python3 -m venv .venv-arm-sim
+.venv-arm-sim/bin/python -m pip install -r arm-sim-model-generator/scripts/requirements.txt
+export ARM_SIM_PYTHON="$PWD/.venv-arm-sim/bin/python"
+export STATICS_SKILL_DIR="$PWD/arm-statics-parametric"
+npm --prefix srs-lab-source start
+```
+
+模型导出页会检查后端可用的 Python 环境，并显示 NumPy、USD 和 MuJoCo 运行检查的可用状态。自动选择优先使用满足所选格式的环境，也可以从下拉框手动选择。要将其他环境加入下拉框，在启动服务前将 `ARM_SIM_PYTHON` 设置为该环境的 Python 可执行文件绝对路径。要在项目虚拟环境启用 USD 和 MuJoCo 运行时检查，使用 `arm-sim-model-generator/scripts/requirements-validation.txt` 安装依赖，再点击「重新检查环境」。详见[验证说明](arm-sim-model-generator/references/validation.md)。
+
 ### 网页生成关节模组规格表
 
 启动网站服务，打开「规格与模型」。从选型表模型开始修改，或导入已有 `arm-design-model` JSON。表单只需模型名、末端与安装、负载、各关节几何和运动体质量及质心。可下载公共模型 JSON 再导入复用。

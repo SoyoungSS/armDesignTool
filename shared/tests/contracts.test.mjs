@@ -99,9 +99,20 @@ test('web installation adapter updates common model without adding legacy root f
   }finally{await rm(temp,{recursive:true,force:true});}
 });
 
-test('public model catalog contains only worksheet and geometry-only FR3',async()=>{
+test('public model catalog preserves geometry-only FR3 and seven-axis simulation limits',async()=>{
   const {readdir}=await import('node:fs/promises');
-  assert.deepEqual((await readdir(new URL('../../examples/models',import.meta.url))).sort(),['franka-fr3.json','seven-axis.json']);
+  assert.deepEqual((await readdir(new URL('../../examples/models',import.meta.url))).sort(),[
+    'design-right-arm.json','franka-fr3-flange-preset.json','franka-fr3.json','seven-axis-sim.json','seven-axis.json',
+  ]);
+  const simulation=await json('examples/models/seven-axis-sim.json');
+  validateDesignModel(simulation);
+  assert.equal(simulation.base_components[0].mass_kg,0.629769);
+  assert.deepEqual(simulation.base_components[0].com_m,[-0.041018,-0.00014,0.049974]);
+  const invalidBase=structuredClone(simulation);
+  invalidBase.base_components[0].inertia_kg_m2[0][1]=1;
+  assert.throws(()=>validateDesignModel(invalidBase),error=>error.path.includes('base_components'));
+  assert.deepEqual(simulation.joints.map(joint=>joint.simulation_limits?.effort),[87,87,87,87,12,12,12]);
+  assert.deepEqual(simulation.joints.map(joint=>joint.simulation_limits?.velocity),[2,1,1.5,1.25,3,1.5,3]);
   const m=await json('examples/models/franka-fr3.json'),audit=validateDesignModel(m);
   assert.equal(audit.capabilities.mass_properties,false);assert.equal(audit.capabilities.inertial_properties,false);
   const r=workspace(request(m,sampling));assert.equal(r.joint_names.length,7);assert.ok(r.joint_names.every(n=>n.startsWith('fr3_joint')));
