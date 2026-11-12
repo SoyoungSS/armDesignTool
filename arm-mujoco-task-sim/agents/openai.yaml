@@ -1,0 +1,4 @@
+interface:
+  display_name: "机械臂任务仿真与载荷导出"
+  short_description: "从生成器模型和任务描述构建场景、执行策略并导出关节与末端载荷数据"
+  default_prompt: "使用 $arm-mujoco-task-sim，根据机械臂模型和任务描述，先确认仿真方式、任务策略与轮次，再搭建场景、实时仿真并导出载荷数据。"
