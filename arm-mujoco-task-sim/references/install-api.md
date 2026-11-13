@@ -52,7 +52,14 @@ python -m mujoco.studio.viewer --model=scene/scene.xml --gfx=web
 python -m mujoco.studio.viewer --model=scene/scene.xml
 ```
 
-这两条不会自动执行自定义任务。完整任务使用 `run_task.py --project <project>`，mode 来自已确认合同；原生窗口在 macOS 改用 `mjpython` 启动该脚本。运行器默认暂停，官方工具条 Play 开始。关闭窗口结束记录；Reset 中止本次记录，再运行命令创建新的 run，不混入时间跳变。File/历史跳转/交互扰动/物理选项改动在记录会话中被锁定，场景检查另开会话。
+这两条只用于查看模型。完整任务使用 `run_task.py --project <project>`，mode 来自已确认合同。原生窗口在 macOS 使用 `mjpython`。运行器默认暂停，官方工具条 Play 开始。Reset 在同一查看器内重建任务控制器、初始物理状态和记录器，生成独立 run，并暂停等待再次播放。Reset 后保留原 run 的记录。历史跳转、交互扰动、外部模型替换和物理选项改动在记录会话中被锁定。
+
+## 任务入口与会话清理
+
+- 为用户提供项目启动入口。Web 默认用 `--port 0 --open-browser`，由官方查看器直接绑定可用端口并打开实际地址，监听限制在本机回环。启动输出实际访问地址和 run 路径。只清理本任务可确认归属的进程。
+- 在官方工具条验证 Play、Pause 和 Reset。可在查看器里加入随物理时间推进的滚动关键曲线，例如关节驱动力矩与 TCP 位置。Reset 清空上一 run 的实时曲线。
+- Web 可用 `File → Quit` 或启动终端的 Ctrl+C 退出，默认在浏览器断开超过 45 秒后自动退出。退出时封存记录并释放监听。用实际场景完成验收后退出测试会话，确认监听释放。交付后由用户自行启动。
+- PNG 曲线需要 Matplotlib。可装入项目环境，或设置 `ARM_SIM_ANALYSIS_PYTHON` 指向已验证的绘图环境。SVG 仅依赖 NumPy。
 
 独立桌面应用也可从官方发布页获取对应系统和架构的包：Windows zip 内 `bin/mujoco_studio.exe`，Linux tar.gz 内 `bin/mujoco_studio`，macOS dmg 的 `MuJoCoStudio.app`。不假定安装独立应用能运行 Python 策略，任务应选对应 Python NativeViewer 链路。
 

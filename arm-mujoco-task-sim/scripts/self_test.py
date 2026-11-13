@@ -56,7 +56,7 @@ def run(output):
     assert result['status']=='passed' and result['steps']==200 and result['samples']==201
     with (s.run/'data/joints.csv').open(encoding='utf-8-sig') as f: rows=list(csv.DictReader(f))
     assert len(rows)==402 and {r['joint'] for r in rows}=={'turn','slide'}
-    assert len(list((s.run/'figures').glob('*.svg')))==25
+    assert len(list((s.run/'figures').glob('*.svg')))==29
     # Independent analytic rotating/sliding TCP: r=1, omega=2, radial speed=.3.
     m=mj.MjModel.from_xml_string(XML);d=mj.MjData(m)
     assert int(m.jnt_qposadr[m.joint('turn').id])==7
@@ -67,7 +67,7 @@ def run(output):
     with (out/'analytic/end_effectors.csv').open(encoding='utf-8-sig') as f: row=next(csv.DictReader(f))
     measured=np.array([float(row['a_'+a+'_m_s2']) for a in 'xyz'])
     assert np.allclose(measured,[-4,1.2,0],atol=1e-10),measured
-    checks=dict(unconfirmed_contract_rejected=True,mixed_joint_types=True,free_body_address_isolation=True,tcp_centripetal_and_coriolis_acceleration=True,complete_two_cycle_export=True,svg_count=25,test_run=str(s.run))
+    checks=dict(unconfirmed_contract_rejected=True,mixed_joint_types=True,free_body_address_isolation=True,tcp_centripetal_and_coriolis_acceleration=True,complete_two_cycle_export=True,svg_count=29,test_run=str(s.run))
     dump(out/'test_results.json',checks);print(json.dumps(checks,indent=2))
 
 
