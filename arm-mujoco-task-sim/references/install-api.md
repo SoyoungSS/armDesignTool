@@ -1,6 +1,22 @@
 # 安装、模式与官方接口
 
-核实日期：2026-11-12。参考版本 MuJoCo 4.0.1；这是版本基线，不是保证所有未来版本/平台都通过测试。执行时查询官方版本兼容性，记录平台/架构、Python、安装命令、实际包版本、渲染后端、探测与启动结果。先问用户选模式，再创建独立环境，不能擅自安装整套大依赖。
+## 版本选择
+
+2026-11-16 核查官方发布说明和 PyPI 文件。按用户选定的模式选择 Python 发行包，并核对系统、CPU 架构和 Python ABI 对应的 wheel。
+
+| MuJoCo 版本 | 官方 WebViewer 任务 | 本地任务及模型检查 |
+|---|---|---|
+| **4.0.1** | Windows x64、Linux 和 macOS 对应 wheel 可用时优先试用。浏览器客户端由 `mujoco-studio-wasm` 提供，随 Studio 安装。 | NativeViewer 或无窗口任务的首选基线。该补丁修复了 Windows WebViewer 分发，以及 4.0.0 中可能引起错误加速度和发散的稀疏求解问题。 |
+| **4.0.0** | Linux/macOS 的 Studio 发布包是可试跑的兼容候选。Windows 的 PyPI 包缺少可用的浏览器客户端。 | 有 NativeViewer 和 core 接口。只在复现旧项目等确有需要时保留，接触与步进结果须重新检查。 |
+| **后续 4.x 正式补丁版** | 以发布说明、匹配 wheel 和实际浏览器试跑为准。 | 以 NativeViewer 或无窗口试跑为准，同时检查任务插件和采样 API。 |
+| **3.x，例如 3.17.0、3.3.7** | 完整任务需 Studio WebViewer 接口。 | 可用经典 `mujoco.viewer` 加载与检查 MJCF。3.17.0 提供当前录制器所用的 `mj_fullM(m,d,M)` 签名，可作为无窗口试跑候选。3.3.7 是上游模型生成器的校验基线，运行此任务录制器前须适配旧签名。经典查看器运行完整任务需另接控制与记录适配器。 |
+
+优先复用团队已经稳定运行、能通过此次场景试跑的正式版本。新环境先筛选支持所需模式、平台和场景功能且含关键修复的版本，再优先选发布较成熟、同平台复现案例较多或被任务依赖采用的正式补丁版。可参考团队环境锁文件、下游项目的依赖约束及同平台的问题记录。现有官方发布说明和包元数据不足以给 4.0.0 与 4.0.1 排出用户数顺序。选择时避开预发布和已撤回版本。试跑成功后锁定项目环境，记录版本与选择依据。
+
+- [4.0.0 发布说明](https://github.com/google-deepmind/mujoco/releases/tag/4.0.0)
+- [4.0.1 发布说明及 Windows WebViewer 修复](https://github.com/google-deepmind/mujoco/releases/tag/4.0.1)
+- [Studio 版本与 wheel](https://pypi.org/project/mujoco-studio/#history) · [Core 版本与 wheel](https://pypi.org/project/mujoco-core/#history) · [3.17.0 版本与 wheel](https://pypi.org/project/mujoco/3.17.0/#files)
+- [3.17.0 惯量矩阵 API](https://github.com/google-deepmind/mujoco/blob/3.17.0/include/mujoco/mujoco.h)
 
 ## 官方资料入口
 
@@ -16,11 +32,12 @@
 
 ## 环境命令
 
-本工具用 Python 3.11、MuJoCo 4.0.1、NumPy 2.x 作为验证基线。使用项目目录下的新环境，不覆盖现有 Python/全局包。Windows PowerShell：
+用项目独立环境。Studio 4.0.0/4.0.1 的包元数据要求 Python ≥3.11，官方 CPython 3.11 和 3.12 wheel 覆盖 Windows x64、Linux x64/ARM64（glibc ≥2.27）、macOS ARM64（11+）。用这两个版本的 NativeViewer 或 Filament 时选 **Python ≥3.12**，其渲染模块会导入 `collections.abc.Buffer`。Windows x64 上已用 Python 3.11 和 4.0.1 跑通 WebViewer 后端与任务插件。以下用 Python 3.12 和 4.0.1 演示，按上表替换版本和包名。 [4.0.0 渲染模块](https://github.com/google-deepmind/mujoco/blob/4.0.0/python/mujoco/rendering/filament/renderer.py) · [4.0.1 渲染模块](https://github.com/google-deepmind/mujoco/blob/4.0.1/python/mujoco/rendering/filament/renderer.py) · [Python Buffer 接口](https://docs.python.org/3/library/collections.abc.html#collections.abc.Buffer)
 
 ```powershell
-py -3.11 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install "mujoco-studio==4.0.1" "numpy>=2,<3"
+py -3.12 -m venv .venv
+$mujocoVersion = '4.0.1'
+.\.venv\Scripts\python.exe -m pip install --only-binary=:all: "mujoco-studio==$mujocoVersion" "numpy>=2,<3"
 .\.venv\Scripts\python.exe -m pip check
 .\.venv\Scripts\python.exe -m pip freeze > environment-lock.txt
 ```
@@ -28,13 +45,18 @@ py -3.11 -m venv .venv
 Linux / macOS：
 
 ```sh
-python3 -m venv .venv
-.venv/bin/python -m pip install 'mujoco-studio==4.0.1' 'numpy>=2,<3'
+python3.12 -m venv .venv
+mujoco_version=4.0.1
+.venv/bin/python -m pip install --only-binary=:all: "mujoco-studio==$mujoco_version" 'numpy>=2,<3'
 .venv/bin/python -m pip check
 .venv/bin/python -m pip freeze > environment-lock.txt
 ```
 
-`mujoco-studio` 安装官方 core 与 wasm 组件；实际依赖以包元数据和 freeze 为准。只做已获准的无窗口计算可装 `mujoco-core==4.0.1`，仅依赖 NumPy；SVG 导出不需 Matplotlib。需要经典渲染器时选择 `mujoco-core[rendering]` 或完整 `mujoco`，不能混用不同版本的 core/studio。视觉感知、优化、PNG、视频的额外依赖按策略单独列出。
+- **WebViewer 或 NativeViewer** 安装所选版本的 `mujoco-studio`，或安装同一版本的完整 `mujoco`。由包解析器安装配套 core 和适用的 WASM 组件。
+- **无窗口** 在 4.x 安装所选版本的 `mujoco-core`。若要试跑 3.17.0 或使用经典查看器检查模型，单独创建环境并安装 `mujoco==3.17.0`。3.17.0 支持 Python ≥3.10。
+- **渲染和分析** 需要经典 Python 渲染器时选 `mujoco-core[rendering]` 或完整 `mujoco`。按需安装相机、视觉、绘图和视频依赖。
+
+用 `pip check` 和冻结清单核对实际安装的 core、Studio 与 WASM 组件是否匹配。跨 3.x / 4.x 或切换主机架构时使用单独环境。
 
 ## 模式对照与启动
 
@@ -52,6 +74,8 @@ python -m mujoco.studio.viewer --model=scene/scene.xml --gfx=web
 python -m mujoco.studio.viewer --model=scene/scene.xml
 ```
 
+使用经典 Python 查看器时运行 `python -m mujoco.viewer --mjcf=scene/scene.xml`。
+
 这两条只用于查看模型。完整任务使用 `run_task.py --project <project>`，mode 来自已确认合同。原生窗口在 macOS 使用 `mjpython`。运行器默认暂停，官方工具条 Play 开始。Reset 在同一查看器内重建任务控制器、初始物理状态和记录器，生成独立 run，并暂停等待再次播放。Reset 后保留原 run 的记录。历史跳转、交互扰动、外部模型替换和物理选项改动在记录会话中被锁定。
 
 ## 任务入口与会话清理
@@ -65,13 +89,13 @@ python -m mujoco.studio.viewer --model=scene/scene.xml
 
 ## 探测与故障
 
-先在选定 Python 中检查 `mujoco.__version__`、`MjModel` 编译、`mj_jacDot` 可调用。Web 模式额外导入 `mujoco.studio.web.headless_ui/state_payload` 并实际打开场景；Native 模式实际创建窗口。不能用 import 成功替代可视化验收。
+先在选定 Python 中检查 `mujoco.__version__`、实际 MJCF 编译、`mj_jacDot` 及 `mj_fullM` 调用，并运行 `scripts/self_test.py` 检查步进和载荷采样。Web 模式可用 `scripts/web_smoke_test.py` 检查服务及任务插件，再在浏览器打开实际场景。Native 模式实际创建窗口。两种界面都检查播放、暂停、Reset 及采样。记录平台、架构、Python、安装命令、解析后的包版本、渲染后端及试跑结果。
 
 4.0.1 官方发布说明修复了 Windows WebViewer 组件分发问题。若使用旧 Anaconda 遇到 MSVC 导入冲突，先诊断 DLL 版本；已确认系统运行库更新时，可仅对当前进程设置 `ARM_SIM_SYSTEM_MSVC=1` 使用工具内预加载，不复制/替换系统 DLL。
 
 Linux 原生直接显示需检查 X11/Wayland 与后端；无显示服务器使用已确认的无窗口/Web 模式，不声称原生窗口已验收。macOS 非阻塞窗口的主线程约束见官方 NativeViewer 文档。网页可视化不等于 Python 相机可渲染，视觉任务须独立测试摄像机观测。没有匹配 wheel 时停止安装并确认兼容 Python/平台或源码构建，不能静默切换版本。
 
-## API 速查（4.0.1）
+## API 速查
 
 | 接口 | 本流程用途 |
 |---|---|
@@ -81,7 +105,7 @@ Linux 原生直接显示需检查 X11/Wayland 与后端；无显示服务器使�
 | `m.jnt_qposadr`、`m.jnt_dofadr` | 显式关节与 qpos/qvel 地址映射 |
 | `mj_jacSite`、`mj_jacDot` | 末端线角速度和加速度 |
 | `mj_contactForce` | 每接触点局部 6D 接触量 |
-| `mj_fullM(m,d,M)` | MuJoCo 4.0 的密集惯量矩阵接口 |
+| `mj_fullM(m,d,M)` | 当前录制器使用的密集惯量矩阵接口，旧版需核对签名 |
 | `mju_mat2Quat` | 旋转矩阵到 wxyz 四元数 |
 | `launch_web.launch` / `launch_native.launch` | 接入同一个任务循环 |
 | `App()`、`SimPlugin`、`StepEvent` | 官方界面和任务步进插件 |

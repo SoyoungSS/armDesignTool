@@ -23,11 +23,11 @@
 
 ## 检查和预览
 
-生成后查看 report/appearance_design.json、normalized_model.json.geometry 和 report.md。验证闭合边、退化面、面朝向、原 FK、尺寸来源、材质绑定、物理属性及接触开启的驱动表现。
+生成后查看运行目录的 `preview.png`、`report/appearance_design.json`、`report/normalized_model.json` 中的 geometry 和 `report/report.md`。验证闭合边、退化面、面朝向、原 FK、尺寸来源、材质绑定、物理属性及接触开启的驱动表现。
 
 ```bash
 python scripts/generate.py generate --input assets/seven-axis-driven.json --output /absolute/output --runtime
-python scripts/preview.py --run /absolute/output/runs/<run_id> --output /absolute/preview.png
+python scripts/preview.py --run /absolute/output/runs/<run_id> --output /absolute/side.png --view side
 ```
 
-预览还支持 `--view iso|front|side` 和 `--pose <验收姿态名>`。预览使用已有可选 Pillow，直接读取生成的 STL；改进了曲面插值着色，不更改 Mesh。预览放在 run 外，避免修改已校验清单。最终在实际目标加载检查；USD 离线成功不代表 Isaac/PhysX 已验收。
+默认 PNG 使用初始姿态和等轴测视角，按基座坐标系渲染生成的 STL 和材质颜色。需要其他视角或姿态时，用 `--view iso|front|side` 和 `--pose initial|geometric_zero|<验收姿态名>`，将补充图片保存到 run 外，避免改动已校验清单。实际目标仍需完成加载和运行检查。

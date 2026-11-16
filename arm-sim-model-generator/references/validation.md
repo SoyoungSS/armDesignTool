@@ -71,7 +71,7 @@ USD 旋转限位/drive target 单位 deg，关节轴用 canonical Z 和两端 lo
 - 独立试用发现并修复方向向量原地归一化污染跨度的问题；补充端点中点、梁长度和质量代理 COM 回归断言。独立复测额外三姿态：URDF/ROS FK 最大元素误差0，MuJoCo 7.61e-13，USD 两端关节框架重建5.64e-8；梁中心偏差不超过9.32e-10m。
 - ROS1 catkin/RViz 滑块、Isaac 官方导入器和 PhysX 实机验收仍 pending；不把离线 USD 或 smoke helper 的存在写成实机通过。
 
-可选离线外观图使用 `python scripts/preview.py --run <run> --output <outside-run>/preview.png`，另需 Pillow。它是静态正交投影，不能代替 RViz/Isaac 运行验收。将预览放在 run 之外避免改变已校验的交付清单。
+运行目录中的 `preview.png` 是初始姿态的离线外观图，随模型纳入文件清单和 SHA256。需要补充视角时运行 `python scripts/preview.py --run <run> --output <outside-run>/side.png --view side`。运行验收仍需在对应的查看器或仿真器中执行。
 
 ## 驱动版本实际验收记录（2026-11-11）
 

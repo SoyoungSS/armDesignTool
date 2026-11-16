@@ -17,6 +17,8 @@ def hashes(run):
 def report(n,manifest,checks,run):
     lines=['# 模型生成报告','',f"模型：{n['model']['name']}；等级：{n['model_grade']}。",'', '所有坐标为右手系，m/kg/rad；RPY=Rz Ry Rx。基座安装只应用于 world→base 一次。几何零位与初始关节值分开保存。','', '| 目标 | 生成/检查状态 | 运行时 |','|---|---|---|']
     for k,v in manifest['targets'].items(): lines.append(f"| {k} | {v['status']} | {v['runtime_validation']} |")
+    if (run/'preview.png').is_file():
+        lines += ['', '[机械臂初始姿态预览](../preview.png)']
     if n.get('appearance_design'):
         lines+=['','## 外形生成','',f"规则：{n['appearance_design']['policy']}。整链比例、肩肘腕模组空间约束、多截面连续外壳、圆肩端盖和分区材质；使用 NumPy 原生生成，没有 CAD 依赖。",'',
                 '外壳模板是概念设计推定；每个实体部件闭合，但同一连杆的壳体/端盖可局部相交，未执行 CAD 布尔融合。碰撞使用中央梁盒体与模组圆柱近似，圆滑过渡不等同于精确接触表面。实体重叠不重复计重。详细规则、尺寸与模板见 appearance_design.json 和下方逐连杆记录。','']
@@ -86,6 +88,8 @@ def generate(input_path,output,targets=None,runtime=False):
         if 'drive_design' in n: write_json(run/'report'/'drive_design.json',n['drive_design'])
         if 'appearance_design' in n: write_json(run/'report'/'appearance_design.json',n['appearance_design'])
         if 'joint_layout' in n: write_json(run/'report'/'joint_layout.json',n['joint_layout'])
+        from .preview import render_model
+        render_model(n, run/'meshes', run/'preview.png')
         report(n,manifest,checks,run); manifest['files']=hashes(run); write_json(run/'report'/'manifest.json',manifest)
         attempt.update(status=manifest['status'],targets=manifest['targets']); write_json(output/'latest_attempt.json',attempt)
         return attempt

@@ -1,6 +1,6 @@
 ---
 name: arm-sim-model-generator
-description: 根据机械臂运动学与初步设计参数自动生成逐连杆视觉/碰撞 Mesh、独立 URDF、ROS1 RViz 描述包、MuJoCo MJCF 和 Isaac Sim USD。支持固定基座单条串联 revolute/prismatic/fixed 刚体链及静力学/工作空间输入适配；用于概念建模与仿真模型交付，不处理闭链、柔性或网页可视化。
+description: 根据机械臂运动学与初步设计参数自动生成逐连杆视觉/碰撞 Mesh、机械臂预览 PNG、独立 URDF、ROS1 RViz 描述包、MuJoCo MJCF 和 Isaac Sim USD。支持固定基座单条串联 revolute/prismatic/fixed 刚体链及静力学/工作空间输入适配；用于概念建模与仿真模型交付，不处理闭链、柔性或网页可视化。
 ---
 
 # 机械臂仿真模型生成
@@ -9,7 +9,7 @@ description: 根据机械臂运动学与初步设计参数自动生成逐连杆�
 
 ## 执行
 
-Python ≥3.10；核心只依赖 NumPy，不依赖 ROS、MuJoCo、Isaac。安装 `scripts/requirements.txt`；可选运行检查安装 `scripts/requirements-validation.txt`。在本 Skill 目录运行：
+Python ≥3.10。安装 `scripts/requirements.txt` 中的 NumPy 和 Pillow，分别用于几何计算和离线 PNG 渲染。可选运行检查安装 `scripts/requirements-validation.txt`。在本 Skill 目录运行：
 
 ```powershell
 python scripts/generate.py generate --input assets/two-revolute.json --output /absolute/output --targets urdf
@@ -28,7 +28,7 @@ python -m unittest discover -s scripts/tests -v
 
 生成仿真目标时阅读 [驱动参数规则](references/drives.md)。活动关节默认 `auto` 位置伺服；脚本按完整质量属性、力/矩与速度上限计算缺失增益，禁止每次凭经验另选一组参数。用户显式增益优先；`passive` 明确关闭该轴驱动。缺物理或驱动能力时报告缺项，不编造额定值。
 
-每次生成写入新的 `output/runs/<run_id>/`；`latest_attempt.json` 指向本次结果，包括失败结果。必须检查退出码及逐目标状态，不能把旧运行当本次成功。交付时链接实际 run 目录中的模型与报告。`validate` 可接收 output 或具体 run 目录；它核对文件清单和哈希，重新加载资源及位姿。
+每次生成写入新的 `output/runs/<run_id>/`。`latest_attempt.json` 指向本次结果，包括失败结果。检查退出码及逐目标状态。交付时链接同一次运行的模型、报告和 `preview.png`。PNG 从实际视觉 Mesh 按初始关节姿态离线渲染，采用等轴测视角，并随模型写入文件清单和 SHA256。`validate` 可接收 output 或具体 run 目录，核对清单与哈希并重新加载资源及位姿。
 
 ## 必须保持的约定
 
