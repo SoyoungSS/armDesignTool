@@ -42,7 +42,14 @@ def inspect(path):
         if digest != expected: problems.append('Hash mismatch: '+rel)
         else: verified += 1
     if not m.get('files'): problems.append('No integrity file inventory')
+    validation = p/'report/validation.json'
+    review = {'status': 'not_evaluated'}
+    if validation.is_file():
+        review = json.loads(validation.read_text(encoding='utf-8')).get('collision_review', review)
+    if review.get('status') == 'failed':
+        problems.append('Confirmed model interference. Inspect collision_review in validation.json.')
     return dict(run=str(p), entry=str(entry), run_id=m.get('run_id'), mujoco=target,
+                collision_review=review,
                 model_grade=m.get('model_grade'), verified_files=verified, problems=problems,
                 ready_for_compile=not problems,
                 reports={n: str(p/'report'/n) for n in ['normalized_model.json', 'drive_design.json', 'validation.json', 'input_snapshot.json'] if (p/'report'/n).is_file()})

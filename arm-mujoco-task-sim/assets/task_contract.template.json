@@ -1,5 +1,8 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
+  "collision_policy": null,
+  "collision_geometry": {},
+  "collision_path_mode": null,
   "model_input": null,
   "task_description": null,
   "scene": "scene/scene.xml",

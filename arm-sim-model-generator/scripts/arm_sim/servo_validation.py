@@ -8,7 +8,12 @@ def check_dynamics(n,m,mujoco):
     for q in sample_poses(n):
         mujoco.mj_resetData(m,d)
         for name,value in q.items(): d.qpos[m.joint(name).qposadr[0]]=value
-        mujoco.mj_forward(m,d); mujoco.mj_fullM(m,M,d.qM)
+        mujoco.mj_forward(m,d)
+        try:
+            mujoco.mj_fullM(m,d,M)
+        except TypeError:
+            # MuJoCo 3.3.x takes the destination and the packed array explicitly.
+            mujoco.mj_fullM(m,M,d.qM)
         expected,gravity=mass_matrix_and_gravity(n,q)
         np.testing.assert_allclose(M,expected,rtol=2e-7,atol=1e-9)
         np.testing.assert_allclose(d.qfrc_bias,gravity,rtol=2e-7,atol=1e-8); count+=1

@@ -215,6 +215,8 @@ def analyze(run, png=None):
             'img{display:block;width:100%;height:auto}details{margin:.55rem 0}summary{cursor:pointer}'
             '.alert{color:#a32222;font-weight:bold}a{color:#1457a3}</style><h1>仿真曲线与数据</h1>'
             f'<p>{escape(c["task_description"])} · {escape(result["status"])}</p>'
+            f'<p>碰撞规则验收 · {escape(result.get("collision", {}).get("status", "not_evaluated"))}　'
+            f'已检查轨迹段 · {result.get("collision_path", {}).get("segments_checked", 0)}</p>'
             '<p><a href="result.json">逐轮结果</a> · <a href="statistics.csv">峰值与 RMS</a> · '
             '<a href="limit_exceedances.csv">越限明细</a> · <a href="../data/joints.csv">关节 CSV</a> · '
             '<a href="../data/end_effectors.csv">末端 CSV</a></p>'

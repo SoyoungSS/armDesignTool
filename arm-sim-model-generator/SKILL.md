@@ -5,48 +5,19 @@ description: 根据机械臂运动学与初步设计参数自动生成逐连杆�
 
 # 机械臂仿真模型生成
 
-先读 [输入契约](references/input-contract.md)。从设计表或文字提取结构化参数，缺少不可推导的轴、安装变换、类型、连接关系时列出字段，不能套用样例构型。现有两个机械臂 Skill 的接口保持独立；此处适配器只读取它们的输入，不修改其源码。
+1. **建立输入。** 按 [输入契约](references/input-contract.md) 将用户数据填入 [JSONC 模板](assets/worksheet.jsonc)。先核对轴、安装变换、类型和连接关系。标准输入和现有静力学/工作空间适配器均从同一套 SI 模型生成几何与导出文件。需要参考成熟构型、关节方向、惯量参考系或碰撞代理时，查 [经典机械臂参考](references/reference-arms.md)，保留型号和来源。新臂的额定力矩、几何尺寸、质量和惯量使用本设计的依据。
+2. **建立几何与驱动。** 默认使用 rounded-shell-v2 生成外壳和独立碰撞体。按 [外形规则](references/appearance.md) 调尺寸，共点旋转轴另读 [模组布置](references/joint-layout.md)。保留关节 origin、局部轴和质量归属。MuJoCo/USD 共用 [驱动参数规则](references/drives.md)，按已知能力和质量属性补全增益，尊重用户给定值。概念模式使用的估算须在输入与报告中注明。
+3. **生成并复核。** Python ≥3.10，安装 `scripts/requirements.txt`。在本 skill 目录运行下面命令。首条是可直接换输出路径的正例。将输入替换为实际设计并按需选择目标；有 MuJoCo/OpenUSD 时可按 `scripts/requirements-validation.txt` 准备运行环境并追加 `--runtime`。
 
-## 执行
-
-Python ≥3.10。安装 `scripts/requirements.txt` 中的 NumPy 和 Pillow，分别用于几何计算和离线 PNG 渲染。可选运行检查安装 `scripts/requirements-validation.txt`。在本 Skill 目录运行：
-
-```powershell
-python scripts/generate.py generate --input assets/two-revolute.json --output /absolute/output --targets urdf
-python scripts/generate.py generate --input assets/skew-prismatic.json --output /absolute/output --runtime
-python scripts/generate.py validate --output /absolute/output --runtime
-python -m unittest discover -s scripts/tests -v
+```sh
+python scripts/generate.py generate --input assets/two-revolute-driven.json --output output --targets urdf mujoco
+python scripts/generate.py validate --output output
+python -m unittest discover -s scripts/tests -p test_collision_review.py -v
 ```
 
-可填写 [JSONC 模板](assets/worksheet.jsonc)，或用纯运动学 [双旋转轴](assets/two-revolute.json) 与含斜轴、移动轴、固定末端、偏心质心的 [完整样例](assets/skew-prismatic.json)。`--targets urdf ros1 mujoco isaac` 覆盖输入选择；省略则读取 `export.targets`。
+4. **判断结果。** 读取退出码和 `output/latest_attempt.json` 指向的实际 run。查 `report/manifest.json` 的逐目标状态，再查 `report/validation.json` 的 `collision_review`、`module_packing` 和运行时检查。按 [碰撞判读和修复](references/collision-review.md) 定位零件对、姿态和允许配合。有碰撞失败时回到相应的结构或输入参数；遇到待复核候选时说明范围并检查证据。深度、载荷或误差均须保留单位和来源。
+5. **交付。** 链接同一 run 的模型、初始姿态 `preview.png`、归一化输入、驱动来源及报告。零位和初始姿态分别保存；MuJoCo 通过交付目录的 `mujoco/run.py` 恢复 keyframe，USD 搬移时保留零位层和配置。按 [各目标验证](references/validation.md) 列出已检查和仍待目标环境验证的项目。下游任务从 run 接入，碰撞体名称和配合范围见 `collision_review.parts`、`mating_pairs`。
 
-[七轴驱动样例](assets/seven-axis-driven.json) 提供整链质量属性、力矩/速度上限、初始和验收姿态，用于检查耦合驱动和重力静差；不代表特定硬件已标定的控制器。
+[斜轴滑台](assets/skew-prismatic.json) 和 [七轴驱动](assets/seven-axis-driven.json) 保留原始设计，可用于复现“驱动或格式检查通过，零件级碰撞验收失败”。两者的已知干涉见 [碰撞样例](references/collision-review.md)。
 
-默认采用 `rounded-shell-v2` 外形规则：整机比例 → 连续外壳 → 关节模组布置 → 曲面和材质 → 少量端盖/法兰细节。全部由现有 NumPy 后端生成。需要调整外观时读 [网格与外形规则](references/appearance.md)，优先填写已有 dimensions；不改变关节安装点迎合造型。
-
-相邻旋转关节共点时必须读取 [关节模组布置规则](references/joint-layout.md)：关节轴线交点不等于电机中心。自动识别自转—摆动/同轴组合，沿轴退让固定模组，输出套筒归运动连杆；禁止移动关节 origin 来消除电机重叠。检查 joint_layout.json 和独立于碰撞过滤的 module_packing；无法自动布置的组合保留 needs_review，不得声称机械装配通过。
-
-生成仿真目标时阅读 [驱动参数规则](references/drives.md)。活动关节默认 `auto` 位置伺服；脚本按完整质量属性、力/矩与速度上限计算缺失增益，禁止每次凭经验另选一组参数。用户显式增益优先；`passive` 明确关闭该轴驱动。缺物理或驱动能力时报告缺项，不编造额定值。
-
-每次生成写入新的 `output/runs/<run_id>/`。`latest_attempt.json` 指向本次结果，包括失败结果。检查退出码及逐目标状态。交付时链接同一次运行的模型、报告和 `preview.png`。PNG 从实际视觉 Mesh 按初始关节姿态离线渲染，采用等轴测视角，并随模型写入文件清单和 SHA256。`validate` 可接收 output 或具体 run 目录，核对清单与哈希并重新加载资源及位姿。
-
-## 必须保持的约定
-
-- 顺序：读取校验 → SI 归一化 → 零位装配 → 逐连杆网格 → 质量属性 → 导出 → 重加载验证。所有导出复用同一模型和网格，禁止分别重建运动学。
-- 右手系，RPY=`Rz Ry Rx`；关节运动在 origin 后，轴在局部关节系。世界安装只应用一次；初始关节值不写回几何零位。姿态使用关节名称。
-- Mesh 自动生成，在连杆局部系使用 m。颜色由格式材质表达。碰撞体是单独派生的盒体/圆柱；封闭 STL 也随包提供。不得把装饰件、重叠体积计入密度估算。
-- 质量、COM 和 COM 处惯量优先采用给定值。固定端归上游、运动端归下游。随动负载必须确认独立质量或指向已计入部件；不自动重复相加。
-- 严格模式缺质量/惯量时仍可交付可视化模型，并逐连杆报告缺项；MJCF 动力学交付待补齐。缺 URDF effort/velocity 则该目标失败。概念模式只有显式配置占位值/估算方法时才使用，并逐项记录。
-- 干涉结果是保守候选及有限姿态筛查，不是全域无碰撞证明。模型不得声称 CAD 精度、控制器已调好或硬件安全。
-
-## 目标与验证
-
-各目录搬移时整体携带资源；独立 URDF 目录只能有 URDF 和 meshes。ROS1 默认 Noetic，使用 `package://`、catkin 包、`display.launch`、RViz RobotModel 和关节滑块；`gui:=false` 切换无 GUI 发布器。
-
-MuJoCo 与 USD 共用 `serial-pd-v1` 计算的 SI 驱动参数，均写入力/矩上限。MuJoCo 工具为 site，初始 q/ctrl/滤波状态为 keyframe；使用输出目录的 `mujoco/run.py` 启动，避免零状态突跳。USD `robot.usd` 在初始姿态，引用 `robot_zero.usd` 保存零位和关节框架；搬移时携带两层及 runtime_config.json。角驱动参数转换为 USD 的每度单位。
-
-Isaac 环境可用时优先按目标版本运行官方导入器，保留 fixed joints 与名称、核对安装及工具帧；否则调用内置 OpenUSD 离线导出。有 USD 不能视为 Isaac 运行通过。版本差异、正式导入与实机步骤见 [导出与验证](references/validation.md)。
-
-读取 `report/manifest.json`、`drive_design.json` 和 `validation.json`，按目标分别说明生成、静态检查、运行时检查、待验证或失败。检查接触开启时的保持/小幅运动尾段振幅、速度、饱和及重力静差；测试失败不能用关闭碰撞或增加虚假惯量掩盖。有限姿态通过不能称为全域无抖动。ROS/RViz 还需构建和滑块检查。最后交付模型、归一化输入、质量/尺寸及驱动来源、验证结果以及待执行步骤。
-
-复用脚本：把 `scripts/` 加入 Python 路径，导入 `arm_sim.pipeline.generate(input_path, output, targets=None, runtime=False)`、`validate(output, runtime=False)`；底层 `normalize`、`build_geometry`、`mass_properties` 可分别调用。网页版不属本期。
+可在 `scripts/` 导入 `arm_sim.pipeline.generate(input_path, output, targets=None, runtime=False)`、`validate(output, runtime=False)`。URDF/ROS1 可在缺少动力学属性时交付可视模型；MJCF 动力学等待质量和惯量补齐。世界安装仅应用一次，旋转使用 `Rz Ry Rx`，关节轴在局部关节系。负载以独立质量或已计入部件标注。

@@ -1,0 +1,673 @@
+<?xml version='1.0' encoding='utf8'?>
+<robot name="franka_fr3_reference">
+  <!-- Parameter-derived franka_fr3 reference. Geometry and drive settings generated for this skill; see references/reference-arms.md and UPSTREAM-LICENSE.txt. -->
+  <link name="world" />
+  <link name="fr3_link0">
+    <inertial>
+      <origin xyz="-0.041018 -0.00014 0.049974" rpy="0 -0 0" />
+      <mass value="0.629769" />
+      <inertia ixx="0.00315" iyy="0.00388" izz="0.004285" ixy="8.2904e-07" ixz="0.00015" iyz="8.2299e-06" />
+    </inertial>
+    <visual name="fr3_link0_base_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link0_base_visual.stl" />
+      </geometry>
+      <material name="fr3_link0_base">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+    <collision name="fr3_link0_base_collision">
+      <origin xyz="0 0 -0.041" rpy="0 -0 0" />
+      <geometry>
+        <cylinder radius="0.09112500000000001" length="0.082" />
+      </geometry>
+    </collision>
+    <visual name="fr3_link0_mounting_rim_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link0_mounting_rim_visual.stl" />
+      </geometry>
+      <material name="fr3_link0_mounting_rim">
+        <color rgba="0.55 0.58 0.61 1" />
+      </material>
+    </visual>
+    <visual name="fr3_link0_beam_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link0_beam_visual.stl" />
+      </geometry>
+      <material name="fr3_link0_beam">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="fr3_link0_beam_collision">
+      <origin xyz="0 0 0.075" rpy="0 -0 -1.57079632679" />
+      <geometry>
+        <box size="0.1 0.082 0.06" />
+      </geometry>
+    </collision>
+    <visual name="fr3_link0_fr3_joint1_stator_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link0_fr3_joint1_stator_visual.stl" />
+      </geometry>
+      <material name="fr3_link0_fr3_joint1_stator">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="fr3_link0_fr3_joint1_stator_collision">
+      <origin xyz="0 0 0.193" rpy="0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.0675" length="0.082" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="fr3_link1">
+    <inertial>
+      <origin xyz="0.003875 0.002081 -0.04762" rpy="0 -0 0" />
+      <mass value="4.970684" />
+      <inertia ixx="0.70337" iyy="0.70661" izz="0.009117" ixy="-0.000139" ixz="0.006772" iyz="0.019169" />
+    </inertial>
+    <visual name="fr3_link1_fr3_joint2_stator_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link1_fr3_joint2_stator_visual.stl" />
+      </geometry>
+      <material name="fr3_link1_fr3_joint2_stator">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="fr3_link1_fr3_joint2_stator_collision">
+      <origin xyz="0 0.0823928310989 9.14744181501e-18" rpy="0 -1.57079632679 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.06617702559971472" length="0.08039283109891268" />
+      </geometry>
+    </collision>
+    <visual name="fr3_link1_fr3_joint1_output_shaft_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link1_fr3_joint1_output_shaft_visual.stl" />
+      </geometry>
+      <material name="fr3_link1_fr3_joint1_output_shaft">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="fr3_link1_fr3_joint1_output_shaft_collision">
+      <origin xyz="-0 -0 -0.107051601016" rpy="-0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.031725" length="0.1478967979681341" />
+      </geometry>
+    </collision>
+    <visual name="fr3_link1_fr3_joint1_output_fairing_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link1_fr3_joint1_output_fairing_visual.stl" />
+      </geometry>
+      <material name="fr3_link1_fr3_joint1_output_fairing">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="fr3_link1_fr3_joint1_output_fairing_collision">
+      <origin xyz="-0 -0 -0.0799340871599" rpy="-0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.0567" length="0.03013182568027102" />
+      </geometry>
+    </collision>
+    <visual name="fr3_link1_fr3_joint1_rotor_ring_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link1_fr3_joint1_rotor_ring_visual.stl" />
+      </geometry>
+      <material name="fr3_link1_fr3_joint1_rotor_ring">
+        <color rgba="0.55 0.58 0.61 1" />
+      </material>
+    </visual>
+    <collision name="fr3_link1_fr3_joint1_rotor_ring_collision">
+      <origin xyz="0 0 -0.096" rpy="-0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.0648" length="0.002" />
+      </geometry>
+    </collision>
+    <visual name="fr3_link1_fr3_joint2_support_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link1_fr3_joint2_support_visual.stl" />
+      </geometry>
+      <material name="fr3_link1_fr3_joint2_support">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="fr3_link1_fr3_joint2_support_collision">
+      <origin xyz="0 0.0411964155495 -0.075162903503" rpy="1.57079632679 -0 3.14159265359" />
+      <geometry>
+        <box size="0.0145589456319 0.0145589456319 0.0823928310989" />
+      </geometry>
+    </collision>
+    <visual name="fr3_link1_fr3_joint2_stator_lug_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link1_fr3_joint2_stator_lug_visual.stl" />
+      </geometry>
+      <material name="fr3_link1_fr3_joint2_stator_lug">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="fr3_link1_fr3_joint2_stator_lug_collision">
+      <origin xyz="0 0.0823928310989 -0.0623978363514" rpy="3.14159265359 -0 3.14159265359" />
+      <geometry>
+        <box size="0.0145589456319 0.0145589456319 0.0255301343032" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="fr3_link2">
+    <inertial>
+      <origin xyz="-0.003141 -0.02872 0.003495" rpy="0 -0 0" />
+      <mass value="0.646926" />
+      <inertia ixx="0.007962" iyy="0.02811" izz="0.025995" ixy="-0.003925" ixz="0.010254" iyz="0.000704" />
+    </inertial>
+    <visual name="fr3_link2_beam_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link2_beam_visual.stl" />
+      </geometry>
+      <material name="fr3_link2_beam">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="fr3_link2_beam_collision">
+      <origin xyz="0 -0.158 0" rpy="1.57079632679 0 0" />
+      <geometry>
+        <box size="0.0980400379255 0.0803928310989 0.170410543681" />
+      </geometry>
+    </collision>
+    <visual name="fr3_link2_fr3_joint2_output_shaft_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link2_fr3_joint2_output_shaft_visual.stl" />
+      </geometry>
+      <material name="fr3_link2_fr3_joint2_output_shaft">
+        <color rgba="0.55 0.58 0.61 1" />
+      </material>
+    </visual>
+    <collision name="fr3_link2_fr3_joint2_output_shaft_collision">
+      <origin xyz="0 0 0.0612946233242" rpy="-0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.03110320203186592" length="0.12258924664836902" />
+      </geometry>
+    </collision>
+    <visual name="fr3_link2_fr3_joint2_output_plate_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link2_fr3_joint2_output_plate_visual.stl" />
+      </geometry>
+      <material name="fr3_link2_fr3_joint2_output_plate">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="fr3_link2_fr3_joint2_output_plate_collision">
+      <origin xyz="0 0 0.0411964155495" rpy="-0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.06286817431972898" length="0.002" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="fr3_link3">
+    <inertial>
+      <origin xyz="0.027518 0.039252 -0.066502" rpy="0 -0 0" />
+      <mass value="3.228604" />
+      <inertia ixx="0.037242" iyy="0.036155" izz="0.01083" ixy="-0.004761" ixz="-0.011396" iyz="-0.012805" />
+    </inertial>
+    <visual name="fr3_link3_housing_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link3_housing_visual.stl" />
+      </geometry>
+      <material name="fr3_link3_housing">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="fr3_link3_housing_collision">
+      <origin xyz="0 0 0" rpy="-0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.037125000000000005" length="0.05346000000000001" />
+      </geometry>
+    </collision>
+    <visual name="fr3_link3_cap_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link3_cap_visual.stl" />
+      </geometry>
+      <material name="fr3_link3_cap">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+    <visual name="fr3_link3_cap_hub_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link3_cap_hub_visual.stl" />
+      </geometry>
+      <material name="fr3_link3_cap_hub">
+        <color rgba="0.55 0.58 0.61 1" />
+      </material>
+    </visual>
+    <visual name="fr3_link3_rear_cap_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link3_rear_cap_visual.stl" />
+      </geometry>
+      <material name="fr3_link3_rear_cap">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+    <visual name="fr3_link3_rear_cap_hub_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link3_rear_cap_hub_visual.stl" />
+      </geometry>
+      <material name="fr3_link3_rear_cap_hub">
+        <color rgba="0.55 0.58 0.61 1" />
+      </material>
+    </visual>
+    <visual name="fr3_link3_beam_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link3_beam_visual.stl" />
+      </geometry>
+      <material name="fr3_link3_beam">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="fr3_link3_beam_collision">
+      <origin xyz="0.04125 0 0" rpy="1.57079632679 -0 1.57079632679" />
+      <geometry>
+        <box size="0.0909914077479 0.0746129543532 0.033" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="fr3_link4">
+    <inertial>
+      <origin xyz="-0.05317 0.104419 0.027454" rpy="0 -0 0" />
+      <mass value="3.587895" />
+      <inertia ixx="0.025853" iyy="0.019552" izz="0.028323" ixy="0.007796" ixz="-0.001332" iyz="0.008641" />
+    </inertial>
+    <visual name="fr3_link4_housing_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link4_housing_visual.stl" />
+      </geometry>
+      <material name="fr3_link4_housing">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="fr3_link4_housing_collision">
+      <origin xyz="0 0 0" rpy="-0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.037125000000000005" length="0.05346000000000001" />
+      </geometry>
+    </collision>
+    <visual name="fr3_link4_cap_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link4_cap_visual.stl" />
+      </geometry>
+      <material name="fr3_link4_cap">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+    <visual name="fr3_link4_cap_hub_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link4_cap_hub_visual.stl" />
+      </geometry>
+      <material name="fr3_link4_cap_hub">
+        <color rgba="0.55 0.58 0.61 1" />
+      </material>
+    </visual>
+    <visual name="fr3_link4_rear_cap_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link4_rear_cap_visual.stl" />
+      </geometry>
+      <material name="fr3_link4_rear_cap">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+    <visual name="fr3_link4_rear_cap_hub_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link4_rear_cap_hub_visual.stl" />
+      </geometry>
+      <material name="fr3_link4_rear_cap_hub">
+        <color rgba="0.55 0.58 0.61 1" />
+      </material>
+    </visual>
+    <visual name="fr3_link4_beam_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link4_beam_visual.stl" />
+      </geometry>
+      <material name="fr3_link4_beam">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="fr3_link4_beam_collision">
+      <origin xyz="-0.04125 0.126744 -7.24487136949e-18" rpy="1.57079632679 -0 -2.82694548592" />
+      <geometry>
+        <box size="0.0839427775702 0.0688330776076 0.211140954871" />
+      </geometry>
+    </collision>
+    <visual name="fr3_link4_fr3_joint5_stator_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link4_fr3_joint5_stator_visual.stl" />
+      </geometry>
+      <material name="fr3_link4_fr3_joint5_stator">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="fr3_link4_fr3_joint5_stator_collision">
+      <origin xyz="-0.0825 0.284 -1.11022302463e-17" rpy="0 -1.57079632679 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.039599999999999996" length="0.05702399999999999" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="fr3_link5">
+    <inertial>
+      <origin xyz="-0.011953 0.041065 -0.038437" rpy="0 -0 0" />
+      <mass value="1.225946" />
+      <inertia ixx="0.035549" iyy="0.029474" izz="0.008627" ixy="-0.002117" ixz="-0.004037" iyz="0.000229" />
+    </inertial>
+    <visual name="fr3_link5_fr3_joint6_stator_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link5_fr3_joint6_stator_visual.stl" />
+      </geometry>
+      <material name="fr3_link5_fr3_joint6_stator">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="fr3_link5_fr3_joint6_stator_collision">
+      <origin xyz="0 -0.0591486620581 6.56682064927e-18" rpy="0 1.57079632679 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.039599999999999996" length="0.05702399999999999" />
+      </geometry>
+    </collision>
+    <visual name="fr3_link5_fr3_joint5_output_shaft_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link5_fr3_joint5_output_shaft_visual.stl" />
+      </geometry>
+      <material name="fr3_link5_fr3_joint5_output_shaft">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="fr3_link5_fr3_joint5_output_shaft_collision">
+      <origin xyz="-0 -0 -0.074562" rpy="-0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.018611999999999997" length="0.10790000000000001" />
+      </geometry>
+    </collision>
+    <visual name="fr3_link5_fr3_joint5_output_fairing_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link5_fr3_joint5_output_fairing_visual.stl" />
+      </geometry>
+      <material name="fr3_link5_fr3_joint5_output_fairing">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="fr3_link5_fr3_joint5_output_fairing_collision">
+      <origin xyz="-0 -0 -0.053554" rpy="-0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.033263999999999995" length="0.02786800000000001" />
+      </geometry>
+    </collision>
+    <visual name="fr3_link5_fr3_joint5_rotor_ring_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link5_fr3_joint5_rotor_ring_visual.stl" />
+      </geometry>
+      <material name="fr3_link5_fr3_joint5_rotor_ring">
+        <color rgba="0.55 0.58 0.61 1" />
+      </material>
+    </visual>
+    <collision name="fr3_link5_fr3_joint5_rotor_ring_collision">
+      <origin xyz="0 0 -0.068488" rpy="-0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.038015999999999994" length="0.002" />
+      </geometry>
+    </collision>
+    <visual name="fr3_link5_fr3_joint6_support_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link5_fr3_joint6_support_visual.stl" />
+      </geometry>
+      <material name="fr3_link5_fr3_joint6_support">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="fr3_link5_fr3_joint6_support_collision">
+      <origin xyz="0 -0.0295743310291 -0.0457803142777" rpy="1.57079632679 0 0" />
+      <geometry>
+        <box size="0.008712 0.008712 0.0591486620581" />
+      </geometry>
+    </collision>
+    <visual name="fr3_link5_fr3_joint6_stator_lug_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link5_fr3_joint6_stator_lug_visual.stl" />
+      </geometry>
+      <material name="fr3_link5_fr3_joint6_stator_lug">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="fr3_link5_fr3_joint6_stator_lug_collision">
+      <origin xyz="0 -0.0591486620581 -0.0377401571388" rpy="3.14159265359 -0 0" />
+      <geometry>
+        <box size="0.008712 0.008712 0.0160803142777" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="fr3_link6">
+    <inertial>
+      <origin xyz="0.060149 -0.014117 -0.010517" rpy="0 -0 0" />
+      <mass value="1.666555" />
+      <inertia ixx="0.001964" iyy="0.004354" izz="0.005433" ixy="0.000109" ixz="-0.001158" iyz="0.000341" />
+    </inertial>
+    <visual name="fr3_link6_beam_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link6_beam_visual.stl" />
+      </geometry>
+      <material name="fr3_link6_beam">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="fr3_link6_beam_collision">
+      <origin xyz="0.044 0 0" rpy="1.57079632679 -0 1.57079632679" />
+      <geometry>
+        <box size="0.0698455172149 0.0572733241162 0.0352" />
+      </geometry>
+    </collision>
+    <visual name="fr3_link6_fr3_joint6_output_shaft_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link6_fr3_joint6_output_shaft_visual.stl" />
+      </geometry>
+      <material name="fr3_link6_fr3_joint6_output_shaft">
+        <color rgba="0.55 0.58 0.61 1" />
+      </material>
+    </visual>
+    <collision name="fr3_link6_fr3_joint6_output_shaft_collision">
+      <origin xyz="0 0 0.0438303310291" rpy="-0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.018611999999999997" length="0.0876606620581094" />
+      </geometry>
+    </collision>
+    <visual name="fr3_link6_fr3_joint6_output_plate_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link6_fr3_joint6_output_plate_visual.stl" />
+      </geometry>
+      <material name="fr3_link6_fr3_joint6_output_plate">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="fr3_link6_fr3_joint6_output_plate_collision">
+      <origin xyz="0 0 0.0296366620581" rpy="-0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.037619999999999994" length="0.002" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="fr3_link7">
+    <inertial>
+      <origin xyz="0.010517 -0.004252 0.061597" rpy="0 -0 0" />
+      <mass value="0.735522" />
+      <inertia ixx="0.012516" iyy="0.010027" izz="0.004815" ixy="-0.000428" ixz="-0.001196" iyz="-0.000741" />
+    </inertial>
+    <visual name="fr3_link7_housing_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link7_housing_visual.stl" />
+      </geometry>
+      <material name="fr3_link7_housing">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+    <collision name="fr3_link7_housing_collision">
+      <origin xyz="0 0 0" rpy="-0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.039599999999999996" length="0.05149344737054539" />
+      </geometry>
+    </collision>
+    <visual name="fr3_link7_cap_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link7_cap_visual.stl" />
+      </geometry>
+      <material name="fr3_link7_cap">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+    <visual name="fr3_link7_cap_hub_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link7_cap_hub_visual.stl" />
+      </geometry>
+      <material name="fr3_link7_cap_hub">
+        <color rgba="0.55 0.58 0.61 1" />
+      </material>
+    </visual>
+    <visual name="fr3_link7_rear_cap_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link7_rear_cap_visual.stl" />
+      </geometry>
+      <material name="fr3_link7_rear_cap">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+    <visual name="fr3_link7_rear_cap_hub_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link7_rear_cap_hub_visual.stl" />
+      </geometry>
+      <material name="fr3_link7_rear_cap_hub">
+        <color rgba="0.55 0.58 0.61 1" />
+      </material>
+    </visual>
+    <visual name="fr3_link7_beam_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link7_beam_visual.stl" />
+      </geometry>
+      <material name="fr3_link7_beam">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="fr3_link7_beam_collision">
+      <origin xyz="0 0 0.0535" rpy="0 -0 -1.57079632679" />
+      <geometry>
+        <box size="0.0627968870373 0.0514934473705 0.0428" />
+      </geometry>
+    </collision>
+    <visual name="fr3_link7_flange_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link7_flange_visual.stl" />
+      </geometry>
+      <material name="fr3_link7_flange">
+        <color rgba="0.55 0.58 0.61 1" />
+      </material>
+    </visual>
+    <collision name="fr3_link7_flange_collision">
+      <origin xyz="0 0 0.107" rpy="0 -0 0" />
+      <geometry>
+        <cylinder radius="0.0329683656945565" length="0.011303439666705085" />
+      </geometry>
+    </collision>
+    <visual name="fr3_link7_flange_fastener_0_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link7_flange_fastener_0_visual.stl" />
+      </geometry>
+      <material name="fr3_link7_flange_fastener_0">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+    <visual name="fr3_link7_flange_fastener_1_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link7_flange_fastener_1_visual.stl" />
+      </geometry>
+      <material name="fr3_link7_flange_fastener_1">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+    <visual name="fr3_link7_flange_fastener_2_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link7_flange_fastener_2_visual.stl" />
+      </geometry>
+      <material name="fr3_link7_flange_fastener_2">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+    <visual name="fr3_link7_flange_fastener_3_visual">
+      <geometry>
+        <mesh filename="meshes/fr3_link7_flange_fastener_3_visual.stl" />
+      </geometry>
+      <material name="fr3_link7_flange_fastener_3">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+  </link>
+  <link name="tool_frame" />
+  <joint name="world_fixed" type="fixed">
+    <parent link="world" />
+    <child link="fr3_link0" />
+    <origin xyz="0 0 0" rpy="0 -0 0" />
+  </joint>
+  <joint name="fr3_joint1" type="revolute">
+    <parent link="fr3_link0" />
+    <child link="fr3_link1" />
+    <origin xyz="0 0 0.333" rpy="0 -0 0" />
+    <axis xyz="0 0 1" />
+    <limit lower="-2.3093" upper="2.3093" effort="87.0" velocity="2.0" />
+    <dynamics damping="0" friction="0" />
+  </joint>
+  <joint name="fr3_joint2" type="revolute">
+    <parent link="fr3_link1" />
+    <child link="fr3_link2" />
+    <origin xyz="0 0 0" rpy="-1.57079632679 -0 0" />
+    <axis xyz="0 0 1" />
+    <limit lower="-1.5133" upper="1.5133" effort="87.0" velocity="1.0" />
+    <dynamics damping="0" friction="0" />
+  </joint>
+  <joint name="fr3_joint3" type="revolute">
+    <parent link="fr3_link2" />
+    <child link="fr3_link3" />
+    <origin xyz="0 -0.316 0" rpy="1.57079632679 -0 0" />
+    <axis xyz="0 0 1" />
+    <limit lower="-2.4937" upper="2.4937" effort="87.0" velocity="1.5" />
+    <dynamics damping="0" friction="0" />
+  </joint>
+  <joint name="fr3_joint4" type="revolute">
+    <parent link="fr3_link3" />
+    <child link="fr3_link4" />
+    <origin xyz="0.0825 0 0" rpy="1.57079632679 -0 0" />
+    <axis xyz="0 0 1" />
+    <limit lower="-2.7478" upper="-0.4461" effort="87.0" velocity="1.25" />
+    <dynamics damping="0" friction="0" />
+  </joint>
+  <joint name="fr3_joint5" type="revolute">
+    <parent link="fr3_link4" />
+    <child link="fr3_link5" />
+    <origin xyz="-0.0825 0.384 0" rpy="-1.57079632679 -0 0" />
+    <axis xyz="0 0 1" />
+    <limit lower="-2.48" upper="2.48" effort="12.0" velocity="3.0" />
+    <dynamics damping="0" friction="0" />
+  </joint>
+  <joint name="fr3_joint6" type="revolute">
+    <parent link="fr3_link5" />
+    <child link="fr3_link6" />
+    <origin xyz="0 0 0" rpy="1.57079632679 -0 0" />
+    <axis xyz="0 0 1" />
+    <limit lower="0.8521" upper="4.2094" effort="12.0" velocity="1.5" />
+    <dynamics damping="0" friction="0" />
+  </joint>
+  <joint name="fr3_joint7" type="revolute">
+    <parent link="fr3_link6" />
+    <child link="fr3_link7" />
+    <origin xyz="0.088 0 0" rpy="1.57079632679 -0 0" />
+    <axis xyz="0 0 1" />
+    <limit lower="-2.6895" upper="2.6895" effort="12.0" velocity="3.0" />
+    <dynamics damping="0" friction="0" />
+  </joint>
+  <joint name="tool_fixed" type="fixed">
+    <parent link="fr3_link7" />
+    <child link="tool_frame" />
+    <origin xyz="0 0 0.107" rpy="0 -0 0" />
+  </joint>
+  <mujoco>
+    <compiler strippath="false" discardvisual="false" fusestatic="false" />
+  </mujoco>
+</robot>

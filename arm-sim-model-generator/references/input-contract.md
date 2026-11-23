@@ -4,7 +4,7 @@
 
 ## 根字段
 
-`schema_version:"1.0"` 和 `model` 必填；可选 dimensions、physics、installation、poses、drives、export、metadata。JSONC 支持 BOM、行/块注释，不支持尾逗号；拒绝重复键。数值必须有限。名称以 ASCII 字母起始，其余字母/数字/下划线；机器人/ROS 包名转换小写，关节名保持原样。其他字符需先提供命名映射。
+`schema_version:"1.0"` 和 `model` 必填；可选 dimensions、physics、installation、poses、drives、export、metadata 和 [contact_surfaces](collision-review.md)。JSONC 支持 BOM、行/块注释，不支持尾逗号；拒绝重复键。数值必须有限。名称以 ASCII 字母起始，其余字母/数字/下划线；机器人/ROS 包名转换小写，关节名保持原样。其他字符需先提供命名映射。
 
 ## model
 

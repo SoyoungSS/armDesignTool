@@ -90,7 +90,7 @@ def adapt(raw):
 def normalize(raw):
     d,source,notes=adapt(raw)
     if source=='native':
-        allowed={'schema_version','source','model','dimensions','physics','installation','poses','drives','export','metadata'}
+        allowed={'schema_version','source','model','dimensions','physics','installation','poses','drives','export','metadata','contact_surfaces'}
         if set(d)-allowed: raise InputError('unknown native root fields: '+', '.join(sorted(set(d)-allowed)))
     if 'model' not in d: raise InputError('model: required')
     m=d['model']; missing=[]
@@ -234,7 +234,7 @@ def normalize(raw):
                 if c['inertia_frame'] not in ['component','link']: raise InputError('inertia_frame must be component or link')
                 c['inertia_kg_m2']=check_inertia(R@I@R.T,link).tolist()
             c['frame']=link
-    return serializable(dict(schema_version='1.0',generator_version='1.3.0',source=source,model=m,base_link=base,installation=ins,poses=poses,dimensions=d.get('dimensions',{}),components=components,physics=physics,drives=drives,export={**ex,'mode':mode,'targets':targets},notes=notes,missing_drive_limits=missing_limits,source_statics_drives=d.get('source_statics_drives',{})))
+    return serializable(dict(schema_version='1.0',generator_version='1.4.0',collision_review_version='1.0',contact_surfaces=d.get('contact_surfaces',[]),source=source,model=m,base_link=base,installation=ins,poses=poses,dimensions=d.get('dimensions',{}),components=components,physics=physics,drives=drives,export={**ex,'mode':mode,'targets':targets},notes=notes,missing_drive_limits=missing_limits,source_statics_drives=d.get('source_statics_drives',{})))
 
 def check_inertia(I,label):
     I=np.asarray(I,float)

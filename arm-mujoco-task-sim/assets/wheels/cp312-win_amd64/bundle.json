@@ -1,0 +1,21 @@
+{
+  "platform": "cp312-win_amd64",
+  "source": "https://pypi.org/simple",
+  "wheels": {
+    "contourpy-1.4.0-cp312-cp312-win_amd64.whl": "6e697d94e69f499ff6bebb899cae97a58d5d14f0e1fe9568b43a0248d2f9af8c",
+    "cycler-0.12.1-py3-none-any.whl": "85cef7cff222d8644161529808465972e51340599459b8ac3ccbac5a854e0d30",
+    "fonttools-4.68.0-cp312-cp312-win_amd64.whl": "fedc183bdbc3fdbfbdca26e0e04566d089cbb404712509a4e824608e9304cc77",
+    "kiwisolver-1.5.1-cp312-cp312-win_amd64.whl": "06a6917674de9e0fe3f66f5430787f59a9f2ddb64af9b714eaec547e29ef5c19",
+    "matplotlib-3.11.2-cp312-cp312-win_amd64.whl": "c5c1c68ee401fc98271263410f0e5ce88285abacf7627132914e8adf3d70ff43",
+    "mujoco_core-4.0.1-cp312-cp312-win_amd64.whl": "296f4d02b58df353a3fd6fc1b4fcea180c1622660a36b54d547db1ac8d67bc55",
+    "mujoco_studio-4.0.1-cp312-cp312-win_amd64.whl": "95f0265ea176b75166eece21e350f6a6b226486e4f7657761d8b8eb2fbecc8fc",
+    "mujoco_studio_wasm-4.0.1-py3-none-any.whl": "14d724721c971ec208baeb6b449797a9cd456ea0331bc8e8a8722e7823e60ccc",
+    "numpy-2.5.5-cp312-cp312-win_amd64.whl": "919eb420662b0b4ba34889df503f3d5329775b0c1d5f7e5f5af4fba8315b1e30",
+    "packaging-26.3-py3-none-any.whl": "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c",
+    "pillow-13.0.0-cp312-cp312-win_amd64.whl": "ff3fe9eb621fbb9db4c4be33ab946f6bac5f98ab50ca8d3260503653656c961b",
+    "pyparsing-3.3.3-py3-none-any.whl": "ece8c00a69cf01b45d0b1dedabb469c90d8caf996d4fda40f147627a122849a4",
+    "python_dateutil-4.0.0-py3-none-any.whl": "a5e246f79eb80475e691bf93862cead98decd8a498cf53ba0516fcdc0f50dc1c",
+    "tzdata-2026.6-py2.py3-none-any.whl": "0a10eec6e13ef16b627fabed9a5f2ba61a62b1c67f327305f4e7e412a70b4aec",
+    "websockets-17.4-cp312-cp312-win_amd64.whl": "dde9cd67f18803949ebf96de8aba12b8ec5ee3115e34c75a2db85a3b0a6c20d5"
+  }
+}

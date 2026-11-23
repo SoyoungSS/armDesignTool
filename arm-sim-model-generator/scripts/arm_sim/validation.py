@@ -3,7 +3,7 @@ import json, math, tempfile, shutil, sys, platform
 from pathlib import Path
 import xml.etree.ElementTree as ET
 import numpy as np
-from .math3d import tf, motion, forward, rot, rpy
+from .math3d import tf, motion, forward, rot, rpy, quat
 from .geometry import read_stl
 
 def nums(s): return np.array([float(v) for v in s.split()])
@@ -204,9 +204,38 @@ def usd_check(n,path):
             RR=R(api.GetPrincipalAxesAttr().Get()); np.testing.assert_allclose(RR@np.diag(api.GetDiagonalInertiaAttr().Get())@RR.T,p['inertia_kg_m2'],atol=2e-7)
     return {'openusd_version':'.'.join(map(str,Usd.GetVersion())),'zero_pose_checks':len(expected),'initial_pose_checks':len(expected),'joint_frame_pose_checks':checks,'material_normal_checks':material_checks,'drive_attribute_checks':'passed' if not n['missing_physics'] else 'not_applicable','isaac_runtime':'pending','physics_authored':not n['missing_physics']}
 
+def check_mjcf_collision_geoms(tree, parts):
+    """Check the handoff IDs and primitives against the actual exported scene."""
+    geometries = {geom.get('name'): (body.get('name'), geom)
+                  for body in tree.iter('body') for geom in body.findall('geom')}
+    for part in parts:
+        name = part['mjcf_geom']
+        if name not in geometries:
+            raise ValueError('missing collision geom '+name)
+        owner, geom = geometries[name]
+        if owner != part['link'] or geom.get('type') != part['shape']:
+            raise ValueError('collision owner/shape mismatch: '+name)
+        T = np.asarray(part['local_transform'])
+        expected_quat = quat(T[:3,:3])
+        actual_quat = nums(geom.get('quat', '1 0 0 0'))
+        if np.dot(expected_quat,actual_quat) < 0:
+            actual_quat = -actual_quat
+        np.testing.assert_allclose(actual_quat, expected_quat, atol=1e-9, err_msg=name)
+        np.testing.assert_allclose(nums(geom.get('pos', '0 0 0')), T[:3,3], atol=1e-9, err_msg=name)
+        size = np.array(part['size_m'])
+        mj_size = size/2 if part['shape']=='box' else [size[0],size[1]/2]
+        np.testing.assert_allclose(nums(geom.attrib['size']), mj_size, atol=1e-9, err_msg=name)
+        if geom.get('contype','1') != '1' or geom.get('conaffinity','1') != '1':
+            raise ValueError('collision mask differs from generated default: '+name)
+    return len(parts)
+
+
 def run_checks(n,run,targets,runtime=False):
     from .joint_layout import packing_checks
     checks={'module_packing':packing_checks(n),'mesh':mesh_checks(run/'meshes'),'interference':interference(n),'environment':{'python':sys.version.split()[0],'platform':platform.platform()}}
+    from .collision_review import review
+    checks['collision_review'] = (review(n, run/'meshes', cases(n)) if n.get('collision_review_version') == '1.0'
+                                  else {'status':'not_evaluated','reason':'legacy generator run'})
     for target,status in targets.items():
         if not status.get('generated'): continue
         status['status']='generated'; status.pop('error',None)
@@ -225,6 +254,8 @@ def run_checks(n,run,targets,runtime=False):
                 tree=ET.parse(run/'mujoco'/'robot.xml')
                 for mesh in tree.findall('.//mesh'): read_stl(run/'mujoco'/'meshes'/mesh.get('file'))
                 checks[target]={'xml_and_resources':'passed'}
+                if 'parts' in checks['collision_review']:
+                    checks[target]['collision_geom_checks'] = check_mjcf_collision_geoms(tree,checks['collision_review']['parts'])
                 if runtime:
                     try:
                         with tempfile.TemporaryDirectory(prefix='mj-relocated-') as temp:
@@ -254,4 +285,11 @@ def run_checks(n,run,targets,runtime=False):
             status.update(status='failed',error='motor envelope conflict; inspect validation.json/module_packing')
         elif packing.get('unresolved') and status.get('status')!='failed':
             status.update(status='pending',reason='coincident joint mechanical arrangement needs review')
+        assessment = checks['collision_review']['status']
+        status['collision_validation'] = assessment
+        if target in ('mujoco', 'isaac') and assessment == 'failed':
+            status['status'] = 'failed'
+            prior_error = status.get('error')
+            message = 'collision acceptance failed; inspect validation.json/collision_review'
+            status['error'] = prior_error + '; ' + message if prior_error else message
     return checks

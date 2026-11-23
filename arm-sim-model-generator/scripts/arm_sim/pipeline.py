@@ -17,6 +17,12 @@ def hashes(run):
 def report(n,manifest,checks,run):
     lines=['# 模型生成报告','',f"模型：{n['model']['name']}；等级：{n['model_grade']}。",'', '所有坐标为右手系，m/kg/rad；RPY=Rz Ry Rx。基座安装只应用于 world→base 一次。几何零位与初始关节值分开保存。','', '| 目标 | 生成/检查状态 | 运行时 |','|---|---|---|']
     for k,v in manifest['targets'].items(): lines.append(f"| {k} | {v['status']} | {v['runtime_validation']} |")
+    collision = checks.get('collision_review', {})
+    lines += ['', '零件级碰撞复核：' + collision.get('status','not_evaluated')
+              + '。姿态覆盖、零件配合和接触面偏差见 [validation.json](validation.json) 的 collision_review。']
+    if collision.get('worst_case'):
+        case = collision['worst_case']
+        lines.append('优先检查 ' + ' / '.join(case['parts']) + '，姿态 ' + case['pose'] + '。')
     if (run/'preview.png').is_file():
         lines += ['', '[机械臂初始姿态预览](../preview.png)']
     if n.get('appearance_design'):

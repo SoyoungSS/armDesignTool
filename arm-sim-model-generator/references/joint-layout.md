@@ -39,6 +39,8 @@
 - assembly_clearance_m 或 assembly_clearance_mm：正数，默认0.002m。
 - 同一数值不能同时使用 m/mm。原有 diameter/axial_width 和 max_envelope 继续有效，最终外廓包含分配到上游的新部件。
 
+侧置模组的支撑在转动输出盘外缘按其截面与装配间隙退让，在固定定子处通过径向连接耳安装。外部整流罩根据对侧转盘的投影包络截短，输出轴保持原配合位置。
+
 ## 验证与交付
 
 report/joint_layout.json 记录角色判断依据、所选组合、退让/侧置量、固定端/输出端连杆、圆柱包络和未解决项。axis_base_zero 表示零位下在基座坐标系表达的轴，axis_frame 标明基座名称；它不包含世界安装旋转。人可读报告提供组合摘要。

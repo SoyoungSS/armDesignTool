@@ -64,7 +64,10 @@ def apply_layout(n,g,make_part):
         p=make_part(name,'cylinder',[radius,length],T,color,True)
         p.update(assembly_role=role,owning_link=owner)
         if hollow:
-            V,F=annulus(radius,radius*.54,length); p.update(vertices=V@T[:3,:3].T+T[:3,3],faces=F)
+            inner_radius = radius * .54
+            V,F=annulus(radius,inner_radius,length)
+            p.update(vertices=V@T[:3,:3].T+T[:3,3], faces=F,
+                     bore_clear_radius_m=inner_radius * math.cos(math.pi / 48))
         g[owner]['parts'].append(p)
         return p
     for i in range(len(js)-1):
@@ -113,9 +116,16 @@ def apply_layout(n,g,make_part):
         shaft_length=retreat+la/2-stop
         if shaft_length<=clearance: raise InputError(a['name']+': insufficient length between output shafts')
         add(a['child'],a['name']+'_output_shaft',ra*.47,shaft_length,tf(R=align_z(A),p=direction*(stop+shaft_length/2)),'body','rotor')
-        exposed=retreat-la/2-clearance*2-stop
+        plate_at=side-lb/2-clearance*.5 if not coaxial else lb/2+clearance
+        fairing_start=stop
+        if not coaxial:
+            # Reserve the swept disk of the opposite output plate. The narrow
+            # shaft and the larger outer fairing need distinct end positions.
+            plate_front=float(direction@B)*plate_at+abs(dot)*clearance/2+math.sqrt(max(0.,1-dot*dot))*rb*.95
+            fairing_start=max(stop,plate_front+clearance)
+        exposed=retreat-la/2-clearance*2-fairing_start
         if exposed>clearance:
-            p=make_part(a['name']+'_output_fairing','cylinder',[ra*.84,exposed],tf(R=align_z(-direction),p=direction*(stop+exposed/2)),'body',True,
+            p=make_part(a['name']+'_output_fairing','cylinder',[ra*.84,exposed],tf(R=align_z(-direction),p=direction*(fairing_start+exposed/2)),'body',True,
                         [(0,.92),(.08,1),(.35,1),(.75,.86),(1,.70)])
             p.update(assembly_role='rotor',owning_link=a['child']); ga['parts'].append(p)
         # A narrow ring on the rotating side makes the axial DOF visible.
@@ -123,7 +133,6 @@ def apply_layout(n,g,make_part):
         add(a['child'],a['name']+'_rotor_ring',ra*.96,clearance,tf(R=align_z(A),p=ring_center),'metal','rotor')
         bend_axis=tf(b['origin'])[:3,:3].T@(-direction) if coaxial else np.array(b['axis'])
         add(b['child'],b['name']+'_output_shaft',rb*.47,max(lb,side+lb/2),tf(R=align_z(bend_axis),p=bend_axis*(side+lb/2)/2),'metal','rotor')
-        plate_at=side-lb/2-clearance*.5 if not coaxial else lb/2+clearance
         add(b['child'],b['name']+'_output_plate',rb*.95,clearance,tf(R=align_z(bend_axis),p=bend_axis*plate_at),'body','rotor')
         if coaxial:
             add(a['child'],a['name']+'_stack_flange',rb*.98,clearance*2,tf(R=align_z(A),p=direction*(lb/2+clearance*.5)),'body','rotor')
@@ -131,9 +140,20 @@ def apply_layout(n,g,make_part):
             # The stationary bend module is carried by a side support attached
             # to the upstream rotating sleeve; it is not a floating motor.
             from .surfaces import beam_frame
-            T=tf(R=beam_frame(bcenter,A),p=direction*(rb*.85)+bcenter/2)
-            p=make_part(b['name']+'_support','chamfer',[rb*.22,rb*.22,side],T,'body',True)
+            support_width=rb*.22
+            radial=direction-B*np.dot(direction,B)
+            radial/=np.linalg.norm(radial)
+            outer=rb*.95+support_width/math.sqrt(2)+clearance
+            # Run the support outside the rotating disk. At the motor end a
+            # short radial lug joins the fixed annulus away from its bore.
+            T=tf(R=beam_frame(bcenter,A),p=radial*outer+bcenter/2)
+            p=make_part(b['name']+'_support','chamfer',[support_width,support_width,side],T,'body',True)
             p.update(assembly_role='stator_support',owning_link=b['parent']); g[b['parent']]['parts'].append(p)
+            inner=rb*.75
+            lug_width=min(support_width,lb*.4)
+            T=tf(R=beam_frame(radial,B),p=bcenter+radial*((outer+inner)/2))
+            lug=make_part(b['name']+'_stator_lug','chamfer',[lug_width,lug_width,outer-inner],T,'body',True)
+            lug.update(assembly_role='stator_support',owning_link=b['parent']); g[b['parent']]['parts'].append(lug)
         # Trim the stationary upstream fairing so that it does not engulf the
         # exposed rotating sleeve. Preserve the documented mass-estimation proxy.
         parent=g[a['parent']]; beam=next((p for p in parent['parts'] if p['name']=='beam'),None)

@@ -44,6 +44,8 @@ def run(output):
     try: validate(c)
     except ValueError: rejected=True
     assert rejected
+    # Exercise backwards compatibility with an existing pre-policy task.
+    c['schema_version'] = '1.0'
     c.update(model_input='synthetic fixture, not a user robot',task_description='Isolated two-cycle recorder verification',initial_conditions='zero joints; free object offset',cycle_definition='0.1 second test interval',between_cycles='continuous',timing='2 x 0.1 s',physics_approval='synthetic automated test only',strategy='deterministic test excitation',state_source='simulation fixture',mode='headless',cycles=2,seed=1,dt_s=.001,max_time_s=.3,robot_joints=['turn','slide'],end_effector_sites=['tcp'],success_criteria=['both test time windows completed'])
     c['confirmation']={k:True for k in ['mode','cycles','task','assets_physics','strategy','timing','outputs']}
     c['confirmation']['evidence']='Synthetic approval for isolated tool self-test, not production task authorization.'
@@ -54,6 +56,7 @@ def run(output):
     finally: s.finish()
     result=json.loads((s.run/'reports/result.json').read_text())
     assert result['status']=='passed' and result['steps']==200 and result['samples']==201
+    assert result['collision']['status']=='not_evaluated'
     with (s.run/'data/joints.csv').open(encoding='utf-8-sig') as f: rows=list(csv.DictReader(f))
     assert len(rows)==402 and {r['joint'] for r in rows}=={'turn','slide'}
     assert len(list((s.run/'figures').glob('*.svg')))==29

@@ -16,6 +16,7 @@ import time
 import uuid
 from contracts import validate
 from runtime import mj, np, dump, Recorder
+from collision_checks import TaskCollisionChecks
 
 
 class Session:
@@ -33,7 +34,18 @@ class Session:
             if src.is_dir():
                 shutil.copytree(src,self.run/'input'/folder,ignore=shutil.ignore_patterns('__pycache__','.venv','runs'))
         shutil.copytree(Path(__file__).resolve().parent,self.run/'input/runner_tools',ignore=shutil.ignore_patterns('__pycache__'))
-        if (self.project/'model_inspection.json').is_file(): shutil.copy2(self.project/'model_inspection.json',self.run/'input/model_inspection.json')
+        inspection_path = self.project/'model_inspection.json'
+        inspection = {}
+        if inspection_path.is_file():
+            shutil.copy2(inspection_path,self.run/'input/model_inspection.json')
+            inspection = json.loads((self.run/'input/model_inspection.json').read_text(encoding='utf-8'))
+        elif self.c.get('collision_policy') and isinstance(self.c['model_input'], str):
+            # A portable synthetic/legacy project may have no accessible generator run.
+            source = self.project / self.c['model_input']
+            if source.exists():
+                from inspect_generator import inspect
+                inspection = inspect(source)
+                dump(self.run/'input/model_inspection.json', inspection)
         for f in (self.run/'input').rglob('*'):
             if f.is_file(): copied[f.relative_to(self.run).as_posix()] = hashlib.sha256(f.read_bytes()).hexdigest()
         dump(self.run/'reports/environment.json',dict(mujoco=mj.__version__,numpy=np.__version__,python=platform.python_version(),system=platform.platform(),mode=self.c['mode']))
@@ -68,6 +80,18 @@ class Session:
         self.export_queued = False
         self.started = time.perf_counter(); self.steps = 0
         self.sample_observer = None
+        mj.mj_forward(self.m, self.d)
+        self.checks = TaskCollisionChecks(self.m, self.c)
+        self.checks.initialize(self.d, self.controller, inspection)
+        self.preflight = dict(self.checks.report(), scope='initialized scene and available planned path')
+        dump(self.run/'reports/preflight.json', self.preflight)
+        if self.checks.failure:
+            self.stop_for_collision()
+
+    def stop_for_collision(self):
+        self.done = True
+        self.reason = 'collision_violation'
+        self.events.write(json.dumps(dict(kind=self.reason, **self.checks.failure), ensure_ascii=False)+'\n')
 
     def tick(self):
         if self.done: return
@@ -86,6 +110,10 @@ class Session:
         if (cycle,phase)!=self.last_phase:
             self.events.write(json.dumps(dict(time_s=float(d.time),cycle=cycle,phase=phase),ensure_ascii=False)+'\n'); self.last_phase=(cycle,phase)
         for event in meta.get('events',[]): self.events.write(json.dumps(dict(time_s=float(d.time),event=event),ensure_ascii=False)+'\n')
+        self.checks.observe(d, cycle, phase, meta)
+        if self.checks.failure:
+            self.stop_for_collision()
+            return
         if meta.get('done'):
             self.done=True; self.reason='task_finished'; return
         if self.steps*self.c['dt_s'] >= self.c['max_time_s']-1e-10:
@@ -99,9 +127,17 @@ class Session:
         self.finalized=True; self.rec.close(); self.events.close()
         try: evaluation=self.controller.evaluate(self.m,self.d)
         except Exception as e: evaluation=dict(success=False,evaluation_error=repr(e))
-        passed = error is None and self.reason=='task_finished' and evaluation.get('success') is True and evaluation.get('cycles_completed')==self.c['cycles']
+        collision = self.checks.report()
+        passed = (error is None and self.reason=='task_finished' and evaluation.get('success') is True
+                  and evaluation.get('cycles_completed')==self.c['cycles'] and
+                  (not self.c.get('collision_policy') or collision['collision']['status']=='passed'))
         result=dict(status='passed' if passed else 'incomplete_or_failed',reason=self.reason,error=error,duration_s=float(self.d.time),steps=self.steps,samples=self.rec.samples,wall_time_s=time.perf_counter()-self.started,evaluation=evaluation,warnings=[int(w.number) for w in self.d.warning])
+        result.update(collision)
+        self.result = result
         dump(self.run/'reports/result.json',result)
+        if self.rec.samples == 0:
+            print('Run output:',self.run,flush=True)
+            return
         analysis_python = os.environ.get('ARM_SIM_ANALYSIS_PYTHON')
         if analysis_python:
             subprocess.run([analysis_python, '-B', str(Path(__file__).with_name('analyze.py')),
@@ -192,7 +228,10 @@ def launch_viewer(session,exit_on_complete=False,port=0,on_ready=None,open_brows
     plots, idle = viewer_plugins(s.c, web_idle_s if s.c['mode']=='web' else 0)
     plots.reset_series(s)
     s.sample_observer=plots.sample
-    config=viewer_protocol.ViewerConfig(title='MuJoCo task simulation',gfx='web' if s.c['mode']=='web' else '',http_port=port,open_browser=open_browser)
+    # The 4.0.1 Windows Python renderer needs a named pixel target for presentation.
+    default_gfx = 'opengl_software' if sys.platform == 'win32' and mj.__version__ == '4.0.1' else ''
+    gfx = 'web' if s.c['mode']=='web' else s.c.get('native_gfx', default_gfx)
+    config=viewer_protocol.ViewerConfig(title='MuJoCo task simulation',gfx=gfx,http_port=port,open_browser=open_browser)
     h=None
     error=None
     try:
@@ -219,15 +258,24 @@ def launch_viewer(session,exit_on_complete=False,port=0,on_ready=None,open_brows
             if not s.done and s.reason=='running': s.reason='viewer_closed'
             s.finish(error)
             for job in exports: job.result()
+    return s
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('--project',required=True);p.add_argument('--port',type=int,default=0);p.add_argument('--exit-on-complete',action='store_true');p.add_argument('--open-browser',action='store_true');a=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument('--project',required=True);p.add_argument('--port',type=int,default=0);p.add_argument('--exit-on-complete',action='store_true');p.add_argument('--open-browser',action='store_true');p.add_argument('--preflight',action='store_true');a=p.parse_args()
     s=Session(a.project);err=None
+    if a.preflight:
+        s.events.close()
+        s.rec.close()
+        print(json.dumps(dict(run=str(s.run), **s.preflight), ensure_ascii=False, indent=2))
+        raise SystemExit(2 if s.checks.failure else 0)
     try:
-        if s.c['mode']=='headless':
+        if s.done or s.c['mode']=='headless':
             while not s.done: s.tick()
-        else: launch_viewer(s,a.exit_on_complete,a.port,open_browser=a.open_browser)
+        else: s = launch_viewer(s,a.exit_on_complete,a.port,open_browser=a.open_browser)
     except BaseException as e:
         err=repr(e);s.reason='exception';raise
     finally: s.finish(err)
+    if (s.reason == 'collision_violation' or
+            ((s.c['mode'] == 'headless' or a.exit_on_complete) and s.result['status'] != 'passed')):
+        raise SystemExit(2)

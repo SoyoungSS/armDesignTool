@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0",
+  "model": {
+    "name": "two_revolute_driven",
+    "joints": [
+      {
+        "name": "J1", "type": "revolute",
+        "origin": {"xyz_m": [0, 0, 0.08], "rpy_rad": [0, 0, 0]},
+        "axis": [0, 0, 1], "limits": [-2.5, 2.5],
+        "components": [{"name": "upper_arm", "mass_kg": 1.0, "com_m": [0.15, 0, 0], "inertia_frame": "link",
+          "inertia_kg_m2": [[0.0008, 0, 0], [0, 0.009, 0], [0, 0, 0.009]]}]
+      },
+      {
+        "name": "J2", "type": "revolute",
+        "origin": {"xyz_m": [0.32, 0, 0], "rpy_rad": [0, 0, 0]},
+        "axis": [0, 1, 0], "limits": [-1.8, 1.8],
+        "components": [{"name": "forearm", "mass_kg": 0.6, "com_m": [0.12, 0, 0], "inertia_frame": "link",
+          "inertia_kg_m2": [[0.0004, 0, 0], [0, 0.0035, 0], [0, 0, 0.0035]]}]
+      }
+    ],
+    "tip": {"xyz_m": [0.25, 0, 0], "rpy_rad": [0, 1.5707963267948966, 0]}
+  },
+  "physics": {
+    "components": {
+      "base_link": [{"name": "pedestal", "mass_kg": 2.0, "com_m": [0, 0, 0.02], "inertia_frame": "link",
+        "inertia_kg_m2": [[0.006, 0, 0], [0, 0.006, 0], [0, 0, 0.004]]}]
+    }
+  },
+  "drives": {
+    "J1": {"effort": 30, "velocity": 2.0},
+    "J2": {"effort": 15, "velocity": 2.0}
+  },
+  "poses": {"initial": {"J1": 0, "J2": 0}, "acceptance": [{"name": "short_reach", "q": {"J1": 0.05, "J2": -0.10}}]},
+  "export": {"mode": "strict", "targets": ["urdf", "mujoco", "isaac"]},
+  "metadata": {"normalization_assumptions": ["Synthetic regression fixture. Masses, inertias and drive capacities are illustrative design inputs."]}
+}

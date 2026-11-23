@@ -45,6 +45,8 @@ class ModelTests(unittest.TestCase):
             with self.assertRaises(InputError): normalize(a)
     def test_simple_adapter_matches_reference(self):
         source=SKILL.parent/'arm-statics-parametric'/'assets'/'examples'/'simple-two-link.json'
+        if not source.exists():
+            source=SKILL.parent/'arm-statics-parametric'/'scripts'/'tests'/'fixtures'/'simple-two-link.json'
         if not source.exists(): self.skipTest('optional reference skill unavailable')
         a=read_input(source); a['payload']['separate_mass_confirmed']=True
         n=normalize(a); np.testing.assert_allclose(n['model']['joints'][1]['origin']['xyz_m'],[1,0,0]); np.testing.assert_allclose(n['model']['tip']['xyz_m'],[1,0,0])
@@ -103,8 +105,17 @@ class PipelineTests(unittest.TestCase):
         try: import mujoco; from pxr import Usd
         except (ImportError,OSError): self.skipTest('optional MuJoCo/OpenUSD runtime unavailable')
         with tempfile.TemporaryDirectory() as temp:
-            result=generate(SKILL/'assets'/'skew-prismatic.json',Path(temp),runtime=True)
-            self.assertEqual(result['status'],'completed',result); self.assertEqual(result['targets']['mujoco']['runtime_validation'],'passed'); self.assertTrue(result['targets']['isaac']['generated'])
+            result=generate(SKILL/'assets'/'two-revolute-driven.json',Path(temp),runtime=True)
+            self.assertEqual(result['status'],'completed',result)
+            self.assertEqual(result['targets']['mujoco']['collision_validation'],'passed')
+            self.assertEqual(result['targets']['mujoco']['runtime_validation'],'passed')
+            self.assertTrue(result['targets']['isaac']['generated'])
+    def test_slider_conflict_blocks_simulation_handoff(self):
+        with tempfile.TemporaryDirectory() as temp:
+            result=generate(SKILL/'assets'/'skew-prismatic.json',Path(temp),['mujoco'])
+            self.assertEqual(result['status'],'failed',result)
+            self.assertTrue(result['targets']['mujoco']['generated'])
+            self.assertEqual(result['targets']['mujoco']['collision_validation'],'failed')
     def test_strict_missing_limits_and_concept_mass(self):
         a=read_input(SKILL/'assets'/'two-revolute.json'); a['export']={'mode':'strict','targets':['urdf']}
         with tempfile.TemporaryDirectory() as temp:

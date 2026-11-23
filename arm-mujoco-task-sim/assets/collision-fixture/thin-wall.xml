@@ -1,0 +1,13 @@
+<mujoco>
+  <option timestep="0.002" gravity="0 0 0"/>
+  <worldbody>
+    <geom name="wall" type="box" size="0.0005 0.05 0.05"/>
+    <body pos="-0.012 0 0">
+      <joint name="slide" type="slide" axis="1 0 0"/>
+      <geom name="tip" type="sphere" size="0.001" mass="0.05"/>
+      <site name="tcp"/>
+    </body>
+  </worldbody>
+  <actuator><motor joint="slide"/></actuator>
+  <keyframe><key name="moving" qvel="12"/></keyframe>
+</mujoco>

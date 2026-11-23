@@ -1,0 +1,616 @@
+{
+  "schema_version": "1.0",
+  "status": "failed",
+  "coverage": {
+    "pose_count": 148,
+    "anchor_poses": [
+      "geometric_zero",
+      "initial",
+      "offset",
+      "sample_0",
+      "sample_1",
+      "sample_2",
+      "sample_3"
+    ],
+    "joint_limit_checks": [
+      "fr3_joint1",
+      "fr3_joint2",
+      "fr3_joint3",
+      "fr3_joint4",
+      "fr3_joint5",
+      "fr3_joint6",
+      "fr3_joint7"
+    ],
+    "interpolation": "linear in joint coordinates",
+    "segments": [
+      {
+        "start": "geometric_zero",
+        "end": "initial",
+        "requested": 0,
+        "subdivisions": 0,
+        "reason": "assembly reference outside operating range"
+      },
+      {
+        "start": "initial",
+        "end": "offset",
+        "requested": 1217,
+        "subdivisions": 128,
+        "max_relative_motion_bound_m": 0.009506973228694315
+      }
+    ],
+    "target_motion_m": 0.001,
+    "clearance_proven": false
+  },
+  "mating_pairs": [
+    {
+      "parts": [
+        "fr3_link0/fr3_joint1_stator",
+        "fr3_link1/fr3_joint1_output_shaft"
+      ],
+      "joint": "fr3_joint1",
+      "kind": "shaft_in_bore",
+      "frame": "fr3_link0/fr3_joint1_stator",
+      "bore_radius_m": 0.0363719577520471,
+      "axial_half_length_m": 0.041,
+      "basis": "joint_layout generated annular stator and coaxial output shaft"
+    },
+    {
+      "parts": [
+        "fr3_link1/fr3_joint2_stator",
+        "fr3_link2/fr3_joint2_output_shaft"
+      ],
+      "joint": "fr3_joint2",
+      "kind": "shaft_in_bore",
+      "frame": "fr3_link1/fr3_joint2_stator",
+      "bore_radius_m": 0.03565908117435501,
+      "axial_half_length_m": 0.04019641554945634,
+      "basis": "joint_layout generated annular stator and coaxial output shaft"
+    },
+    {
+      "parts": [
+        "fr3_link4/fr3_joint5_stator",
+        "fr3_link5/fr3_joint5_output_shaft"
+      ],
+      "joint": "fr3_joint5",
+      "kind": "shaft_in_bore",
+      "frame": "fr3_link4/fr3_joint5_stator",
+      "bore_radius_m": 0.021338215214534297,
+      "axial_half_length_m": 0.028511999999999996,
+      "basis": "joint_layout generated annular stator and coaxial output shaft"
+    },
+    {
+      "parts": [
+        "fr3_link5/fr3_joint6_stator",
+        "fr3_link6/fr3_joint6_output_shaft"
+      ],
+      "joint": "fr3_joint6",
+      "kind": "shaft_in_bore",
+      "frame": "fr3_link5/fr3_joint6_stator",
+      "bore_radius_m": 0.021338215214534297,
+      "axial_half_length_m": 0.028511999999999996,
+      "basis": "joint_layout generated annular stator and coaxial output shaft"
+    }
+  ],
+  "findings": [
+    {
+      "parts": [
+        "fr3_link3/housing",
+        "fr3_link4/beam"
+      ],
+      "status": "needs_review",
+      "pose": "geometric_zero",
+      "q": {
+        "fr3_joint1": 0,
+        "fr3_joint2": 0,
+        "fr3_joint3": 0,
+        "fr3_joint4": 0,
+        "fr3_joint5": 0,
+        "fr3_joint6": 0,
+        "fr3_joint7": 0
+      },
+      "method": "unresolved_candidate",
+      "in_joint_ranges": false,
+      "overlap_evidence_m": 0.0,
+      "witness_world_m": null,
+      "next_check": "Inspect both collision primitives at the reported pose."
+    },
+    {
+      "parts": [
+        "fr3_link3/beam",
+        "fr3_link4/housing"
+      ],
+      "status": "failed",
+      "pose": "initial->offset@110/128",
+      "q": {
+        "fr3_joint1": 0.32890624999999996,
+        "fr3_joint2": -0.32109375000000007,
+        "fr3_joint3": 0.22890625,
+        "fr3_joint4": -1.57109375,
+        "fr3_joint5": -0.07109375000000001,
+        "fr3_joint6": 1.77890625,
+        "fr3_joint7": 0.27890625
+      },
+      "method": "common_interior_point",
+      "in_joint_ranges": true,
+      "overlap_evidence_m": 0.004949998686360688,
+      "witness_world_m": [
+        -0.05207870658904504,
+        -0.00511505329385452,
+        0.6490871201409675
+      ],
+      "next_check": "Inspect both collision primitives at the reported pose."
+    },
+    {
+      "parts": [
+        "fr3_link3/beam",
+        "fr3_link4/beam"
+      ],
+      "status": "failed",
+      "pose": "fr3_joint4_upper",
+      "q": {
+        "fr3_joint1": 0.2,
+        "fr3_joint2": -0.45,
+        "fr3_joint3": 0.1,
+        "fr3_joint4": -0.4461,
+        "fr3_joint5": -0.2,
+        "fr3_joint6": 1.65,
+        "fr3_joint7": 0.15
+      },
+      "method": "box_sat_overlap",
+      "in_joint_ranges": true,
+      "overlap_evidence_m": 0.006023323576687417,
+      "witness_world_m": null,
+      "next_check": "Inspect both collision primitives at the reported pose."
+    },
+    {
+      "parts": [
+        "fr3_link6/beam",
+        "fr3_link7/housing"
+      ],
+      "status": "failed",
+      "pose": "sample_0",
+      "q": {
+        "fr3_joint1": -1.5102822,
+        "fr3_joint2": -0.1694895999999999,
+        "fr3_joint3": 1.0722910000000003,
+        "fr3_joint4": -0.4783238000000001,
+        "fr3_joint5": -1.2052799999999995,
+        "fr3_joint6": 2.6247543999999996,
+        "fr3_joint7": 1.608321000000001
+      },
+      "method": "common_interior_point",
+      "in_joint_ranges": true,
+      "overlap_evidence_m": 0.005257698295694967,
+      "witness_world_m": [
+        0.17899797628180186,
+        0.08677083979864322,
+        1.0577420101659278
+      ],
+      "next_check": "Inspect both collision primitives at the reported pose."
+    },
+    {
+      "parts": [
+        "fr3_link6/beam",
+        "fr3_link7/beam"
+      ],
+      "status": "failed",
+      "pose": "initial->offset@61/128",
+      "q": {
+        "fr3_joint1": 0.271484375,
+        "fr3_joint2": -0.378515625,
+        "fr3_joint3": 0.17148437500000002,
+        "fr3_joint4": -1.628515625,
+        "fr3_joint5": -0.12851562500000002,
+        "fr3_joint6": 1.721484375,
+        "fr3_joint7": 0.221484375
+      },
+      "method": "box_sat_overlap",
+      "in_joint_ranges": true,
+      "overlap_evidence_m": 0.002822758607450626,
+      "witness_world_m": null,
+      "next_check": "Inspect both collision primitives at the reported pose."
+    },
+    {
+      "parts": [
+        "fr3_link5/fr3_joint5_output_fairing",
+        "fr3_link6/beam"
+      ],
+      "status": "failed",
+      "pose": "fr3_joint6_upper",
+      "q": {
+        "fr3_joint1": 0.2,
+        "fr3_joint2": -0.45,
+        "fr3_joint3": 0.1,
+        "fr3_joint4": -1.7,
+        "fr3_joint5": -0.2,
+        "fr3_joint6": 4.2094,
+        "fr3_joint7": 0.15
+      },
+      "method": "common_interior_point",
+      "in_joint_ranges": true,
+      "overlap_evidence_m": 0.009107241944036254,
+      "witness_world_m": [
+        0.20973673193127348,
+        0.08538224883011397,
+        0.8349997338964023
+      ],
+      "next_check": "Inspect both collision primitives at the reported pose."
+    },
+    {
+      "parts": [
+        "fr3_link4/fr3_joint5_stator",
+        "fr3_link7/housing"
+      ],
+      "status": "failed",
+      "pose": "fr3_joint6_upper",
+      "q": {
+        "fr3_joint1": 0.2,
+        "fr3_joint2": -0.45,
+        "fr3_joint3": 0.1,
+        "fr3_joint4": -1.7,
+        "fr3_joint5": -0.2,
+        "fr3_joint6": 4.2094,
+        "fr3_joint7": 0.15
+      },
+      "method": "common_interior_point",
+      "in_joint_ranges": true,
+      "overlap_evidence_m": 0.005702399999999996,
+      "witness_world_m": [
+        0.1784322602251947,
+        0.07706467813540756,
+        0.8576525455078087
+      ],
+      "next_check": "Inspect both collision primitives at the reported pose."
+    },
+    {
+      "parts": [
+        "fr3_link5/fr3_joint5_output_shaft",
+        "fr3_link6/beam"
+      ],
+      "status": "failed",
+      "pose": "sample_2",
+      "q": {
+        "fr3_joint1": 0.3279205999999997,
+        "fr3_joint2": 1.0350972000000005,
+        "fr3_joint3": -1.9301238,
+        "fr3_joint4": -1.8639472000000001,
+        "fr3_joint5": 0.768800000000001,
+        "fr3_joint6": 3.9609598000000004,
+        "fr3_joint7": -1.6298369999999995
+      },
+      "method": "common_interior_point",
+      "in_joint_ranges": true,
+      "overlap_evidence_m": 0.006984551721490102,
+      "witness_world_m": [
+        0.3010430404137894,
+        -0.3172452573027744,
+        0.6233882590563038
+      ],
+      "next_check": "Inspect both collision primitives at the reported pose."
+    },
+    {
+      "parts": [
+        "fr3_link5/fr3_joint5_output_shaft",
+        "fr3_link7/housing"
+      ],
+      "status": "failed",
+      "pose": "fr3_joint6_upper",
+      "q": {
+        "fr3_joint1": 0.2,
+        "fr3_joint2": -0.45,
+        "fr3_joint3": 0.1,
+        "fr3_joint4": -1.7,
+        "fr3_joint5": -0.2,
+        "fr3_joint6": 4.2094,
+        "fr3_joint7": 0.15
+      },
+      "method": "common_interior_point",
+      "in_joint_ranges": true,
+      "overlap_evidence_m": 0.005149344737054539,
+      "witness_world_m": [
+        0.1998762102788125,
+        0.08946223634565825,
+        0.8405601471050308
+      ],
+      "next_check": "Inspect both collision primitives at the reported pose."
+    },
+    {
+      "parts": [
+        "fr3_link5/fr3_joint5_output_fairing",
+        "fr3_link7/housing"
+      ],
+      "status": "failed",
+      "pose": "sample_2",
+      "q": {
+        "fr3_joint1": 0.3279205999999997,
+        "fr3_joint2": 1.0350972000000005,
+        "fr3_joint3": -1.9301238,
+        "fr3_joint4": -1.8639472000000001,
+        "fr3_joint5": 0.768800000000001,
+        "fr3_joint6": 3.9609598000000004,
+        "fr3_joint7": -1.6298369999999995
+      },
+      "method": "common_interior_point",
+      "in_joint_ranges": true,
+      "overlap_evidence_m": 0.006652799999999997,
+      "witness_world_m": [
+        0.30459699686244823,
+        -0.312932628566432,
+        0.6395990042540916
+      ],
+      "next_check": "Inspect both collision primitives at the reported pose."
+    },
+    {
+      "parts": [
+        "fr3_link5/fr3_joint5_rotor_ring",
+        "fr3_link6/beam"
+      ],
+      "status": "failed",
+      "pose": "fr3_joint6_upper",
+      "q": {
+        "fr3_joint1": 0.2,
+        "fr3_joint2": -0.45,
+        "fr3_joint3": 0.1,
+        "fr3_joint4": -1.7,
+        "fr3_joint5": -0.2,
+        "fr3_joint6": 4.2094,
+        "fr3_joint7": 0.15
+      },
+      "method": "common_interior_point",
+      "in_joint_ranges": true,
+      "overlap_evidence_m": 0.001,
+      "witness_world_m": [
+        0.19620611690809364,
+        0.08113090148886709,
+        0.8303228910640448
+      ],
+      "next_check": "Inspect both collision primitives at the reported pose."
+    },
+    {
+      "parts": [
+        "fr3_link5/fr3_joint5_rotor_ring",
+        "fr3_link7/housing"
+      ],
+      "status": "failed",
+      "pose": "sample_2",
+      "q": {
+        "fr3_joint1": 0.3279205999999997,
+        "fr3_joint2": 1.0350972000000005,
+        "fr3_joint3": -1.9301238,
+        "fr3_joint4": -1.8639472000000001,
+        "fr3_joint5": 0.768800000000001,
+        "fr3_joint6": 3.9609598000000004,
+        "fr3_joint7": -1.6298369999999995
+      },
+      "method": "common_interior_point",
+      "in_joint_ranges": true,
+      "overlap_evidence_m": 0.001,
+      "witness_world_m": [
+        0.3069674075213643,
+        -0.2977880919034788,
+        0.6411803584625362
+      ],
+      "next_check": "Inspect both collision primitives at the reported pose."
+    },
+    {
+      "parts": [
+        "fr3_link5/fr3_joint6_support",
+        "fr3_link6/beam"
+      ],
+      "status": "failed",
+      "pose": "fr3_joint6_upper",
+      "q": {
+        "fr3_joint1": 0.2,
+        "fr3_joint2": -0.45,
+        "fr3_joint3": 0.1,
+        "fr3_joint4": -1.7,
+        "fr3_joint5": -0.2,
+        "fr3_joint6": 4.2094,
+        "fr3_joint7": 0.15
+      },
+      "method": "box_sat_overlap",
+      "in_joint_ranges": true,
+      "overlap_evidence_m": 0.018770804583579558,
+      "witness_world_m": null,
+      "next_check": "Inspect both collision primitives at the reported pose."
+    }
+  ],
+  "worst_case": {
+    "parts": [
+      "fr3_link5/fr3_joint6_support",
+      "fr3_link6/beam"
+    ],
+    "status": "failed",
+    "pose": "fr3_joint6_upper",
+    "q": {
+      "fr3_joint1": 0.2,
+      "fr3_joint2": -0.45,
+      "fr3_joint3": 0.1,
+      "fr3_joint4": -1.7,
+      "fr3_joint5": -0.2,
+      "fr3_joint6": 4.2094,
+      "fr3_joint7": 0.15
+    },
+    "method": "box_sat_overlap",
+    "in_joint_ranges": true,
+    "overlap_evidence_m": 0.018770804583579558,
+    "witness_world_m": null,
+    "next_check": "Inspect both collision primitives at the reported pose."
+  },
+  "named_pose_results": {
+    "geometric_zero": {
+      "name": "geometric_zero",
+      "q": {
+        "fr3_joint1": 0,
+        "fr3_joint2": 0,
+        "fr3_joint3": 0,
+        "fr3_joint4": 0,
+        "fr3_joint5": 0,
+        "fr3_joint6": 0,
+        "fr3_joint7": 0
+      },
+      "in_joint_ranges": false,
+      "status": "needs_review",
+      "findings": [
+        {
+          "parts": [
+            "fr3_link3/housing",
+            "fr3_link4/beam"
+          ],
+          "method": "unresolved_candidate",
+          "status": "needs_review",
+          "overlap_evidence_m": 0.0,
+          "witness_world_m": null
+        },
+        {
+          "parts": [
+            "fr3_link3/beam",
+            "fr3_link4/housing"
+          ],
+          "method": "common_interior_point",
+          "status": "needs_review",
+          "overlap_evidence_m": 0.004950000000000003,
+          "witness_world_m": [
+            0.0528,
+            0.02138399999999997,
+            0.649
+          ]
+        },
+        {
+          "parts": [
+            "fr3_link3/beam",
+            "fr3_link4/beam"
+          ],
+          "method": "box_sat_overlap",
+          "status": "needs_review",
+          "overlap_evidence_m": 0.023939385391793105,
+          "witness_world_m": null
+        },
+        {
+          "parts": [
+            "fr3_link6/beam",
+            "fr3_link7/housing"
+          ],
+          "method": "common_interior_point",
+          "status": "needs_review",
+          "overlap_evidence_m": 0.0052800000000000034,
+          "witness_world_m": [
+            0.056319999999999995,
+            7.549516567451065e-18,
+            1.033
+          ]
+        }
+      ]
+    },
+    "initial": {
+      "name": "initial",
+      "q": {
+        "fr3_joint1": 0.2,
+        "fr3_joint2": -0.45,
+        "fr3_joint3": 0.1,
+        "fr3_joint4": -1.7,
+        "fr3_joint5": -0.2,
+        "fr3_joint6": 1.65,
+        "fr3_joint7": 0.15
+      },
+      "in_joint_ranges": true,
+      "status": "failed",
+      "findings": [
+        {
+          "parts": [
+            "fr3_link3/beam",
+            "fr3_link4/housing"
+          ],
+          "method": "common_interior_point",
+          "status": "failed",
+          "overlap_evidence_m": 0.004702444870438343,
+          "witness_world_m": [
+            -0.08470110861135823,
+            -0.033476055304982724,
+            0.64487417441867
+          ]
+        },
+        {
+          "parts": [
+            "fr3_link6/beam",
+            "fr3_link7/housing"
+          ],
+          "method": "common_interior_point",
+          "status": "failed",
+          "overlap_evidence_m": 0.004924267749013805,
+          "witness_world_m": [
+            0.297863993300631,
+            0.12426466844068783,
+            0.8909051817852798
+          ]
+        },
+        {
+          "parts": [
+            "fr3_link6/beam",
+            "fr3_link7/beam"
+          ],
+          "method": "box_sat_overlap",
+          "status": "failed",
+          "overlap_evidence_m": 0.0028227586074505776,
+          "witness_world_m": null
+        }
+      ]
+    },
+    "offset": {
+      "name": "offset",
+      "q": {
+        "fr3_joint1": 0.35,
+        "fr3_joint2": -0.30000000000000004,
+        "fr3_joint3": 0.25,
+        "fr3_joint4": -1.55,
+        "fr3_joint5": -0.05000000000000002,
+        "fr3_joint6": 1.7999999999999998,
+        "fr3_joint7": 0.3
+      },
+      "in_joint_ranges": true,
+      "status": "failed",
+      "findings": [
+        {
+          "parts": [
+            "fr3_link3/beam",
+            "fr3_link4/housing"
+          ],
+          "method": "common_interior_point",
+          "status": "failed",
+          "overlap_evidence_m": 0.004943577796423916,
+          "witness_world_m": [
+            -0.03426257805161221,
+            -0.02065555867753991,
+            0.6509799860443591
+          ]
+        },
+        {
+          "parts": [
+            "fr3_link6/beam",
+            "fr3_link7/housing"
+          ],
+          "method": "common_interior_point",
+          "status": "failed",
+          "overlap_evidence_m": 0.003865059975499189,
+          "witness_world_m": [
+            0.27624639067919615,
+            0.24797526929417338,
+            0.900354185667727
+          ]
+        },
+        {
+          "parts": [
+            "fr3_link6/beam",
+            "fr3_link7/beam"
+          ],
+          "method": "box_sat_overlap",
+          "status": "failed",
+          "overlap_evidence_m": 0.0028227586074505637,
+          "witness_world_m": null
+        }
+      ]
+    }
+  },
+  "contact_surface_status": "evaluated",
+  "model_input_sha256": "9f9edad4a292b3c6203da65a88791f45d0e2bde2f89ffc6b81ba94a5894a7781"
+}

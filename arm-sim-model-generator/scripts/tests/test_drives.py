@@ -9,7 +9,7 @@ from arm_sim.pipeline import generate
 SKILL=Path(__file__).resolve().parents[2]
 
 def example(kind='revolute'):
-    return {'schema_version':'1.0','model':{'name':'test_arm','joints':[{'name':'J1','type':kind,'origin':{'xyz_m':[0,0,0],'rpy_rad':[0,0,0]},'axis':[0,1,0] if kind=='revolute' else [0,0,1],'limits':[-1,1] if kind=='revolute' else [-.1,.2]}], 'tip':{'xyz_m':[.4,0,0],'rpy_rad':[0,0,0]}},
+    return {'schema_version':'1.0','model':{'name':'test_arm','joints':[{'name':'J1','type':kind,'origin':{'xyz_m':[0,.15,0] if kind=='revolute' else [0,0,.2],'rpy_rad':[0,0,0]},'axis':[0,1,0] if kind=='revolute' else [0,0,1],'limits':[-1,1] if kind=='revolute' else [0,.2]}], 'tip':{'xyz_m':[.4,0,0],'rpy_rad':[0,0,0]}},
             'physics':{'components':{'base_link':[{'name':'base','mass_kg':1,'com_m':[0,0,0],'inertia_frame':'link','inertia_kg_m2':np.diag([.02,.02,.02]).tolist()}],'J1':[{'name':'arm','mass_kg':2,'com_m':[.2,0,0],'inertia_frame':'link','inertia_kg_m2':np.diag([.01,.03,.03]).tolist()}]}},
             'drives':{'J1':{'effort':100,'velocity':2}},'export':{'mode':'strict','targets':['mujoco','isaac']}}
 
@@ -58,9 +58,9 @@ class DriveExportTests(unittest.TestCase):
     def setUp(self):
         try: import mujoco; from pxr import Usd
         except (ImportError,OSError): self.skipTest('MuJoCo/OpenUSD optional dependencies unavailable')
-    def run_example(self,raw,temp,runtime=True):
+    def run_example(self,raw,temp,runtime=True,expected='completed'):
         p=Path(temp)/'in.json'; p.write_text(json.dumps(raw),encoding='utf-8'); r=generate(p,Path(temp)/'out',runtime=runtime)
-        self.assertEqual(r['status'],'completed',r); return Path(r['run_directory'])
+        self.assertEqual(r['status'],expected,r); return Path(r['run_directory'])
     def test_revolute_and_slider_servo_runtime(self):
         for kind in ['revolute','prismatic']:
             with self.subTest(kind=kind),tempfile.TemporaryDirectory() as temp:
@@ -87,8 +87,9 @@ class DriveExportTests(unittest.TestCase):
                 stage=Usd.Stage.Open(str(run/'isaac'/'robot.usd')); self.assertFalse(UsdPhysics.DriveAPI.GetAll(stage.GetPrimAtPath('/Robot/J1')))
     def test_seven_axis_coupled_servos(self):
         with tempfile.TemporaryDirectory() as temp:
-            run=self.run_example(read_input(SKILL/'assets'/'seven-axis-driven.json'),temp)
+            run=self.run_example(read_input(SKILL/'assets'/'seven-axis-driven.json'),temp,expected='failed')
             v=read_input(run/'report'/'validation.json')
+            self.assertEqual(v['collision_review']['status'],'failed')
             self.assertEqual(v['mujoco']['runtime']['actuator_checks'],7)
             self.assertEqual(v['mujoco']['runtime']['servos']['status'],'passed')
             self.assertEqual(v['isaac']['drive_attribute_checks'],'passed')

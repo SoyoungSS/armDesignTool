@@ -8,7 +8,7 @@
 
 验证器检查二进制 STL 长度、非退化面、封闭边和有向体积。URDF 从导出 XML 重新计算每个连杆/末端位姿，比较零位、初始值、验收姿态与四组固定确定姿态；核对限位、轴、惯量、视觉/碰撞局部变换，并在临时目录搬移后加载全部 Mesh。独立 URDF 的资源根为 URDF 所在目录；加载器须支持这个约定或显式设置 resolver。不是所有 URDF 加载器都会自行解析相对文件名。
 
-干涉使用连杆 AABB 宽阶段与碰撞 primitive 内部采样点。solid_overlap_witnesses 表示找到同时严格位于两个碰撞实体内的点，包含相邻链接；关节壳体或导轨配合可能是有意重叠，需人工区分。没有 witness 不证明不相交。候选和证据分别列出，不以外观整体包围盒代替精确碰撞验收。
+干涉报告保留连杆 AABB 宽阶段和 solid_overlap_witnesses。新增的 [零件级碰撞复核](collision-review.md) 按配合区域、解析碰撞体和视觉接触面分别处理候选和证据，并将已证实的非预期干涉计入仿真目标验收。
 
 ## ROS1 Noetic / RViz
 
@@ -28,6 +28,8 @@ roslaunch <robot>_description display.launch gui:=false
 依赖 robot_state_publisher、joint_state_publisher、joint_state_publisher_gui、rviz。检查模型资源无错误、TF 链完整、初始值正确、每个滑块正方向和上下限；观察零位与验收姿态。保存 rosversion -d、构建结果、日志和截图。无 ROS1 桌面时只报告静态检查通过，构建/GUI 操作仍 pending。
 
 ## MuJoCo
+
+运行时验证可使用 `scripts/requirements-validation.txt` 的 MuJoCo 3.3.7 / OpenUSD 25.11 基线，已有 MuJoCo 4.0.1 项目环境也可复用。两条路径均比较稠密关节惯量矩阵与独立计算值，脚本兼容新旧 `mj_fullM` 签名。运行 `python scripts/generate.py generate --input assets/two-revolute-driven.json --output output --targets mujoco --runtime` 并检查该目标的 `runtime_validation` 和 `collision_validation`。
 
 `--runtime` 实际加载 MjModel，按导出名称设置 q，在全部检查姿态执行 mj_forward，核对每个 body 与 tool_frame site 的位姿、限位、质量、COM、主轴重构惯量。核对 actuator 数量、关节关联、kp/kv、控制/力矩范围、滤波常数和初始 activation；并将各固定采样姿态的整链质量矩阵、重力项与 MuJoCo 比较。恢复 initial keyframe 后运行50个建议步长的步进，检查有限状态与数值警告。
 

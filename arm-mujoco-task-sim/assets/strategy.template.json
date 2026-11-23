@@ -1,0 +1,16 @@
+{
+  "strategy_schema": "1.0",
+  "selected_route": "",
+  "selection_basis": "",
+  "observation_source": "",
+  "alternatives_considered": [],
+  "phases": [
+    {
+      "id": "",
+      "enter_when": "",
+      "command": "",
+      "exit_evidence": "",
+      "on_failure": ""
+    }
+  ]
+}

@@ -1,0 +1,607 @@
+{
+  "schema_version": "1.0",
+  "model": {
+    "name": "franka_fr3_reference",
+    "base_link": "fr3_link0",
+    "tip": {
+      "xyz_m": [
+        0.0,
+        0.0,
+        0.107
+      ],
+      "rpy_rad": [
+        0.0,
+        -0.0,
+        0.0
+      ]
+    },
+    "joints": [
+      {
+        "name": "fr3_joint1",
+        "parent": "fr3_link0",
+        "child": "fr3_link1",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0.0,
+            0.0,
+            0.333
+          ],
+          "rpy_rad": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "axis": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "limits": [
+          -2.3093,
+          2.3093
+        ],
+        "components": [
+          {
+            "name": "rigid_body",
+            "frame": "fr3_link1",
+            "mass_kg": 4.970684,
+            "com_m": [
+              0.003875,
+              0.002081,
+              -0.04762
+            ],
+            "inertia_frame": "component",
+            "inertia_rpy_rad": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "inertia_kg_m2": [
+              [
+                0.70337,
+                -0.000139,
+                0.006772
+              ],
+              [
+                -0.000139,
+                0.70661,
+                0.019169
+              ],
+              [
+                0.006772,
+                0.019169,
+                0.009117
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "name": "fr3_joint2",
+        "parent": "fr3_link1",
+        "child": "fr3_link2",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rpy_rad": [
+            -1.5707963267948966,
+            0.0,
+            0.0
+          ]
+        },
+        "axis": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "limits": [
+          -1.5133,
+          1.5133
+        ],
+        "components": [
+          {
+            "name": "rigid_body",
+            "frame": "fr3_link2",
+            "mass_kg": 0.646926,
+            "com_m": [
+              -0.003141,
+              -0.02872,
+              0.003495
+            ],
+            "inertia_frame": "component",
+            "inertia_rpy_rad": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "inertia_kg_m2": [
+              [
+                0.007962,
+                -0.003925,
+                0.010254
+              ],
+              [
+                -0.003925,
+                0.02811,
+                0.000704
+              ],
+              [
+                0.010254,
+                0.000704,
+                0.025995
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "name": "fr3_joint3",
+        "parent": "fr3_link2",
+        "child": "fr3_link3",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0.0,
+            -0.316,
+            0.0
+          ],
+          "rpy_rad": [
+            1.5707963267948966,
+            0.0,
+            0.0
+          ]
+        },
+        "axis": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "limits": [
+          -2.4937,
+          2.4937
+        ],
+        "components": [
+          {
+            "name": "rigid_body",
+            "frame": "fr3_link3",
+            "mass_kg": 3.228604,
+            "com_m": [
+              0.027518,
+              0.039252,
+              -0.066502
+            ],
+            "inertia_frame": "component",
+            "inertia_rpy_rad": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "inertia_kg_m2": [
+              [
+                0.037242,
+                -0.004761,
+                -0.011396
+              ],
+              [
+                -0.004761,
+                0.036155,
+                -0.012805
+              ],
+              [
+                -0.011396,
+                -0.012805,
+                0.01083
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "name": "fr3_joint4",
+        "parent": "fr3_link3",
+        "child": "fr3_link4",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0.0825,
+            0.0,
+            0.0
+          ],
+          "rpy_rad": [
+            1.5707963267948966,
+            0.0,
+            0.0
+          ]
+        },
+        "axis": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "limits": [
+          -2.7478,
+          -0.4461
+        ],
+        "components": [
+          {
+            "name": "rigid_body",
+            "frame": "fr3_link4",
+            "mass_kg": 3.587895,
+            "com_m": [
+              -0.05317,
+              0.104419,
+              0.027454
+            ],
+            "inertia_frame": "component",
+            "inertia_rpy_rad": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "inertia_kg_m2": [
+              [
+                0.025853,
+                0.007796,
+                -0.001332
+              ],
+              [
+                0.007796,
+                0.019552,
+                0.008641
+              ],
+              [
+                -0.001332,
+                0.008641,
+                0.028323
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "name": "fr3_joint5",
+        "parent": "fr3_link4",
+        "child": "fr3_link5",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            -0.0825,
+            0.384,
+            0.0
+          ],
+          "rpy_rad": [
+            -1.5707963267948966,
+            0.0,
+            0.0
+          ]
+        },
+        "axis": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "limits": [
+          -2.48,
+          2.48
+        ],
+        "components": [
+          {
+            "name": "rigid_body",
+            "frame": "fr3_link5",
+            "mass_kg": 1.225946,
+            "com_m": [
+              -0.011953,
+              0.041065,
+              -0.038437
+            ],
+            "inertia_frame": "component",
+            "inertia_rpy_rad": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "inertia_kg_m2": [
+              [
+                0.035549,
+                -0.002117,
+                -0.004037
+              ],
+              [
+                -0.002117,
+                0.029474,
+                0.000229
+              ],
+              [
+                -0.004037,
+                0.000229,
+                0.008627
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "name": "fr3_joint6",
+        "parent": "fr3_link5",
+        "child": "fr3_link6",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rpy_rad": [
+            1.5707963267948966,
+            0.0,
+            0.0
+          ]
+        },
+        "axis": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "limits": [
+          0.8521,
+          4.2094
+        ],
+        "components": [
+          {
+            "name": "rigid_body",
+            "frame": "fr3_link6",
+            "mass_kg": 1.666555,
+            "com_m": [
+              0.060149,
+              -0.014117,
+              -0.010517
+            ],
+            "inertia_frame": "component",
+            "inertia_rpy_rad": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "inertia_kg_m2": [
+              [
+                0.001964,
+                0.000109,
+                -0.001158
+              ],
+              [
+                0.000109,
+                0.004354,
+                0.000341
+              ],
+              [
+                -0.001158,
+                0.000341,
+                0.005433
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "name": "fr3_joint7",
+        "parent": "fr3_link6",
+        "child": "fr3_link7",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0.088,
+            0.0,
+            0.0
+          ],
+          "rpy_rad": [
+            1.5707963267948966,
+            0.0,
+            0.0
+          ]
+        },
+        "axis": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "limits": [
+          -2.6895,
+          2.6895
+        ],
+        "components": [
+          {
+            "name": "rigid_body",
+            "frame": "fr3_link7",
+            "mass_kg": 0.735522,
+            "com_m": [
+              0.010517,
+              -0.004252,
+              0.061597
+            ],
+            "inertia_frame": "component",
+            "inertia_rpy_rad": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "inertia_kg_m2": [
+              [
+                0.012516,
+                -0.000428,
+                -0.001196
+              ],
+              [
+                -0.000428,
+                0.010027,
+                -0.000741
+              ],
+              [
+                -0.001196,
+                -0.000741,
+                0.004815
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "physics": {
+    "components": {
+      "fr3_link0": [
+        {
+          "name": "rigid_body",
+          "frame": "fr3_link0",
+          "mass_kg": 0.629769,
+          "com_m": [
+            -0.041018,
+            -0.00014,
+            0.049974
+          ],
+          "inertia_frame": "component",
+          "inertia_rpy_rad": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "inertia_kg_m2": [
+            [
+              0.00315,
+              8.2904e-07,
+              0.00015
+            ],
+            [
+              8.2904e-07,
+              0.00388,
+              8.2299e-06
+            ],
+            [
+              0.00015,
+              8.2299e-06,
+              0.004285
+            ]
+          ]
+        }
+      ]
+    },
+    "payload": {
+      "mass_kg": 0,
+      "com_in_tip_m": [
+        0,
+        0,
+        0
+      ]
+    }
+  },
+  "installation": {
+    "base_in_world": {
+      "xyz_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rpy_rad": [
+        0.0,
+        -0.0,
+        0.0
+      ]
+    },
+    "gravity_world_m_s2": [
+      0,
+      0,
+      -9.81
+    ]
+  },
+  "poses": {
+    "initial": {
+      "fr3_joint1": 0.2,
+      "fr3_joint2": -0.45,
+      "fr3_joint3": 0.1,
+      "fr3_joint4": -1.7,
+      "fr3_joint5": -0.2,
+      "fr3_joint6": 1.65,
+      "fr3_joint7": 0.15
+    },
+    "acceptance": [
+      {
+        "name": "offset",
+        "q": {
+          "fr3_joint1": 0.35,
+          "fr3_joint2": -0.30000000000000004,
+          "fr3_joint3": 0.25,
+          "fr3_joint4": -1.55,
+          "fr3_joint5": -0.05000000000000002,
+          "fr3_joint6": 1.7999999999999998,
+          "fr3_joint7": 0.3
+        }
+      }
+    ]
+  },
+  "drives": {
+    "fr3_joint1": {
+      "mode": "auto",
+      "effort": 87.0,
+      "velocity": 2.0
+    },
+    "fr3_joint2": {
+      "mode": "auto",
+      "effort": 87.0,
+      "velocity": 1.0
+    },
+    "fr3_joint3": {
+      "mode": "auto",
+      "effort": 87.0,
+      "velocity": 1.5
+    },
+    "fr3_joint4": {
+      "mode": "auto",
+      "effort": 87.0,
+      "velocity": 1.25
+    },
+    "fr3_joint5": {
+      "mode": "auto",
+      "effort": 12.0,
+      "velocity": 3.0
+    },
+    "fr3_joint6": {
+      "mode": "auto",
+      "effort": 12.0,
+      "velocity": 1.5
+    },
+    "fr3_joint7": {
+      "mode": "auto",
+      "effort": 12.0,
+      "velocity": 3.0
+    }
+  },
+  "export": {
+    "mode": "strict",
+    "targets": [
+      "urdf",
+      "mujoco",
+      "isaac"
+    ]
+  },
+  "metadata": {
+    "description": "Parameter-derived reference with procedural concept shells, fixed base, no gripper/payload; nominal ROS parameters, no hardware calibration.",
+    "source_urdf_sha256": "5bd7c0158fe16250c3f9c0c3c3e5ea6a48080076982975c51ecd92dac375a1e0",
+    "source_tool_link": "fr3_link8",
+    "module_geometry": "Concept packaging estimates: allow 140 mm shoulder and 100 mm wrist module setbacks to clear the support brackets. Short lateral links are subject to the recorded proxy overlaps."
+  },
+  "dimensions": {
+    "joints": {
+      "fr3_joint1": {
+        "module_retreat_m": 0.14
+      },
+      "fr3_joint5": {
+        "module_retreat_m": 0.1
+      }
+    }
+  }
+}

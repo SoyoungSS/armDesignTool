@@ -1,5 +1,31 @@
 # 安装、模式与官方接口
 
+## 环境复用与离线安装
+
+先找到项目启动脚本或已有环境锁记录的 Python，用该解释器执行 `python <skill>/scripts/environment.py probe --mode web`，模式可换为 `native` 或 `headless`。探测会执行物理步进、质量矩阵计算、对应查看器组件导入和绘图。若项目已有独立绘图环境，可设置 `ARM_SIM_ANALYSIS_PYTHON`。通过后保存输出中的解释器路径并直接用于预检与正式运行。界面交互在任务场景中另行验收。
+
+**Windows x64、普通 CPython 3.12** 可从 skill 随附的 15 个原版 wheel 离线安装，覆盖 Studio 4.0.1、物理核心、WASM 客户端、NumPy、Matplotlib 和间接依赖。目标机需已有相应 Python（含 venv 和 pip）、系统运行库；原生查看器还需要桌面和图形驱动。在项目目录执行：
+
+```powershell
+py -3.12 <skill>/scripts/environment.py install --mode web --venv .venv
+.\.venv\Scripts\python.exe <skill>/scripts/run_task.py --project . --preflight
+```
+
+安装器先核对整包文件清单、平台与 SHA256，再用 `--no-index` 从本地安装，最后运行 `pip check` 和模式探测。使用其他模式可在同一环境重新 probe。固定的离线包供复现一次已验证组合，项目也可复用下节列出的其他兼容版本。
+
+没有 `py` 启动器时，直接用已有 64 位 Python 3.12 的可执行文件运行相同命令。首次安装后将探测输出里的 python 路径写入项目启动入口。该环境也已具备上游模型生成和 PNG 预览所需的 NumPy 和 Pillow，生成 MJCF 与任务仿真可以共用它。OpenUSD 导出另需相应版本的 `usd-core`。
+
+这套离线包已在 Windows x64 / CPython 3.12 上完成 Web 后端和本地窗口各 200 步试跑。Windows 上 Studio 4.0.1 的默认显示路径可能报 `Target not found`，本运行器对这一组合使用实测可用的 `opengl_software` 本地呈现模式。需要验证其他原生显示后端时可在合同中指定 `native_gfx`。裸机需一并携带与目标平台匹配、可离线使用的 CPython 发行包和必要的系统运行库。
+
+**其他系统、架构、Python 或 MuJoCo 版本**可在与目标机匹配的联网机器准备离线包（Linux 还应匹配 glibc 基线）。复制整个生成目录，保留 `bundle.json` 和原版 wheel 内的许可证。下面以 Studio 4.0.1 为例：
+
+```text
+python <skill>/scripts/environment.py pack --mode web --version 4.0.1 --bundle <新目录>
+python <skill>/scripts/environment.py install --mode web --venv <项目环境> --bundle <已复制的目录>
+```
+
+纯计算可用 `pack --mode headless` 准备 core 和绘图依赖。涉及视觉识别、相机或额外规划库时，先根据选定路线列明增量依赖与离线资产。断网且无匹配包时，报告缺少的解释器、平台或包名，并给出匹配机器上的准备命令。保留已有可用环境，避免反复重建。
+
 ## 版本选择
 
 2026-11-16 核查官方发布说明和 PyPI 文件。按用户选定的模式选择 Python 发行包，并核对系统、CPU 架构和 Python ABI 对应的 wheel。

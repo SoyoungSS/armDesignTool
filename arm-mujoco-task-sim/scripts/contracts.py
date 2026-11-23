@@ -5,8 +5,60 @@ import math
 from pathlib import Path
 
 
+def strategy_errors(strategy, policy):
+    """Check the portable route template when the project adopts its schema."""
+    if not isinstance(strategy, dict) or 'strategy_schema' not in strategy:
+        return []
+    if strategy['strategy_schema'] != '1.0':
+        return ['Unknown strategy_schema']
+    errors = []
+    for field in ('selected_route', 'selection_basis', 'observation_source'):
+        if not isinstance(strategy.get(field), str) or not strategy[field].strip():
+            errors.append('Fill the selected strategy field: ' + field)
+    steps = strategy.get('phases')
+    if not isinstance(steps, list) or not steps:
+        return errors + ['Define at least one strategy phase']
+    names = []
+    for index, step in enumerate(steps):
+        for field in ('id', 'enter_when', 'command', 'exit_evidence', 'on_failure'):
+            value = step.get(field) if isinstance(step, dict) else None
+            if not isinstance(value, str) or not value.strip():
+                errors.append(f'Strategy phase {index + 1} needs {field}')
+        if isinstance(step, dict) and isinstance(step.get('id'), str):
+            names.append(step['id'])
+    if len(names) != len(set(names)):
+        errors.append('Strategy phase IDs must be unique')
+    if isinstance(policy, dict) and isinstance(policy.get('phases'), dict):
+        expected = set(policy['phases']) - {'initial'}
+        if set(names) != expected:
+            errors.append(f'Strategy and collision phase IDs differ: {sorted(set(names) ^ expected)}')
+    return errors
+
+
 def validate(c, project=None):
     errors = []
+    policy = c.get('collision_policy')
+    if c.get('schema_version') == '1.1' or policy is not None:
+        if not isinstance(policy, dict) or not isinstance(policy.get('phases'), dict) or 'initial' not in policy['phases']:
+            errors.append('Define collision_policy.phases.initial and rules for each operating phase')
+    path_mode = c.get('collision_path_mode')
+    if path_mode is not None and (path_mode not in ('planned', 'online', 'feedback_only') or not policy):
+        errors.append('collision_path_mode requires a policy and a supported path mode')
+    if path_mode == 'feedback_only' and not str(c.get('collision_path_reason') or '').strip():
+        errors.append('Explain why feedback_only control has no predicted position segment')
+    if c.get('schema_version') == '1.1' and path_mode is None:
+        errors.append('Choose planned, online or feedback_only collision_path_mode for this task')
+    if c.get('schema_version') == '1.1' and isinstance(policy, dict):
+        if policy.get('default', 'forbid') != 'forbid':
+            errors.append('List intended contact pairs in each phase; new tasks default to forbid')
+        phases = policy.get('phases')
+        for phase, rules in (phases.items() if isinstance(phases, dict) else ()):
+            if not isinstance(rules, list):
+                errors.append(f'Expected list of contact rules for {phase}')
+                continue
+            for rule in rules:
+                if isinstance(rule, dict) and rule.get('mode') in ('allow', 'require') and 'max_depth_m' not in rule:
+                    errors.append(f'{phase}: set a sourced max_depth_m for {rule.get("a")}/{rule.get("b")}')
     for key in ['model_input', 'task_description', 'initial_conditions', 'cycle_definition', 'between_cycles',
                 'timing', 'physics_approval', 'strategy', 'state_source']:
         if not c.get(key): errors.append('Missing '+key)
@@ -29,6 +81,10 @@ def validate(c, project=None):
     if project is not None:
         for key in ['scene', 'adapter', 'asset_manifest', 'strategy_file']:
             if not c.get(key) or not (Path(project)/c[key]).is_file(): errors.append('Missing file '+key)
+        if c.get('schema_version') == '1.1' and c.get('strategy_file'):
+            strategy_path = Path(project)/c['strategy_file']
+            if strategy_path.suffix.lower() == '.json' and strategy_path.is_file():
+                errors.extend(strategy_errors(json.loads(strategy_path.read_text(encoding='utf-8')), policy))
     if errors: raise ValueError('\n'.join(errors))
     return c
 
