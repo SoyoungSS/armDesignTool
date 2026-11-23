@@ -73,12 +73,13 @@ def build_geometry(n,folder):
         end=np.array(down['origin']['xyz_m'] if down else n['model']['tip']['xyz_m']); span=float(np.linalg.norm(end))
         spec=dims.get('links',{}).get(link,{})
         for k in spec:
-            if k not in ['width_m','width_mm','thickness_m','thickness_mm','max_envelope_m','max_envelope_mm']: raise InputError('unknown link dimension '+k)
+            if k not in ['width_m','width_mm','thickness_m','thickness_mm','max_envelope_m','max_envelope_mm','distal_setback_m','distal_setback_mm']: raise InputError('unknown link dimension '+k)
         width=value(spec,'width_m',plan['widths_m'][idx],rec)
         thick=value(spec,'thickness_m',width*.82,rec)
         module=dims.get('joints',{}).get(up['name'],{}) if up else dims.get('base',{})
         module_keys=['diameter_m','diameter_mm','axial_width_m','axial_width_mm']
         if up: module_keys+=['role','module_retreat_m','module_retreat_mm']
+        else: module_keys+=['bearing_mount_side']
         for k in module:
             if k not in module_keys: raise InputError('unknown module dimension '+k)
         cap=plan['module_diameter_caps_m'][idx]
@@ -110,17 +111,21 @@ def build_geometry(n,folder):
         # Ends are buried into the same-link housing; no exposed narrow neck.
         clearance=min(diameter*.55,span*.30); proxy_len=max(0,span-2*clearance)
         if span>1e-6:
-            T=tf(R=beam_frame(end,axis),p=end/2)
+            setback=value(spec,'distal_setback_m',0.,rec) if any(k.startswith('distal_setback_') for k in spec) else 0.
+            if setback >= span: raise InputError(link+': distal_setback_m must be smaller than link span')
+            beam_length=span-setback
+            T=tf(R=beam_frame(end,axis),p=end*(beam_length/(2*span)))
             profile=[(0,.62),(.025,.80),(.07,.94),(.15,1),(.30,.98),(.60,.90),(.82,.84),(.93,.79),(.975,.68),(1,.54)]
             if kind=='pedestal':
                 profile=[(0,1),(.03,1),(.14,.98),(.45,.90),(.75,.82),(.93,.78),(1,.72)]
             elif kind in ['elbow_shell','offset_parallel']:
                 profile=[(0,.65),(.04,.87),(.12,1),(.28,.98),(.58,.89),(.78,.88),(.90,.91),(.97,.79),(1,.58)]
-            parts.append(part('beam','chamfer',[width,thick,span],T,profile=profile))
-            parts[-1]['collision_size']=[width,thick,max(proxy_len,span*.1)]
+            parts.append(part('beam','chamfer',[width,thick,beam_length],T,profile=profile))
+            parts[-1]['collision_size']=[width,thick,max(beam_length-2*clearance,beam_length*.1)]
             rec['shell_collision']='central box; rounded end transitions approximated by joint housings, not exact surface collision'
-            proxy={'kind':'box','size':[width,thick,max(proxy_len,span*.1)],'T':T}
+            proxy={'kind':'box','size':[width,thick,max(proxy_len,span*.1)],'T':tf(R=T[:3,:3],p=end/2)}
         else:
+            if any(k.startswith('distal_setback_') for k in spec): raise InputError(link+': no beam for distal setback')
             rec['short_span']={'value':span,'source':'kinematics','basis':'full-scale wrist housing; original frames preserved'}
             proxy={'kind':'cylinder','size':[diameter/2,axial],'T':tf(R=R)}
         if span<diameter and span>1e-8:
@@ -145,6 +150,23 @@ def build_geometry(n,folder):
         if not detail:
             parts=[p for p in parts if not p['name'].endswith('_hub') and p['name']!='mounting_rim']
         result[link]={'parts':parts,'proxy':proxy,'rec':rec,'spec':spec,'span':span}
+    side=dims.get('base',{}).get('bearing_mount_side')
+    if side is not None:
+        joint=js[0]; O=tf(joint['origin'])
+        if isinstance(side,bool) or side not in (-1,1) or joint['type']!='revolute':
+            raise InputError('bearing_mount_side requires +1 or -1 and a first revolute')
+        a=side*(O[:3,:3]@joint['axis'])
+        if np.linalg.norm(O[:3,3])>1e-9 or abs(a[2])>1e-9:
+            raise InputError('bearing_mount_side requires +1 or -1 and a first revolute centered on, and parallel to, the mounting plane')
+        base=result[links[0]]; housing=next(p for p in result[links[1]]['parts'] if p['name']=='housing')
+        plate=base['parts'][0]; gap=appearance.get('assembly_clearance_m',appearance.get('assembly_clearance_mm',2.)*.001)
+        start=.563*housing['size'][1]+gap
+        position=start+plate['size'][0]*1.05
+        for p in base['parts']:
+            p['T'][:3,3]+=position*a; p['vertices']+=position*a
+        base['parts'].append(part('bearing_pedestal','cylinder',[min(plate['size'][1]*.8,housing['size'][0]*.70),position-start],
+                             tf(R=align_z(a),p=(position+start)*a/2),'joint'))
+        base['rec']['bearing_mount_side']=dict(side=side,plate_offset_m=position,bearing_face_distance_m=start)
     from .joint_layout import apply_layout
     apply_layout(n,result,part)
     for link,data in result.items():
@@ -180,10 +202,16 @@ def unit_mass_properties(proxy):
 
 def mass_properties(n,g):
     missing=[]; result={}; mode=n['export']['mode']; estimation=n['physics'].get('estimation',{})
+    massless=n['physics'].get('fixed_base_massless',False)
+    if type(massless) is not bool or (massless and n['components'][n['base_link']]):
+        raise InputError('fixed_base_massless requires a boolean and no base mass components when true')
     if estimation.get('method') not in [None,'uniform_density','known_mass_proxy']: raise InputError('unknown physics.estimation.method')
     for link,data in g.items():
         volume,centroid,Iunit=unit_mass_properties(data['proxy']); comps=n['components'][link]; sources=[]
         if not comps:
+            if link==n['base_link'] and massless:
+                n['notes'].append('Fixed world-mounted base has no specified mass; moving-body mass and gravity are unchanged.')
+                continue
             if mode=='concept' and estimation.get('method')=='uniform_density':
                 rho=number(estimation.get('density_kg_m3'),'density_kg_m3',True)
                 comps=[{'name':'density_proxy','mass_kg':rho*volume,'com_m':centroid.tolist(),'inertia_kg_m2':(rho*volume*Iunit).tolist()}]

@@ -24,7 +24,7 @@ try{
   });
   await test('each model selector example runs all three Skills with a shared model',async()=>{
     for(const [key,file] of [
-      ['worksheet','seven-axis'],['design-right-arm','design-right-arm'],
+      ['worksheet','seven-axis'],['fr3','franka-fr3'],['design-right-arm','design-right-arm'],
       ['seven-axis-sim','seven-axis-sim'],['franka-fr3','franka-fr3-flange-preset'],
     ]){
       const example=await fetch(url+'/model-examples/'+key+'.json');

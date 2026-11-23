@@ -28,6 +28,8 @@ python scripts/reference_arms.py --arm kuka_kr6_r900_2 --mujoco --usd
 
 ## 碰撞复核
 
+需要用 FR3 运行分拣时，可以从[默认任务输入](../assets/examples/defaults/fr3.json)生成新模型。该输入保留这里的 FR3 运动学及动力学参数，重新设计短连杆外壳，使初始姿态和偏置姿态均通过零件级检查。下方旧几何保留为可复现的碰撞反例。
+
 原有两款参考臂保留所有标称关节限位和真实零件对。UR5e 调整概念肩部布局后，几何零位、初始位及偏置位均通过零件复核；独立搜索时在折叠姿态 `sample_1` 检出底座臂壳与上臂臂壳相交。FR3 例子的数值动力学通过，但初始位仍有短横向连杆的装配问题，例如第 3 连杆碰撞梁和第 4 连杆壳体有共同内部点，证据深度约 4.70 mm。作为动力学和失败诊断例子使用，任务场景应先重新设计相应壳体，再复核。每个报告的 `named_pose_results` 可直接查对应关节配置、零件、证据和结论。[UR5e 碰撞复核](../assets/reference-arms/ur5e/collision-review.json) · [FR3 碰撞复核](../assets/reference-arms/franka_fr3/collision-review.json)
 
 新增三款的初始姿态和偏置姿态均通过零件级碰撞复核。KUKA 的肩肘腕使用逐轴概念壳体尺寸；xArm6 肩部和腕部的轴向电机沿上游退让；UR10e 的肘和腕分别设置壳体直径和轴向宽度。全部尺寸都可在各自输入的 `dimensions` 中检查。三款在扩展采样中均存在干涉，xArm6 与 UR10e 的几何零位也有干涉。任务起点优先读 `initial`，仍须检查实际场景和整条路径。

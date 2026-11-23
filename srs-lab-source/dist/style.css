@@ -75,3 +75,12 @@ select:disabled { background-color:#eef0f2; color:#687078; cursor:not-allowed; }
 .joint-field-help{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px 18px;margin:10px 0 16px}
 .joint-field-help dt{font-weight:600}
 .joint-field-help dd{margin:3px 0 0}
+
+.run-view .card-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.run-view label{display:inline-flex;align-items:center;gap:8px;font-weight:600;white-space:nowrap}.run-view label select{width:auto}
+.run-view select{font:inherit;color:inherit;border:1px solid #c8d2d5;border-radius:6px;padding:6px;background:#fff}
+.run-canvas{height:clamp(320px,54vh,650px);width:100%;background:#f1f4f4;touch-action:none}
+.run-canvas canvas{width:100%;height:100%;display:block;cursor:grab}
+.run-canvas canvas:active{cursor:grabbing}.run-view [data-controls][hidden]{display:none}
+.run-view [data-seek]{flex:1;min-width:100px;accent-color:#863951}
+.run-view .run-status{font-weight:600}.run-view .button{text-decoration:none}.run-view [data-clock]{font-variant-numeric:tabular-nums}

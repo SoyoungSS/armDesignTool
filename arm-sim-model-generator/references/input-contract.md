@@ -28,11 +28,15 @@ origin 相对上游输出刚体；`T_child=T_parent T_origin Rot(axis,q)` 或 `T
 
 外形默认使用 rounded-shell-v2，详见 [外形规则](appearance.md)。可选 `dimensions.appearance={"detail_level":0}` 关闭少量制造细节；默认1。这些细节不参与质量/碰撞。
 
+`dimensions.links.<link>.distal_setback_m` 指定主梁外壳从远端关节中心退让的长度，应大于零且小于该连杆跨度。视觉壳体和碰撞代理一起缩短，关节中心、轴系和已有质量参数保持原始定义。共点模组的上游主梁由 `module_retreat_m` 控制。对安装在墙面的肩轴，如果第一旋转轴位于基座原点且平行于安装平面，可指定 `dimensions.base.bearing_mount_side` 为 +1 或 −1。它沿第一关节的局部正轴或负轴放置固定支座，给肩部转子和端盖留装配间隙。
+
 相邻共点旋转轴支持模组角色和轴向退让：`dimensions.joints.J1={"role":"axial_twist","module_retreat_mm":130}`；角色默认 auto，退让默认推导。`dimensions.appearance.assembly_clearance_mm` 默认2。它们只影响外壳/碰撞部件布置，不改关节 origin；完整约束见 [关节模组规则](joint-layout.md)。
 
 ## physics
 
 组件置于原有 model.joints[i].components 或 `physics.components:{link_or_joint_name:[components]}`。两者相加，同一刚体内重名拒绝；模组固定端/运动端保留真实所属刚体。
+
+对于固定安装且没有基座质量数据的模型，可显式设置 `physics.fixed_base_massless=true`。此时仍生成支座几何，固定基座省略质量参数，所有运动刚体仍需满足原有质量要求。提供基座质量时应省略此选项。
 
 ```json
 {"name":"housing","mass_kg":1.2,"com_m":[0.05,0.01,0],"frame":"J1_link",

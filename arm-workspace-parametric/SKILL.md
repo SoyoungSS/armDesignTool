@@ -17,14 +17,20 @@ description: 参数化串联机械臂工作空间分析，支持 FK 点云、目
 - 保存成功解、误差、输入哈希和内核版本，重放前复核关节限位与模型一致性。
 - 不检查碰撞、自碰撞、负载扭矩、热或双臂协同；左右臂单独运行不等于双臂协同验证。
 
-Node.js >=20，无第三方运行依赖：
+## 双默认示例
 
-```powershell
-node scripts/run.mjs --input assets/examples/worksheet-workspace.jsonc --output outputs/workspace_result.json --report-dir outputs
-node --test scripts/tests/*.test.mjs
+在本工具目录使用 Node.js 20 或更高版本运行。选型表采用同一套七轴单臂的侧装模型，FR3 采用 Franka ROS 标称模型。两份请求均可单独运行。[选型表七轴单臂](assets/examples/defaults/worksheet.json) · [Franka FR3](assets/examples/defaults/fr3.json)
+
+```bash
+node scripts/run.mjs --input assets/examples/defaults/worksheet.json --output outputs/worksheet/result.json --report-dir outputs/worksheet
+node scripts/run.mjs --input assets/examples/defaults/fr3.json --output outputs/fr3/result.json --report-dir outputs/fr3
 ```
 
-CLI导出JSON、点云CSV、Markdown报告及XY/XZ/YZ投影SVG。网页后端调用相同CLI；失败不得显示旧网页点云作为新Skill结果。新输入可参考 `franka-fr3.workspace.json` 和 `worksheet-reachability.jsonc`。历史 Dexbot 数据已移入测试夹具。
+两例分别用种子 42 在七轴关节限位内抽取 30,000 组姿态，导出基座系及世界系法兰点云、三个方向的投影图和 CSV。选型表采用侧装基座，FR3 采用标准直立安装。
+
+FR3 保留七个活动轴的标称质量、局部质心和惯性张量、基座安装及 0.107 m 法兰偏移，使用无手爪、空载配置。上游公用惯性表采用 Gaz 等人针对 Panda 的辨识结果。[Franka 固定版本惯性来源](https://github.com/frankarobotics/franka_ros/blob/ddd2fffd9de44b02ad15b4bbb2bfa2cec4d60d98/franka_description/robots/common/inertial.yaml) · [上游许可证](references/franka-fr3-LICENSE.txt)
+
+CLI 导出结果 JSON、点云 CSV、Markdown 报告和 XY/XZ/YZ 投影 SVG。运行 `node --test scripts/tests/*.test.mjs` 可复核内核。
 
 三类空间及未解点的带注释演示见 `assets/examples/worksheet-classification.jsonc`。分类颜色、筛选、JSON/CSV字段与报告使用统一定义。
 
@@ -36,6 +42,6 @@ CLI 与 `analyze(input)` 另外接受 `schema_name: "arm-analysis-request"`、`s
 独立执行仍使用本 Skill 的 `scripts/run.mjs --input ... --output ... --report-dir ...`。共享代码位于同包根的 `shared/`，单独分发时使用仓库 `shared/scripts/package-skill.mjs` 生成 bundle；保留 skill 与 shared 同级结构，不依赖网页源码或原始仓库路径。
 
 
-## 当前示例
+## 历史几何输入
 
-公开模型仅有选型表七轴单臂和 Franka FR3。FR3 输入为 `assets/examples/franka-fr3.workspace.json`，完整保留用户提供的 origin RPY、七个主动关节限位和末端固定关节。其末端为 fr3_link8 法兰，不含夹爪/TCP；无质量/惯量，不能据此做静力学或动力学。来源指纹见 `references/franka-fr3-source.json`。
+早期导入的 `assets/examples/franka-fr3.workspace.json` 保留原始用户几何、末端固定关节和旧软件限位，适用于重放该版本结果。其原文件指纹见 [历史来源](references/franka-fr3-source.json)。

@@ -11,6 +11,7 @@ const meters=values=>values.map(value=>value/1000);
 const skillLabels={statics:'静力学校核',workspace:'可达空间',motion:'运动学与动力学'};
 const examples=[
   ['worksheet','选型表七轴单臂'],
+  ['fr3','Franka FR3'],
   ['design-right-arm','双臂设计方案 CAD 右臂'],
   ['seven-axis-sim','七轴仿真输入'],
   ['franka-fr3','Franka FR3 法兰质量预设'],

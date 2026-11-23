@@ -1,12 +1,26 @@
 # RobotArm DesignTool — 机械臂设计、静力学校核与工作空间分析工作台
 
-本工程将 **SRS Lab 网页工作台** 与三个独立计算 Skill 放在同一仓库中：
+本工程将 **SRS Lab 网页工作台** 与五个独立 Skill 放在同一仓库中：
 
 - **`arm-statics-parametric`**：保持载荷、关节范围内大载荷姿态搜索及静态驱动需求，支持任意基座安装朝向和重力分量。
 - **`arm-workspace-parametric`**：关节采样点云、目标位置/姿态 IK、空间与采样灵巧空间分类、几何不可达与待定点分析。
-- **`arm-kinematics-dynamics`**：第一阶段已支持关节轨迹生成/导入、TCP 状态、运动约束和奇异性分析，尚不计算动态载荷。
+- **`arm-kinematics-dynamics`**：关节轨迹生成/导入、TCP 状态、运动约束、奇异性与刚体逆动力学载荷。
+- **`arm-sim-model-generator`**：生成机械臂网格、初始姿态 PNG、URDF 和 MJCF，按目标导出其他格式。
+- **`arm-mujoco-task-sim`**：两种默认示例分别完成三轮红左蓝右桌面分拣，保留接触、轨迹与落盘证据。
 
-三个 Skill 均可通过 CLI 独立运行；网页后端启动真实 CLI，返回计算结果、输入哈希和执行来源。计算不依赖大模型在线推理，也不需要 CUDA。
+五个 Skill 均内置选型表七轴单臂和 Franka FR3 的可运行示例。三个分析 Skill 均可通过 CLI 独立运行；网页后端启动真实 CLI，返回计算结果、输入哈希和执行来源。计算不依赖大模型在线推理，也不需要 CUDA。
+
+## 查看默认模型和桌面分拣
+
+启动下文的网页工作台后，使用侧栏的 **机械臂三维模型** 和 **桌面分拣仿真**。在页面中可切换两个默认机型，拖动旋转、滚轮缩放。分拣页提供真实物理步进数据的回放、轮次选择和逐件验收报告。实时 MuJoCo 进程已启动时，还可打开其独立的交互窗口。
+
+网页默认读取与仓库同级的 `armDesignTool-runs/dual-defaults`。其中 `statics/`、`workspace/`、`motion/`、`models/`、`sorting/` 下各有 `worksheet/` 和 `fr3/`，可用 `ARM_DEMO_RESULTS` 指定其他结果根目录。从仓库根目录运行以下命令，将已经生成的模型及通过验收的分拣轨迹发布到本地工作台：
+
+```sh
+python srs-lab-source/server/prepare-viewer.py --results-root ../armDesignTool-runs/dual-defaults
+```
+
+使用安装了 MuJoCo 和 NumPy 的解释器。两种机械臂的复算命令分别见[分析示例目录](docs/examples-catalog.md)、[模型生成](arm-sim-model-generator/SKILL.md)和[分拣任务](arm-mujoco-task-sim/SKILL.md)。
 
 ## 1. 功能与计算来源
 
@@ -25,13 +39,13 @@
 
 ## 2. 快速启动
 
-工程可以放在任意磁盘或目录，不要求固定盘符。**以下启动命令均从工程根目录运行**，即同时包含 `README.md`、`srs-lab-source` 和两个 Skill 文件夹的目录。请先在该目录打开终端。
+工程可以放在任意磁盘或目录。**以下启动命令均从工程根目录运行**，即包含 `README.md`、`srs-lab-source` 和五个 Skill 文件夹的目录。
 
 ### 环境要求
 
-需要 **Node.js ≥20**。网站和两个计算 CLI 无第三方运行依赖，首次运行无需 `npm install`。
+网页工作台及三个分析 CLI 使用 **Node.js ≥20**。三维显示库随工作台提供，首次运行无需 `npm install`。
 
-Python 3 仅用于可选的 URDF 转换及其测试。PyYAML 仅用于 Skill 作者的元数据校验，不是计算运行依赖。
+浏览已有三维结果和回放只需启动工作台。重新生成模型、执行物理分拣或启动实时 MuJoCo 窗口时，使用对应 Skill 说明中的 Python 环境。
 
 ### Windows PowerShell
 

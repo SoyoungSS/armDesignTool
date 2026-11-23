@@ -20,13 +20,18 @@ description: 不依赖URDF的参数化机械臂静力学校核。支持标准输
 
 注释输入可用 `assets/examples/worksheet-minimal.jsonc`；严格 JSON 对照为同名 `.json`。CLI、参考网页和 HTTP 统一通过 `scripts/lib/input-text.mjs` 解析，支持 `//` 与 `/* */` 注释及 UTF-8 BOM，不支持尾逗号。`analyze(input)` 仍接收普通对象，输出始终为严格 JSON。详细示例见 [精简输入与输出](references/minimal-input-output.md)。
 
-## 执行
+## 双默认示例
 
-在技能目录使用Node.js≥20，推荐22/24，无需安装npm依赖：
+在本工具目录使用 Node.js 20 或更高版本运行。选型表采用同一套七轴单臂的侧装模型，FR3 采用 Franka ROS 标称模型。两份请求均可单独运行。[选型表七轴单臂](assets/examples/defaults/worksheet.json) · [Franka FR3](assets/examples/defaults/fr3.json)
 
 ```bash
-node scripts/run.mjs --input assets/examples/worksheet-minimal.json --output /absolute/output/statics_result.json --report-dir /absolute/output/report
+node scripts/run.mjs --input assets/examples/defaults/worksheet.json --output outputs/worksheet/result.json --report-dir outputs/worksheet
+node scripts/run.mjs --input assets/examples/defaults/fr3.json --output outputs/fr3/result.json --report-dir outputs/fr3
 ```
+
+两例以种子 42 搜索 20,000 个姿态并计算指定姿态的七轴保持力矩。选型表含 3 kg 负载和前、侧平举工况。FR3 采用重力 9.81 m/s²，在初始和偏置姿态检查空载法兰。
+
+FR3 保留七个活动轴的标称质量、局部质心和惯性张量、基座安装及 0.107 m 法兰偏移，使用无手爪、空载配置。上游公用惯性表采用 Gaz 等人针对 Panda 的辨识结果。[Franka 固定版本惯性来源](https://github.com/frankarobotics/franka_ros/blob/ddd2fffd9de44b02ad15b4bbb2bfa2cec4d60d98/franka_description/robots/common/inertial.yaml) · [上游许可证](references/franka-fr3-LICENSE.txt)
 
 将示例替换成实际请求。失败返回非零退出码与结构化错误；不得把仍存在的旧结果解释为新请求成功。主JSON在计算及配套导出完成后原子替换，配套文件不是整目录事务。
 
@@ -51,9 +56,7 @@ node scripts/run.mjs --input assets/examples/worksheet-minimal.json --output /ab
 
 ## 示例与测试
 
-- 公开示例仅保留选型表七轴单臂：worksheet-minimal.json/jsonc、worksheet-installation.jsonc 和 design-seven-axis.json。
-- 单杆、两杆、移动关节和历史左右臂数据仅位于 scripts/tests/fixtures，用于回归，不作为用户示例。
-- Franka FR3 尚无质量/COM，不能作为静力学示例。
+- 旧版简易格式、安装参数和轴向约定可通过 worksheet-minimal.json/jsonc 与 worksheet-installation.jsonc 重放。单杆、两杆和移动关节等回归数据见 scripts/tests/fixtures。
 - 执行 `node --test scripts/tests/*.test.mjs`。不要将未运行的浏览器或服务检查写成已通过。
 
 只支持固定基座串联刚体链。闭链、柔性、浮动基座、未知接触反力与被动关节平衡不求解。fixed代表几何锁定，不模拟有限容量抱闸。重力静力学不要求惯性张量。

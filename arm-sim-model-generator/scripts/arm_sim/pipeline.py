@@ -2,17 +2,11 @@ import hashlib, json, uuid, traceback
 from pathlib import Path
 from .model import read_input, normalize
 from .geometry import build_geometry, mass_properties
-from .math3d import serializable
+from .resources import hashes, write_json
 from .exporters import urdf, ros1, mjcf, usd
 from .validation import run_checks
 from .drives import prepare_drives
 from .collision import mating_pairs
-
-def write_json(path,obj):
-    path.parent.mkdir(parents=True,exist_ok=True); path.write_text(json.dumps(serializable(obj),ensure_ascii=False,indent=2,allow_nan=False)+'\n',encoding='utf-8')
-
-def hashes(run):
-    return {p.relative_to(run).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(run.rglob('*')) if p.is_file() and p.name not in ['manifest.json','validation.json','report.md']}
 
 def report(n,manifest,checks,run):
     lines=['# 模型生成报告','',f"模型：{n['model']['name']}；等级：{n['model_grade']}。",'', '所有坐标为右手系，m/kg/rad；RPY=Rz Ry Rx。基座安装只应用于 world→base 一次。几何零位与初始关节值分开保存。','', '| 目标 | 生成/检查状态 | 运行时 |','|---|---|---|']

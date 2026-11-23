@@ -20,4 +20,23 @@ python -m unittest discover -s scripts/tests -p test_collision_review.py -v
 
 [斜轴滑台](assets/skew-prismatic.json) 和 [七轴驱动](assets/seven-axis-driven.json) 保留原始设计，可用于复现“驱动或格式检查通过，零件级碰撞验收失败”。两者的已知干涉见 [碰撞样例](references/collision-review.md)。
 
+项目的两台默认七轴机械臂有独立输入。[原表格空载臂](assets/examples/defaults/worksheet.json)的运动部件共 3.612 kg。静力学的 3 kg 末端负载另有[独立工况](assets/examples/defaults/worksheet-with-3kg.json)。分拣场景使用空载输入，另建实际夹爪和自由物体。[FR3 空载参考臂](assets/examples/defaults/fr3.json)保留参考刚体惯量和轴系，工作模型在肘、腕为概念外壳留出转动空间。
+
+在装有 MuJoCo 的环境中运行默认例子。每条命令都生成独立模型、预览和运行时检查，并复核一段指定运动。读取各自输出目录的 `default_acceptance.json`，其中 `nominal_motion_collision` 对应表格臂的零位至初始位，或 FR3 的初始位至偏置位。`full_range_collision` 单独记录原限位抽查。通用生成命令在宽范围内检出干涉时返回失败；此默认入口按声明的运动范围返回退出码。
+
+```sh
+python scripts/default_model.py --arm worksheet --output output/worksheet
+python scripts/default_model.py --arm fr3 --output output/fr3
+```
+
+这两个默认例子的指定运动、原始限位干涉反例和生成器运行时检查，均已在 MuJoCo 3.3.7、4.0.1 实测。
+
+两台默认臂的初始位通过零件复核，部分极限姿态仍有关节外壳干涉。评估限定任务时保留原始全范围报告。将同一模型实际运行的每个物理步写成含 `time_s,cycle,phase` 和所有活动关节名的 CSV，旋转值用 rad，移动值用 m。在 MuJoCo 环境运行下列命令，报告存到任务目录：
+
+```sh
+python scripts/check_path.py --run output --trajectory task/data/arm_path.csv --output task/reports/arm_path_collision.json
+```
+
+脚本核对模型资源指纹，按连杆运动距离细分相邻记录，再直接计算跨连杆碰撞体之间的距离。判定范围为本次记录的机械臂轨迹。工具、工件、桌面接触和抓持保持情况由任务场景同步验收。用分拣通过的结果报告对应轨迹，并保留模型报告中的极限位冲突。
+
 可在 `scripts/` 导入 `arm_sim.pipeline.generate(input_path, output, targets=None, runtime=False)`、`validate(output, runtime=False)`。URDF/ROS1 可在缺少动力学属性时交付可视模型；MJCF 动力学等待质量和惯量补齐。世界安装仅应用一次，旋转使用 `Rz Ry Rx`，关节轴在局部关节系。负载以独立质量或已计入部件标注。

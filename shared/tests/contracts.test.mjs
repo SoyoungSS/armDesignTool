@@ -12,6 +12,7 @@ import {toStaticsRequest,toWorkspaceRequest} from '../model/adapters.mjs';
 import {analyze as statics,toStandardInput} from '../../arm-statics-parametric/scripts/lib/statics.mjs';
 import {analyze as workspace} from '../../arm-workspace-parametric/scripts/lib/workspace.mjs';
 import {forward} from '../kinematics/serial.mjs';
+import {prepareDynamics,inverseDynamics} from '../../arm-kinematics-dynamics/scripts/lib/dynamics.mjs';
 const root=new URL('../../',import.meta.url);
 const json=async path=>JSON.parse(await readFile(new URL(path,root),'utf8'));
 const models=Object.fromEntries(await Promise.all(['single-link','two-link','seven-axis'].map(async name=>[name,await json(name==='seven-axis'?`examples/models/${name}.json`:`shared/tests/fixtures/models/${name}.json`)])));
@@ -99,7 +100,7 @@ test('web installation adapter updates common model without adding legacy root f
   }finally{await rm(temp,{recursive:true,force:true});}
 });
 
-test('public model catalog preserves geometry-only FR3 and seven-axis simulation limits',async()=>{
+test('public model catalog preserves nominal FR3 inertia and seven-axis simulation limits',async()=>{
   const {readdir}=await import('node:fs/promises');
   assert.deepEqual((await readdir(new URL('../../examples/models',import.meta.url))).sort(),[
     'design-right-arm.json','franka-fr3-flange-preset.json','franka-fr3.json','seven-axis-sim.json','seven-axis.json',
@@ -113,8 +114,34 @@ test('public model catalog preserves geometry-only FR3 and seven-axis simulation
   assert.throws(()=>validateDesignModel(invalidBase),error=>error.path.includes('base_components'));
   assert.deepEqual(simulation.joints.map(joint=>joint.simulation_limits?.effort),[87,87,87,87,12,12,12]);
   assert.deepEqual(simulation.joints.map(joint=>joint.simulation_limits?.velocity),[2,1,1.5,1.25,3,1.5,3]);
-  const m=await json('examples/models/franka-fr3.json'),audit=validateDesignModel(m);
-  assert.equal(audit.capabilities.mass_properties,false);assert.equal(audit.capabilities.inertial_properties,false);
-  const r=workspace(request(m,sampling));assert.equal(r.joint_names.length,7);assert.ok(r.joint_names.every(n=>n.startsWith('fr3_joint')));
-  assert.throws(()=>statics(request(m,{search:{samples:1,seed:42}})),e=>e.code==='INVALID_INPUT'&&e.path.includes('components'));
+  const model=await json('examples/models/franka-fr3.json');
+  assert.equal(validateDesignModel(model,{require:'inertial_properties'}).capabilities.inertial_properties,true);
+  const geometryOnly=structuredClone(model);
+  delete geometryOnly.joints[0].components;
+  assert.throws(()=>statics(request(geometryOnly,{search:{samples:1,seed:42}})),e=>e.code==='INVALID_INPUT'&&e.path.includes('components'));
+});
+
+test('FR3 defaults reproduce upstream flange, holding torque and inverse dynamics',async()=>{
+  const model=await json('examples/models/franka-fr3.json');
+  for(const skill of ['arm-statics-parametric','arm-workspace-parametric','arm-kinematics-dynamics']){
+    const example=await json(skill+'/assets/examples/defaults/fr3.json');
+    assert.deepEqual(example.design_model,model);
+  }
+  const golden=await json('arm-sim-model-generator/assets/reference-arms/franka_fr3/expected.json');
+  assert.deepEqual(model.joints.map(j=>j.name),golden.joint_order);
+  const prepared=prepareDynamics(model,{});
+  for(const c of golden.cases){
+    const q=Object.fromEntries(golden.joint_order.map((name,i)=>[name,c.q_rad[i]]));
+    const hold=statics(request(model,{poses:[{name:c.name,q}]})).poses[0].holding_load;
+    const loads=inverseDynamics(prepared,c.q_rad,c.qd_rad_s,c.qdd_rad_s2);
+    const pose=forward(model,c.q_rad);
+    for(let i=0;i<3;i++){
+      assert.ok(Math.abs(pose.position_m[i]-c.world_T_tool[i][3])<1e-9);
+      for(let j=0;j<3;j++)assert.ok(Math.abs(pose.rotation[i][j]-c.world_T_tool[i][j])<1e-9);
+    }
+    for(let i=0;i<golden.joint_order.length;i++){
+      assert.ok(Math.abs(hold[i]-c.gravity_hold_Nm[i])<1e-8);
+      assert.ok(Math.abs(loads[i].effort-c.inverse_dynamics_Nm[i])<1e-8);
+    }
+  }
 });

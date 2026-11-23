@@ -12,6 +12,7 @@ import { hash } from '../../arm-kinematics-dynamics/scripts/lib/analyze.mjs';
 import { parseRequestText as parseStaticsText } from '../../arm-statics-parametric/scripts/lib/input-text.mjs';
 
 const MODEL_EXAMPLES = new Map([
+  ['/model-examples/fr3.json', 'franka-fr3.json'],
   ['/model-examples/worksheet.json', 'seven-axis.json'],
   ['/model-examples/design-right-arm.json', 'design-right-arm.json'],
   ['/model-examples/seven-axis-sim.json', 'seven-axis-sim.json'],
@@ -79,6 +80,16 @@ function execute(skillDir, input, output, reportDir, timeoutMs=TIMEOUT_MS, signa
 const server = http.createServer(async (req, res) => {
   const requestId = randomUUID(), url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   if (req.method === 'GET' && !url.pathname.startsWith('/api/')) {
+    const demo = /^\/demo-assets\/(worksheet|fr3)\/(model\.json|sorting\.json|validation\.json|preview\.png|result\.json|live\.json)$/.exec(url.pathname);
+    if(demo){
+      const results = process.env.ARM_DEMO_RESULTS || path.resolve(WEB_DIR,'../../../armDesignTool-runs/dual-defaults');
+      try {
+        const data = await readFile(path.join(results,'viewer',demo[1],demo[2]));
+        res.writeHead(200,{'content-type':demo[2].endsWith('.png')?'image/png':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});
+        res.end(data);
+      } catch {respond(res,404,{ok:false,error:'DEMO_RESULT_UNAVAILABLE'},requestId);}
+      return;
+    }
     // Fixed allowlist; load the same bundled geometry version as the selected workspace Skill.
     if(url.pathname==='/shared/kinematics/serial.mjs'){
       try{const data=await readFile(path.resolve(WORKSPACE_DIR,'../shared/kinematics/serial.mjs'));res.writeHead(200,{'content-type':'text/javascript; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(data);}catch{respond(res,503,{ok:false,error:'SHARED_GEOMETRY_UNAVAILABLE'},requestId);}return;
@@ -110,6 +121,9 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     const whitelist = new Map([['/','index.html'],['/index.html','index.html'],['/app.js','app.js'],['/engine.js','engine.js'],['/scene3d.js','scene3d.js'],['/worksheet-critical-poses.js','worksheet-critical-poses.js'],['/statics-client.mjs','statics-client.mjs'],['/workspace-client.mjs','workspace-client.mjs'],['/workspace-scene.js','workspace-scene.js'],['/motion-page.mjs','motion-page.mjs'],['/motion-client.mjs','motion-client.mjs'],['/style.css','style.css'],['/worksheet-minimal.jsonc','worksheet-minimal.jsonc'],['/worksheet-minimal.json','worksheet-minimal.json']]);
+    for(const file of ['result-viewer.mjs','vendor/three/three.module.min.js','vendor/three/OrbitControls.js']){
+      whitelist.set('/'+file,file);
+    }
     whitelist.set('/module-design-page.mjs','module-design-page.mjs');
     whitelist.set('/module-specifications.mjs','module-specifications.mjs');
     const filename = whitelist.get(url.pathname);
@@ -288,4 +302,4 @@ const server = http.createServer(async (req, res) => {
     respond(res,isInputError ? 400 : 502,{ok:false,error:isInputError ? e.message : 'SKILL_EXECUTION_FAILED',request_id:requestId},requestId);
   } finally { if (workDir) await rm(workDir,{recursive:true,force:true}).catch(()=>{}); }
 });
-server.listen(PORT, () => console.log(`Skill bridge listening on ${PORT}; configured=${Boolean(SKILL_DIR)}`));
+server.listen(PORT, process.env.ARM_WEB_HOST || undefined, () => console.log(`Skill bridge listening on ${PORT}; configured=${Boolean(SKILL_DIR)}`));

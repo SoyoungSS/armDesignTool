@@ -158,6 +158,8 @@ def apply_layout(n,g,make_part):
         # exposed rotating sleeve. Preserve the documented mass-estimation proxy.
         parent=g[a['parent']]; beam=next((p for p in parent['parts'] if p['name']=='beam'),None)
         if beam is not None:
+            if any(k.startswith('distal_setback_') for k in parent['spec']):
+                raise InputError(a['parent']+': use module_retreat_m for the upstream shell of a coincident joint pair')
             endpoint=tf(a['origin'])[:3,3]+tf(a['origin'])[:3,:3]@(direction*(retreat+la/2+clearance))
             L=float(np.linalg.norm(endpoint))
             if L<1e-6: raise InputError(a['name']+': upstream shell has no length after packaging')

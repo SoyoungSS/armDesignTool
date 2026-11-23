@@ -1,0 +1,473 @@
+{
+  "schema_name": "arm-analysis-request",
+  "schema_version": "1.0",
+  "design_model": {
+    "schema_name": "arm-design-model",
+    "schema_version": "1.0",
+    "base_in_world": {
+      "xyz_m": [
+        0,
+        0,
+        0
+      ],
+      "rpy_rad": [
+        0,
+        1.5707963267948966,
+        0
+      ]
+    },
+    "gravity_world_m_s2": [
+      0,
+      0,
+      -9.8
+    ],
+    "payload": {
+      "com_in_tip_m": [
+        0,
+        0,
+        0
+      ],
+      "mass_kg": 3,
+      "provenance": {
+        "source": "worksheet payload",
+        "assumptions": []
+      }
+    },
+    "provenance": {
+      "source": "arm-statics-parametric/assets/examples/worksheet-minimal.json",
+      "assumptions": [
+        "Separate from CAD URDF reference; no inferred inertia.",
+        "基座安装面为 YZ 平面，法向为世界 +X。基座 Pitch +90°，J1 安装 Pitch -90° 保持原零位下垂几何。J1 正轴改为 +Y 并反向映射原限位，保持相同物理行程。"
+      ]
+    },
+    "name": "worksheet_reference",
+    "joints": [
+      {
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "components": [
+          {
+            "com_m": [
+              0,
+              0,
+              -0.0175
+            ],
+            "mass_kg": 0.1,
+            "name": "link",
+            "provenance": {
+              "source": "existing worksheet mass/COM conversion",
+              "assumptions": [
+                "Equivalent worksheet mass/COM, not CAD; inertia intentionally absent."
+              ]
+            }
+          },
+          {
+            "com_m": [
+              0,
+              0,
+              0
+            ],
+            "mass_kg": 0.961,
+            "name": "joint_output_equivalent",
+            "provenance": {
+              "source": "existing worksheet mass/COM conversion",
+              "assumptions": [
+                "Equivalent worksheet mass/COM, not CAD; inertia intentionally absent."
+              ]
+            }
+          }
+        ],
+        "limits": [
+          -3.141592653589793,
+          1.5707963267948966
+        ],
+        "name": "J1",
+        "origin": {
+          "rpy_rad": [
+            0,
+            -1.5707963267948966,
+            0
+          ],
+          "xyz_m": [
+            0,
+            0,
+            0
+          ]
+        },
+        "type": "revolute",
+        "id": "joint-1"
+      },
+      {
+        "axis": [
+          1,
+          0,
+          0
+        ],
+        "components": [
+          {
+            "com_m": [
+              0,
+              0,
+              -0.025
+            ],
+            "mass_kg": 0.09,
+            "name": "link",
+            "provenance": {
+              "source": "existing worksheet mass/COM conversion",
+              "assumptions": [
+                "Equivalent worksheet mass/COM, not CAD; inertia intentionally absent."
+              ]
+            }
+          },
+          {
+            "com_m": [
+              0,
+              0,
+              0
+            ],
+            "mass_kg": 0.485,
+            "name": "joint_output_equivalent",
+            "provenance": {
+              "source": "existing worksheet mass/COM conversion",
+              "assumptions": [
+                "Equivalent worksheet mass/COM, not CAD; inertia intentionally absent."
+              ]
+            }
+          }
+        ],
+        "limits": [
+          -1.5707963267948966,
+          0
+        ],
+        "name": "J2",
+        "origin": {
+          "rpy_rad": [
+            0,
+            0,
+            0
+          ],
+          "xyz_m": [
+            0,
+            0,
+            -0.035
+          ]
+        },
+        "type": "revolute",
+        "id": "joint-2"
+      },
+      {
+        "axis": [
+          0,
+          0,
+          -1
+        ],
+        "components": [
+          {
+            "com_m": [
+              0,
+              0,
+              -0.125
+            ],
+            "mass_kg": 0.22,
+            "name": "link",
+            "provenance": {
+              "source": "existing worksheet mass/COM conversion",
+              "assumptions": [
+                "Equivalent worksheet mass/COM, not CAD; inertia intentionally absent."
+              ]
+            }
+          },
+          {
+            "com_m": [
+              0,
+              0,
+              0
+            ],
+            "mass_kg": 0.485,
+            "name": "joint_output_equivalent",
+            "provenance": {
+              "source": "existing worksheet mass/COM conversion",
+              "assumptions": [
+                "Equivalent worksheet mass/COM, not CAD; inertia intentionally absent."
+              ]
+            }
+          }
+        ],
+        "limits": [
+          -2.356194490192345,
+          2.356194490192345
+        ],
+        "name": "J3",
+        "origin": {
+          "rpy_rad": [
+            0,
+            0,
+            0
+          ],
+          "xyz_m": [
+            0,
+            0,
+            -0.05
+          ]
+        },
+        "type": "revolute",
+        "id": "joint-3"
+      },
+      {
+        "axis": [
+          0,
+          -1,
+          0
+        ],
+        "components": [
+          {
+            "com_m": [
+              0,
+              0,
+              -0.025
+            ],
+            "mass_kg": 0.08,
+            "name": "link",
+            "provenance": {
+              "source": "existing worksheet mass/COM conversion",
+              "assumptions": [
+                "Equivalent worksheet mass/COM, not CAD; inertia intentionally absent."
+              ]
+            }
+          },
+          {
+            "com_m": [
+              0,
+              0,
+              0
+            ],
+            "mass_kg": 0.485,
+            "name": "joint_output_equivalent",
+            "provenance": {
+              "source": "existing worksheet mass/COM conversion",
+              "assumptions": [
+                "Equivalent worksheet mass/COM, not CAD; inertia intentionally absent."
+              ]
+            }
+          }
+        ],
+        "limits": [
+          0,
+          2.6179938779914944
+        ],
+        "name": "J4",
+        "origin": {
+          "rpy_rad": [
+            0,
+            0,
+            0
+          ],
+          "xyz_m": [
+            0,
+            0,
+            -0.25
+          ]
+        },
+        "type": "revolute",
+        "id": "joint-4"
+      },
+      {
+        "axis": [
+          0,
+          0,
+          -1
+        ],
+        "components": [
+          {
+            "com_m": [
+              0,
+              0,
+              -0.0815
+            ],
+            "mass_kg": 0.12,
+            "name": "link",
+            "provenance": {
+              "source": "existing worksheet mass/COM conversion",
+              "assumptions": [
+                "Equivalent worksheet mass/COM, not CAD; inertia intentionally absent."
+              ]
+            }
+          },
+          {
+            "com_m": [
+              0,
+              0,
+              0
+            ],
+            "mass_kg": 0.162,
+            "name": "joint_output_equivalent",
+            "provenance": {
+              "source": "existing worksheet mass/COM conversion",
+              "assumptions": [
+                "Equivalent worksheet mass/COM, not CAD; inertia intentionally absent."
+              ]
+            }
+          }
+        ],
+        "limits": [
+          -2.356194490192345,
+          2.356194490192345
+        ],
+        "name": "J5",
+        "origin": {
+          "rpy_rad": [
+            0,
+            0,
+            0
+          ],
+          "xyz_m": [
+            0,
+            0,
+            -0.05
+          ]
+        },
+        "type": "revolute",
+        "id": "joint-5"
+      },
+      {
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "components": [
+          {
+            "com_m": [
+              0,
+              0,
+              -0.0235
+            ],
+            "mass_kg": 0.05,
+            "name": "link",
+            "provenance": {
+              "source": "existing worksheet mass/COM conversion",
+              "assumptions": [
+                "Equivalent worksheet mass/COM, not CAD; inertia intentionally absent."
+              ]
+            }
+          },
+          {
+            "com_m": [
+              0,
+              0,
+              0
+            ],
+            "mass_kg": 0.162,
+            "name": "joint_output_equivalent",
+            "provenance": {
+              "source": "existing worksheet mass/COM conversion",
+              "assumptions": [
+                "Equivalent worksheet mass/COM, not CAD; inertia intentionally absent."
+              ]
+            }
+          }
+        ],
+        "limits": [
+          -1.5707963267948966,
+          1.5707963267948966
+        ],
+        "name": "J6",
+        "origin": {
+          "rpy_rad": [
+            0,
+            0,
+            0
+          ],
+          "xyz_m": [
+            0,
+            0,
+            -0.163
+          ]
+        },
+        "type": "revolute",
+        "id": "joint-6"
+      },
+      {
+        "axis": [
+          1,
+          0,
+          0
+        ],
+        "components": [
+          {
+            "com_m": [
+              0,
+              0,
+              -0.02
+            ],
+            "mass_kg": 0.05,
+            "name": "link",
+            "provenance": {
+              "source": "existing worksheet mass/COM conversion",
+              "assumptions": [
+                "Equivalent worksheet mass/COM, not CAD; inertia intentionally absent."
+              ]
+            }
+          },
+          {
+            "com_m": [
+              0,
+              0,
+              0
+            ],
+            "mass_kg": 0.162,
+            "name": "joint_output_equivalent",
+            "provenance": {
+              "source": "existing worksheet mass/COM conversion",
+              "assumptions": [
+                "Equivalent worksheet mass/COM, not CAD; inertia intentionally absent."
+              ]
+            }
+          }
+        ],
+        "limits": [
+          -1.5707963267948966,
+          1.5707963267948966
+        ],
+        "name": "J7",
+        "origin": {
+          "rpy_rad": [
+            0,
+            0,
+            0
+          ],
+          "xyz_m": [
+            0,
+            0,
+            -0.047
+          ]
+        },
+        "type": "revolute",
+        "id": "joint-7"
+      }
+    ],
+    "tip": {
+      "rpy_rad": [
+        0,
+        0,
+        0
+      ],
+      "xyz_m": [
+        0,
+        0,
+        -0.04
+      ]
+    }
+  },
+  "options": {
+    "mode": "joint_sampling",
+    "sampling": {
+      "method": "random",
+      "samples": 30000,
+      "seed": 42
+    }
+  }
+}

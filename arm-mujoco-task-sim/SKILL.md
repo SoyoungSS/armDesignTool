@@ -5,6 +5,8 @@ description: 接收 arm-sim-model-generator 输出的机械臂模型和自然语
 
 # 机械臂任务仿真与载荷导出
 
+要直接试用选型表七轴或 Franka FR3 的三轮桌面抓放，运行[双模型红蓝分拣示例](references/dual-sorting.md)。
+
 输入为模型生成器的一次实际输出和任务描述。命令中的 `<skill>`、`<project>` 替换为实际路径，同一项目使用同一已验证的 Python。
 
 | 步骤 | 执行与继续条件 |

@@ -1,0 +1,12 @@
+{
+  "worksheet": {
+    "archive_sha256": "ce19b039ede043520ba3b9330c3300f1609b217e7faded0ae8afc2aa6552a475",
+    "model_sha256": "875f148cf07f36c2b3c2a0da96e4a71292bcc2e0175fd257af1b67aa678fb7c6",
+    "source_input_sha256": "368493ab30180abdf2dc32db5367d43da881dd393bcb54ad4d5c2e84aa0b8def"
+  },
+  "fr3": {
+    "archive_sha256": "356f2bd8f49702f4e93ce50cfbe43477990dd4d4b82370e77b7a09cb2d75be7c",
+    "model_sha256": "3c2c8ef4597aacaecdfda993512643ae6cf6e07d2a7fbceb24b88249cea07fbd",
+    "source_input_sha256": "b1179619e96de13518fd5ce8947ef6784f7cfe42b8200be399862da9b1c2abad"
+  }
+}

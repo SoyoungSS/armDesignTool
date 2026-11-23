@@ -176,7 +176,9 @@ def usd(n,g,out,source):
     for link,data in g.items():
         x=UsdGeom.Xform.Define(stage,'/Robot/'+link); setpose(x,poses[link])
         if dynamic:
-            UsdPhysics.RigidBodyAPI.Apply(x.GetPrim()); mass=UsdPhysics.MassAPI.Apply(x.GetPrim()); p=n['mass_properties'][link]
+            UsdPhysics.RigidBodyAPI.Apply(x.GetPrim())
+        if dynamic and link in n['mass_properties']:
+            mass=UsdPhysics.MassAPI.Apply(x.GetPrim()); p=n['mass_properties'][link]
             mass.CreateMassAttr(float(p['mass_kg'])); mass.CreateCenterOfMassAttr(Gf.Vec3f(*p['com_m']))
             eig,R=np.linalg.eigh(p['inertia_kg_m2'])
             if np.linalg.det(R)<0: R[:,0]*=-1
