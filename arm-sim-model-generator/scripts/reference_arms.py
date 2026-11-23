@@ -84,14 +84,15 @@ def check_usd(path, model):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--arm', choices=('ur5e', 'franka_fr3'))
+    arms = sorted(p.parent.name for p in LIBRARY.glob('*/input.json'))
+    parser.add_argument('--arm', choices=arms)
     parser.add_argument('--mujoco', action='store_true', help='also load both URDF and MJCF')
     parser.add_argument('--usd', action='store_true', help='also load the composed OpenUSD articulation')
     args = parser.parse_args()
-    for arm in ([args.arm] if args.arm else ['ur5e', 'franka_fr3']):
+    for arm in ([args.arm] if args.arm else arms):
         folder = LIBRARY / arm
         model = normalize(json.loads((folder / 'input.json').read_text(encoding='utf-8')))
-        # Both reference inputs provide one whole-body COM tensor per moving link.
+        # Each reference provides one whole-body COM tensor per moving link.
         model['mass_properties'] = {link: body[0] for link, body in model['components'].items()}
         golden = json.loads((folder / 'expected.json').read_text(encoding='utf-8'))
         names = [joint['name'] for joint in model['model']['joints']]

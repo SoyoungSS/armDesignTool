@@ -1,0 +1,454 @@
+{
+  "schema_version": "1.0",
+  "status": "failed",
+  "coverage": {
+    "pose_count": 273,
+    "anchor_poses": [
+      "geometric_zero",
+      "initial",
+      "offset",
+      "sample_0",
+      "sample_1",
+      "sample_2",
+      "sample_3"
+    ],
+    "joint_limit_checks": [
+      "shoulder_pan_joint",
+      "shoulder_lift_joint",
+      "elbow_joint",
+      "wrist_1_joint",
+      "wrist_2_joint",
+      "wrist_3_joint"
+    ],
+    "interpolation": "linear in joint coordinates",
+    "segments": [
+      {
+        "start": "geometric_zero",
+        "end": "initial",
+        "requested": 6535,
+        "subdivisions": 128,
+        "max_relative_motion_bound_m": 0.051054627803114844
+      },
+      {
+        "start": "initial",
+        "end": "offset",
+        "requested": 913,
+        "subdivisions": 128,
+        "max_relative_motion_bound_m": 0.007129484933169008
+      }
+    ],
+    "target_motion_m": 0.001,
+    "clearance_proven": false
+  },
+  "mating_pairs": [
+    {
+      "parts": [
+        "base_link_inertia/shoulder_pan_joint_stator",
+        "shoulder_link/shoulder_pan_joint_output_shaft"
+      ],
+      "joint": "shoulder_pan_joint",
+      "kind": "shaft_in_bore",
+      "frame": "base_link_inertia/shoulder_pan_joint_stator",
+      "bore_radius_m": 0.02020664319558172,
+      "axial_half_length_m": 0.0225,
+      "basis": "joint_layout generated annular stator and coaxial output shaft"
+    },
+    {
+      "parts": [
+        "shoulder_link/shoulder_lift_joint_stator",
+        "upper_arm_link/shoulder_lift_joint_output_shaft"
+      ],
+      "joint": "shoulder_lift_joint",
+      "kind": "shaft_in_bore",
+      "frame": "shoulder_link/shoulder_lift_joint_stator",
+      "bore_radius_m": 0.028019878564539986,
+      "axial_half_length_m": 0.0225,
+      "basis": "joint_layout generated annular stator and coaxial output shaft"
+    }
+  ],
+  "findings": [
+    {
+      "parts": [
+        "forearm_link/beam",
+        "wrist_1_link/beam"
+      ],
+      "status": "failed",
+      "pose": "sample_3",
+      "q": {
+        "shoulder_pan_joint": 3.392920065876977,
+        "shoulder_lift_joint": -5.767964111990861,
+        "elbow_joint": -1.1812388377497618,
+        "wrist_1_joint": 1.0430087609918113,
+        "wrist_2_joint": 4.4484951974831475,
+        "wrist_3_joint": -4.71238898038469
+      },
+      "method": "box_sat_overlap",
+      "in_joint_ranges": true,
+      "overlap_evidence_m": 0.04955758413470959,
+      "witness_world_m": null,
+      "next_check": "Inspect both collision primitives at the reported pose."
+    },
+    {
+      "parts": [
+        "base_link_inertia/base",
+        "upper_arm_link/beam"
+      ],
+      "status": "failed",
+      "pose": "sample_1",
+      "q": {
+        "shoulder_pan_joint": -1.6084954386379744,
+        "shoulder_lift_joint": 1.7969909978533618,
+        "elbow_joint": 2.6012387171723494,
+        "wrist_1_joint": -3.9584067435231387,
+        "wrist_2_joint": -0.5529203070318012,
+        "wrist_3_joint": 2.852566129459534
+      },
+      "method": "common_interior_point",
+      "in_joint_ranges": true,
+      "overlap_evidence_m": 0.018225000000000005,
+      "witness_world_m": [
+        8.927675165784206e-18,
+        0.0729,
+        -0.041
+      ],
+      "next_check": "Inspect both collision primitives at the reported pose."
+    },
+    {
+      "parts": [
+        "base_link_inertia/beam",
+        "upper_arm_link/beam"
+      ],
+      "status": "failed",
+      "pose": "sample_1",
+      "q": {
+        "shoulder_pan_joint": -1.6084954386379744,
+        "shoulder_lift_joint": 1.7969909978533618,
+        "elbow_joint": 2.6012387171723494,
+        "wrist_1_joint": -3.9584067435231387,
+        "wrist_2_joint": -0.5529203070318012,
+        "wrist_3_joint": 2.852566129459534
+      },
+      "method": "box_sat_overlap",
+      "in_joint_ranges": true,
+      "overlap_evidence_m": 0.06849474140297798,
+      "witness_world_m": null,
+      "next_check": "Inspect both collision primitives at the reported pose."
+    },
+    {
+      "parts": [
+        "base_link_inertia/shoulder_pan_joint_stator",
+        "upper_arm_link/beam"
+      ],
+      "status": "failed",
+      "pose": "sample_1",
+      "q": {
+        "shoulder_pan_joint": -1.6084954386379744,
+        "shoulder_lift_joint": 1.7969909978533618,
+        "elbow_joint": 2.6012387171723494,
+        "wrist_1_joint": -3.9584067435231387,
+        "wrist_2_joint": -0.5529203070318012,
+        "wrist_3_joint": 2.852566129459534
+      },
+      "method": "common_interior_point",
+      "in_joint_ranges": true,
+      "overlap_evidence_m": 0.0225,
+      "witness_world_m": [
+        0.0,
+        0.0,
+        0.0807
+      ],
+      "next_check": "Inspect both collision primitives at the reported pose."
+    },
+    {
+      "parts": [
+        "shoulder_link/shoulder_pan_joint_output_shaft",
+        "upper_arm_link/beam"
+      ],
+      "status": "failed",
+      "pose": "sample_1",
+      "q": {
+        "shoulder_pan_joint": -1.6084954386379744,
+        "shoulder_lift_joint": 1.7969909978533618,
+        "elbow_joint": 2.6012387171723494,
+        "wrist_1_joint": -3.9584067435231387,
+        "wrist_2_joint": -0.5529203070318012,
+        "wrist_3_joint": 2.852566129459534
+      },
+      "method": "common_interior_point",
+      "in_joint_ranges": true,
+      "overlap_evidence_m": 0.015373016225211061,
+      "witness_world_m": [
+        0.0,
+        0.0,
+        0.10622999999097546
+      ],
+      "next_check": "Inspect both collision primitives at the reported pose."
+    },
+    {
+      "parts": [
+        "shoulder_link/shoulder_pan_joint_output_fairing",
+        "upper_arm_link/beam"
+      ],
+      "status": "failed",
+      "pose": "sample_1",
+      "q": {
+        "shoulder_pan_joint": -1.6084954386379744,
+        "shoulder_lift_joint": 1.7969909978533618,
+        "elbow_joint": 2.6012387171723494,
+        "wrist_1_joint": -3.9584067435231387,
+        "wrist_2_joint": -0.5529203070318012,
+        "wrist_3_joint": 2.852566129459534
+      },
+      "method": "common_interior_point",
+      "in_joint_ranges": true,
+      "overlap_evidence_m": 0.0063,
+      "witness_world_m": [
+        0.0009497926032823585,
+        0.02518209471054285,
+        0.11824999999559027
+      ],
+      "next_check": "Inspect both collision primitives at the reported pose."
+    },
+    {
+      "parts": [
+        "shoulder_link/shoulder_pan_joint_rotor_ring",
+        "upper_arm_link/beam"
+      ],
+      "status": "failed",
+      "pose": "sample_1",
+      "q": {
+        "shoulder_pan_joint": -1.6084954386379744,
+        "shoulder_lift_joint": 1.7969909978533618,
+        "elbow_joint": 2.6012387171723494,
+        "wrist_1_joint": -3.9584067435231387,
+        "wrist_2_joint": -0.5529203070318012,
+        "wrist_3_joint": 2.852566129459534
+      },
+      "method": "common_interior_point",
+      "in_joint_ranges": true,
+      "overlap_evidence_m": 0.001,
+      "witness_world_m": [
+        -0.028779536812048968,
+        0.0010854772608941239,
+        0.10619999999999999
+      ],
+      "next_check": "Inspect both collision primitives at the reported pose."
+    },
+    {
+      "parts": [
+        "shoulder_link/shoulder_lift_joint_support",
+        "upper_arm_link/beam"
+      ],
+      "status": "failed",
+      "pose": "sample_1",
+      "q": {
+        "shoulder_pan_joint": -1.6084954386379744,
+        "shoulder_lift_joint": 1.7969909978533618,
+        "elbow_joint": 2.6012387171723494,
+        "wrist_1_joint": -3.9584067435231387,
+        "wrist_2_joint": -0.5529203070318012,
+        "wrist_3_joint": 2.852566129459534
+      },
+      "method": "box_sat_overlap",
+      "in_joint_ranges": true,
+      "overlap_evidence_m": 0.007631045494840977,
+      "witness_world_m": null,
+      "next_check": "Inspect both collision primitives at the reported pose."
+    },
+    {
+      "parts": [
+        "upper_arm_link/beam",
+        "forearm_link/beam"
+      ],
+      "status": "failed",
+      "pose": "elbow_joint_lower",
+      "q": {
+        "shoulder_pan_joint": 0.2,
+        "shoulder_lift_joint": -1.1,
+        "elbow_joint": -3.141592653589793,
+        "wrist_1_joint": -0.65,
+        "wrist_2_joint": 0.72,
+        "wrist_3_joint": -0.25
+      },
+      "method": "box_sat_overlap",
+      "in_joint_ranges": true,
+      "overlap_evidence_m": 0.06354783722451735,
+      "witness_world_m": null,
+      "next_check": "Inspect both collision primitives at the reported pose."
+    },
+    {
+      "parts": [
+        "forearm_link/beam",
+        "wrist_2_link/housing"
+      ],
+      "status": "failed",
+      "pose": "sample_3",
+      "q": {
+        "shoulder_pan_joint": 3.392920065876977,
+        "shoulder_lift_joint": -5.767964111990861,
+        "elbow_joint": -1.1812388377497618,
+        "wrist_1_joint": 1.0430087609918113,
+        "wrist_2_joint": 4.4484951974831475,
+        "wrist_3_joint": -4.71238898038469
+      },
+      "method": "common_interior_point",
+      "in_joint_ranges": true,
+      "overlap_evidence_m": 0.010489499999999999,
+      "witness_world_m": [
+        -0.8318965967899462,
+        -0.382094070686192,
+        0.13542097056787336
+      ],
+      "next_check": "Inspect both collision primitives at the reported pose."
+    },
+    {
+      "parts": [
+        "forearm_link/beam",
+        "wrist_2_link/beam"
+      ],
+      "status": "failed",
+      "pose": "sample_3",
+      "q": {
+        "shoulder_pan_joint": 3.392920065876977,
+        "shoulder_lift_joint": -5.767964111990861,
+        "elbow_joint": -1.1812388377497618,
+        "wrist_1_joint": 1.0430087609918113,
+        "wrist_2_joint": 4.4484951974831475,
+        "wrist_3_joint": -4.71238898038469
+      },
+      "method": "box_sat_overlap",
+      "in_joint_ranges": true,
+      "overlap_evidence_m": 0.07078674574905537,
+      "witness_world_m": null,
+      "next_check": "Inspect both collision primitives at the reported pose."
+    },
+    {
+      "parts": [
+        "forearm_link/beam",
+        "wrist_3_link/housing"
+      ],
+      "status": "failed",
+      "pose": "sample_3",
+      "q": {
+        "shoulder_pan_joint": 3.392920065876977,
+        "shoulder_lift_joint": -5.767964111990861,
+        "elbow_joint": -1.1812388377497618,
+        "wrist_1_joint": 1.0430087609918113,
+        "wrist_2_joint": 4.4484951974831475,
+        "wrist_3_joint": -4.71238898038469
+      },
+      "method": "common_interior_point",
+      "in_joint_ranges": true,
+      "overlap_evidence_m": 0.013154698707829648,
+      "witness_world_m": [
+        -0.7718857597052913,
+        -0.34659812225887426,
+        0.1619295265761551
+      ],
+      "next_check": "Inspect both collision primitives at the reported pose."
+    },
+    {
+      "parts": [
+        "forearm_link/beam",
+        "wrist_3_link/flange"
+      ],
+      "status": "failed",
+      "pose": "sample_3",
+      "q": {
+        "shoulder_pan_joint": 3.392920065876977,
+        "shoulder_lift_joint": -5.767964111990861,
+        "elbow_joint": -1.1812388377497618,
+        "wrist_1_joint": 1.0430087609918113,
+        "wrist_2_joint": 4.4484951974831475,
+        "wrist_3_joint": -4.71238898038469
+      },
+      "method": "common_interior_point",
+      "in_joint_ranges": true,
+      "overlap_evidence_m": 0.0069713222797295644,
+      "witness_world_m": [
+        -0.7602858758631978,
+        -0.3436197782877987,
+        0.13168125943273307
+      ],
+      "next_check": "Inspect both collision primitives at the reported pose."
+    }
+  ],
+  "worst_case": {
+    "parts": [
+      "forearm_link/beam",
+      "wrist_2_link/beam"
+    ],
+    "status": "failed",
+    "pose": "sample_3",
+    "q": {
+      "shoulder_pan_joint": 3.392920065876977,
+      "shoulder_lift_joint": -5.767964111990861,
+      "elbow_joint": -1.1812388377497618,
+      "wrist_1_joint": 1.0430087609918113,
+      "wrist_2_joint": 4.4484951974831475,
+      "wrist_3_joint": -4.71238898038469
+    },
+    "method": "box_sat_overlap",
+    "in_joint_ranges": true,
+    "overlap_evidence_m": 0.07078674574905537,
+    "witness_world_m": null,
+    "next_check": "Inspect both collision primitives at the reported pose."
+  },
+  "named_pose_results": {
+    "geometric_zero": {
+      "name": "geometric_zero",
+      "q": {
+        "shoulder_pan_joint": 0,
+        "shoulder_lift_joint": 0,
+        "elbow_joint": 0,
+        "wrist_1_joint": 0,
+        "wrist_2_joint": 0,
+        "wrist_3_joint": 0
+      },
+      "in_joint_ranges": true,
+      "status": "failed",
+      "findings": [
+        {
+          "parts": [
+            "forearm_link/beam",
+            "wrist_1_link/beam"
+          ],
+          "method": "box_sat_overlap",
+          "status": "failed",
+          "overlap_evidence_m": 0.0034318240762303276,
+          "witness_world_m": null
+        }
+      ]
+    },
+    "initial": {
+      "name": "initial",
+      "q": {
+        "shoulder_pan_joint": 0.2,
+        "shoulder_lift_joint": -1.1,
+        "elbow_joint": 1.0,
+        "wrist_1_joint": -0.65,
+        "wrist_2_joint": 0.72,
+        "wrist_3_joint": -0.25
+      },
+      "in_joint_ranges": true,
+      "status": "passed",
+      "findings": []
+    },
+    "offset": {
+      "name": "offset",
+      "q": {
+        "shoulder_pan_joint": 0.3,
+        "shoulder_lift_joint": -1.0,
+        "elbow_joint": 1.1,
+        "wrist_1_joint": -0.55,
+        "wrist_2_joint": 0.82,
+        "wrist_3_joint": -0.15
+      },
+      "in_joint_ranges": true,
+      "status": "passed",
+      "findings": []
+    }
+  },
+  "contact_surface_status": "evaluated",
+  "model_input_sha256": "54afe65ab95051da40eaf910fa987b35aa78d7f055686eb214152e950b64461c"
+}

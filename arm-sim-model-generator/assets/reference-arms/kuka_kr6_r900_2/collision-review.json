@@ -1,0 +1,176 @@
+{
+  "schema_version": "1.0",
+  "status": "failed",
+  "coverage": {
+    "pose_count": 271,
+    "anchor_poses": [
+      "geometric_zero",
+      "initial",
+      "offset",
+      "sample_0",
+      "sample_1",
+      "sample_2",
+      "sample_3"
+    ],
+    "joint_limit_checks": [
+      "joint_1",
+      "joint_2",
+      "joint_3",
+      "joint_4",
+      "joint_5",
+      "joint_6"
+    ],
+    "interpolation": "linear in joint coordinates",
+    "segments": [
+      {
+        "start": "geometric_zero",
+        "end": "initial",
+        "requested": 840,
+        "subdivisions": 128,
+        "max_relative_motion_bound_m": 0.037380463862411395
+      },
+      {
+        "start": "initial",
+        "end": "offset",
+        "requested": 126,
+        "subdivisions": 126,
+        "max_relative_motion_bound_m": 0.00565681851987111
+      }
+    ],
+    "target_motion_m": 0.0057,
+    "clearance_proven": false
+  },
+  "mating_pairs": [],
+  "findings": [
+    {
+      "parts": [
+        "link_2/beam",
+        "link_3/beam"
+      ],
+      "status": "failed",
+      "pose": "joint_3_upper",
+      "q": {
+        "joint_1": 0.2,
+        "joint_2": -1.1,
+        "joint_3": 2.72271363,
+        "joint_4": 0.35,
+        "joint_5": 0.6,
+        "joint_6": -0.2
+      },
+      "method": "box_sat_overlap",
+      "in_joint_ranges": true,
+      "overlap_evidence_m": 0.05446394186123348,
+      "witness_world_m": null,
+      "next_check": "Inspect both collision primitives at the reported pose."
+    },
+    {
+      "parts": [
+        "link_1/beam",
+        "link_2/beam"
+      ],
+      "status": "failed",
+      "pose": "joint_2_upper",
+      "q": {
+        "joint_1": 0.2,
+        "joint_2": 0.7853981625,
+        "joint_3": 1.2,
+        "joint_4": 0.35,
+        "joint_5": 0.6,
+        "joint_6": -0.2
+      },
+      "method": "box_sat_overlap",
+      "in_joint_ranges": true,
+      "overlap_evidence_m": 0.03773721807345337,
+      "witness_world_m": null,
+      "next_check": "Inspect both collision primitives at the reported pose."
+    },
+    {
+      "parts": [
+        "link_4/beam",
+        "link_5/beam"
+      ],
+      "status": "failed",
+      "pose": "joint_5_upper",
+      "q": {
+        "joint_1": 0.2,
+        "joint_2": -1.1,
+        "joint_3": 1.2,
+        "joint_4": 0.35,
+        "joint_5": 2.0943951,
+        "joint_6": -0.2
+      },
+      "method": "box_sat_overlap",
+      "in_joint_ranges": true,
+      "overlap_evidence_m": 0.016201121078627756,
+      "witness_world_m": null,
+      "next_check": "Inspect both collision primitives at the reported pose."
+    }
+  ],
+  "worst_case": {
+    "parts": [
+      "link_2/beam",
+      "link_3/beam"
+    ],
+    "status": "failed",
+    "pose": "joint_3_upper",
+    "q": {
+      "joint_1": 0.2,
+      "joint_2": -1.1,
+      "joint_3": 2.72271363,
+      "joint_4": 0.35,
+      "joint_5": 0.6,
+      "joint_6": -0.2
+    },
+    "method": "box_sat_overlap",
+    "in_joint_ranges": true,
+    "overlap_evidence_m": 0.05446394186123348,
+    "witness_world_m": null,
+    "next_check": "Inspect both collision primitives at the reported pose."
+  },
+  "named_pose_results": {
+    "geometric_zero": {
+      "name": "geometric_zero",
+      "q": {
+        "joint_1": 0,
+        "joint_2": 0,
+        "joint_3": 0,
+        "joint_4": 0,
+        "joint_5": 0,
+        "joint_6": 0
+      },
+      "in_joint_ranges": true,
+      "status": "passed",
+      "findings": []
+    },
+    "initial": {
+      "name": "initial",
+      "q": {
+        "joint_1": 0.2,
+        "joint_2": -1.1,
+        "joint_3": 1.2,
+        "joint_4": 0.35,
+        "joint_5": 0.6,
+        "joint_6": -0.2
+      },
+      "in_joint_ranges": true,
+      "status": "passed",
+      "findings": []
+    },
+    "offset": {
+      "name": "offset",
+      "q": {
+        "joint_1": 0.3,
+        "joint_2": -1.0,
+        "joint_3": 1.3,
+        "joint_4": 0.45,
+        "joint_5": 0.7,
+        "joint_6": -0.1
+      },
+      "in_joint_ranges": true,
+      "status": "passed",
+      "findings": []
+    }
+  },
+  "contact_surface_status": "evaluated",
+  "model_input_sha256": "ebf488eaa07b53bad737adb2e1214fa26a7952a6bd1f5a8882eb31d2a41160eb"
+}

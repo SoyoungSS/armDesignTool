@@ -1,0 +1,163 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mujoco model="kuka_kr6_r900_2_reference">
+  <compiler angle="radian" meshdir="meshes" inertiafromgeom="false" fusestatic="false" />
+  <option gravity="0 0 -9.81" timestep="0.001" integrator="implicitfast" />
+  <asset>
+    <material name="body" rgba="0.82 0.84 0.85 1" specular="0.24000000000000002" shininess="0.64" />
+    <material name="joint" rgba="0.16 0.18 0.2 1" specular="0.26" shininess="0.6" />
+    <material name="accent" rgba="0.06 0.36 0.43 1" specular="0.28" shininess="0.6799999999999999" />
+    <material name="metal" rgba="0.55 0.58 0.61 1" specular="0.488" shininess="0.76" />
+    <mesh name="base_link_base" file="base_link_base_visual.stl" />
+    <mesh name="base_link_mounting_rim" file="base_link_mounting_rim_visual.stl" />
+    <mesh name="base_link_beam" file="base_link_beam_visual.stl" />
+    <mesh name="link_1_housing" file="link_1_housing_visual.stl" />
+    <mesh name="link_1_cap" file="link_1_cap_visual.stl" />
+    <mesh name="link_1_cap_hub" file="link_1_cap_hub_visual.stl" />
+    <mesh name="link_1_rear_cap" file="link_1_rear_cap_visual.stl" />
+    <mesh name="link_1_rear_cap_hub" file="link_1_rear_cap_hub_visual.stl" />
+    <mesh name="link_1_beam" file="link_1_beam_visual.stl" />
+    <mesh name="link_2_housing" file="link_2_housing_visual.stl" />
+    <mesh name="link_2_cap" file="link_2_cap_visual.stl" />
+    <mesh name="link_2_cap_hub" file="link_2_cap_hub_visual.stl" />
+    <mesh name="link_2_rear_cap" file="link_2_rear_cap_visual.stl" />
+    <mesh name="link_2_rear_cap_hub" file="link_2_rear_cap_hub_visual.stl" />
+    <mesh name="link_2_beam" file="link_2_beam_visual.stl" />
+    <mesh name="link_3_housing" file="link_3_housing_visual.stl" />
+    <mesh name="link_3_cap" file="link_3_cap_visual.stl" />
+    <mesh name="link_3_cap_hub" file="link_3_cap_hub_visual.stl" />
+    <mesh name="link_3_rear_cap" file="link_3_rear_cap_visual.stl" />
+    <mesh name="link_3_rear_cap_hub" file="link_3_rear_cap_hub_visual.stl" />
+    <mesh name="link_3_beam" file="link_3_beam_visual.stl" />
+    <mesh name="link_4_housing" file="link_4_housing_visual.stl" />
+    <mesh name="link_4_cap" file="link_4_cap_visual.stl" />
+    <mesh name="link_4_cap_hub" file="link_4_cap_hub_visual.stl" />
+    <mesh name="link_4_rear_cap" file="link_4_rear_cap_visual.stl" />
+    <mesh name="link_4_rear_cap_hub" file="link_4_rear_cap_hub_visual.stl" />
+    <mesh name="link_4_beam" file="link_4_beam_visual.stl" />
+    <mesh name="link_5_housing" file="link_5_housing_visual.stl" />
+    <mesh name="link_5_cap" file="link_5_cap_visual.stl" />
+    <mesh name="link_5_cap_hub" file="link_5_cap_hub_visual.stl" />
+    <mesh name="link_5_rear_cap" file="link_5_rear_cap_visual.stl" />
+    <mesh name="link_5_rear_cap_hub" file="link_5_rear_cap_hub_visual.stl" />
+    <mesh name="link_5_beam" file="link_5_beam_visual.stl" />
+    <mesh name="link_6_housing" file="link_6_housing_visual.stl" />
+    <mesh name="link_6_cap" file="link_6_cap_visual.stl" />
+    <mesh name="link_6_cap_hub" file="link_6_cap_hub_visual.stl" />
+    <mesh name="link_6_rear_cap" file="link_6_rear_cap_visual.stl" />
+    <mesh name="link_6_rear_cap_hub" file="link_6_rear_cap_hub_visual.stl" />
+    <mesh name="link_6_beam" file="link_6_beam_visual.stl" />
+    <mesh name="link_6_flange" file="link_6_flange_visual.stl" />
+    <mesh name="link_6_flange_fastener_0" file="link_6_flange_fastener_0_visual.stl" />
+    <mesh name="link_6_flange_fastener_1" file="link_6_flange_fastener_1_visual.stl" />
+    <mesh name="link_6_flange_fastener_2" file="link_6_flange_fastener_2_visual.stl" />
+    <mesh name="link_6_flange_fastener_3" file="link_6_flange_fastener_3_visual.stl" />
+  </asset>
+  <worldbody>
+    <body name="base_link" pos="0 0 0" quat="1 0 0 0">
+      <inertial pos="-0.0371334830929 2.66020335777e-05 0.108638507921" mass="16.916" diaginertia="0.108811815986 0.162092004156 0.184615915059" quat="0.701684363471 0.690986412714 -0.121264590402 0.124385411602" />
+      <geom name="base_link_base_visual" type="mesh" mesh="base_link_base" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+      <geom name="base_link_base_collision" type="cylinder" size="0.091125 0.041" pos="0 0 -0.041" quat="1 0 0 0" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+      <geom name="base_link_mounting_rim_visual" type="mesh" mesh="base_link_mounting_rim" material="metal" contype="0" conaffinity="0" group="2" mass="0" />
+      <geom name="base_link_beam_visual" type="mesh" mesh="base_link_beam" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+      <geom name="base_link_beam_collision" type="box" size="0.05 0.041 0.0416" pos="0 0 0.104" quat="0.707106781187 0 0 -0.707106781187" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+      <body name="link_1" pos="0 0 0.208" quat="6.12323399574e-17 1 -0 -0">
+        <inertial pos="0.00641040874525 -0.0162680537072 -0.106588937738" mass="8.415999999999999" diaginertia="0.0740618385539 0.0890478351825 0.110395706628" quat="0.716295024062 0.17400640112 -0.626440177722 -0.253408592216" />
+        <joint name="joint_1" type="hinge" axis="0 0 1" limited="true" range="-2.967059725 2.967059725" damping="0" frictionloss="0" />
+        <geom name="link_1_housing_visual" type="mesh" mesh="link_1_housing" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+        <geom name="link_1_housing_collision" type="cylinder" size="0.0675 0.041" pos="0 0 0" quat="0.707106781187 0 0 -0.707106781187" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+        <geom name="link_1_cap_visual" type="mesh" mesh="link_1_cap" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+        <geom name="link_1_cap_hub_visual" type="mesh" mesh="link_1_cap_hub" material="metal" contype="0" conaffinity="0" group="2" mass="0" />
+        <geom name="link_1_rear_cap_visual" type="mesh" mesh="link_1_rear_cap" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+        <geom name="link_1_rear_cap_hub_visual" type="mesh" mesh="link_1_rear_cap_hub" material="metal" contype="0" conaffinity="0" group="2" mass="0" />
+        <geom name="link_1_beam_visual" type="mesh" mesh="link_1_beam" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+        <geom name="link_1_beam_collision" type="box" size="0.05 0.041 0.0427623619553" pos="0.0125 -0.04535 -0.096" quat="0.223808288653 0.965367461419 0.130608716422 0.0302799860921" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+        <body name="link_2" pos="0.025 -0.0907 -0.192" quat="0.707106781187 0.707106781187 0 0">
+          <inertial pos="0.147417139982 -0.00447731976014 -0.0737027824855" mass="16.7929" diaginertia="0.0872309454394 0.548306118225 0.588517096069" quat="0.703765686843 0.710220227468 0.0067151569456 -0.0159997870197" />
+          <joint name="joint_2" type="hinge" axis="0 0 1" limited="true" range="-3.316125575 0.7853981625" damping="0" frictionloss="0" />
+          <geom name="link_2_housing_visual" type="mesh" mesh="link_2_housing" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+          <geom name="link_2_housing_collision" type="cylinder" size="0.0525 0.0325" pos="0 0 0" quat="0.707106781187 0 0 -0.707106781187" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+          <geom name="link_2_cap_visual" type="mesh" mesh="link_2_cap" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+          <geom name="link_2_cap_hub_visual" type="mesh" mesh="link_2_cap_hub" material="metal" contype="0" conaffinity="0" group="2" mass="0" />
+          <geom name="link_2_rear_cap_visual" type="mesh" mesh="link_2_rear_cap" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+          <geom name="link_2_rear_cap_hub_visual" type="mesh" mesh="link_2_rear_cap_hub" material="metal" contype="0" conaffinity="0" group="2" mass="0" />
+          <geom name="link_2_beam_visual" type="mesh" mesh="link_2_beam" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+          <geom name="link_2_beam_collision" type="box" size="0.05 0.041 0.169759692101" pos="0.2275 0 -0.0021" quat="0.497687056293 0.502302293443 0.502302293443 0.497687056293" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+          <body name="link_3" pos="0.455 0 -0.0042" quat="1 0 0 0">
+            <inertial pos="0.0416506346025 -0.0123254843019 -0.0679862892452" mass="5.988" diaginertia="0.0189204162913 0.0426116435141 0.0478002184407" quat="0.622263371088 -0.779924548428 0.00362732511084 0.0670286377171" />
+            <joint name="joint_3" type="hinge" axis="0 0 1" limited="true" range="-2.0943951 2.72271363" damping="0" frictionloss="0" />
+            <geom name="link_3_housing_visual" type="mesh" mesh="link_3_housing" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+            <geom name="link_3_housing_collision" type="cylinder" size="0.049 0.034" pos="0 0 0" quat="0.707106781187 0 0 -0.707106781187" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+            <geom name="link_3_cap_visual" type="mesh" mesh="link_3_cap" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+            <geom name="link_3_cap_hub_visual" type="mesh" mesh="link_3_cap_hub" material="metal" contype="0" conaffinity="0" group="2" mass="0" />
+            <geom name="link_3_rear_cap_visual" type="mesh" mesh="link_3_rear_cap" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+            <geom name="link_3_rear_cap_hub_visual" type="mesh" mesh="link_3_rear_cap_hub" material="metal" contype="0" conaffinity="0" group="2" mass="0" />
+            <geom name="link_3_beam_visual" type="mesh" mesh="link_3_beam" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+            <geom name="link_3_beam_collision" type="box" size="0.0474118812483 0.0388777426236 0.053946244719" pos="0.098 -0.0125 -0.04325" quat="0.410716095611 0.628152254134 0.553119964447 0.361656382997" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+            <body name="link_4" pos="0.196 -0.025 -0.0865" quat="0.5 0.5 -0.5 -0.5">
+              <inertial pos="0.00144796934171 0.00942619293054 -0.08164304521" mass="4.69985262" diaginertia="0.0104897075455 0.0442389813686 0.0472125343633" quat="0.694905424367 -0.0286126950564 -0.718526973599 -0.00259866863045" />
+              <joint name="joint_4" type="hinge" axis="0 0 1" limited="true" range="-3.2288591125 3.2288591125" damping="0" frictionloss="0" />
+              <geom name="link_4_housing_visual" type="mesh" mesh="link_4_housing" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+              <geom name="link_4_housing_collision" type="cylinder" size="0.045 0.026" pos="0 0 0" quat="0.707106781187 0 0 -0.707106781187" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+              <geom name="link_4_cap_visual" type="mesh" mesh="link_4_cap" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+              <geom name="link_4_cap_hub_visual" type="mesh" mesh="link_4_cap_hub" material="metal" contype="0" conaffinity="0" group="2" mass="0" />
+              <geom name="link_4_rear_cap_visual" type="mesh" mesh="link_4_rear_cap" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+              <geom name="link_4_rear_cap_hub_visual" type="mesh" mesh="link_4_rear_cap_hub" material="metal" contype="0" conaffinity="0" group="2" mass="0" />
+              <geom name="link_4_beam_visual" type="mesh" mesh="link_4_beam" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+              <geom name="link_4_beam_collision" type="box" size="0.0429543539515 0.0352225702402 0.0653109859726" pos="0 0.02525 -0.112" quat="0 0 0.993860252367 0.1106426625" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+              <body name="link_5" pos="0 0.0505 -0.224" quat="0.5 -0.5 0.5 0.5">
+                <inertial pos="0.0093206969246 0.000783482142857 -0.0264625496032" mass="1.6128" diaginertia="0.00173177561331 0.00221950080544 0.00246709005544" quat="0.307949044655 -0.282260183637 -0.647599584528 -0.637268666065" />
+                <joint name="joint_5" type="hinge" axis="0 0 1" limited="true" range="-2.0943951 2.0943951" damping="0" frictionloss="0" />
+                <geom name="link_5_housing_visual" type="mesh" mesh="link_5_housing" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+                <geom name="link_5_housing_collision" type="cylinder" size="0.0358096530282 0.0257829501803" pos="0 0 0" quat="0.707106781187 0 0 -0.707106781187" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+                <geom name="link_5_cap_visual" type="mesh" mesh="link_5_cap" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+                <geom name="link_5_cap_hub_visual" type="mesh" mesh="link_5_cap_hub" material="metal" contype="0" conaffinity="0" group="2" mass="0" />
+                <geom name="link_5_rear_cap_visual" type="mesh" mesh="link_5_rear_cap" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+                <geom name="link_5_rear_cap_hub_visual" type="mesh" mesh="link_5_rear_cap_hub" material="metal" contype="0" conaffinity="0" group="2" mass="0" />
+                <geom name="link_5_beam_visual" type="mesh" mesh="link_5_beam" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+                <geom name="link_5_beam_collision" type="box" size="0.0384968266546 0.0315673978568 0.0159154013459" pos="0.03075 0 -0.02525" quat="0.302239382447 0.639258442023 0.639258442023 0.302239382447" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+                <body name="link_6" pos="0.0615 0 -0.0505" quat="0.5 0.5 -0.5 -0.5">
+                  <inertial pos="0 0 -0.0117646049046" mass="0.734" diaginertia="0.000182136217668 0.000183698267603 0.00029589" quat="0.984954714107 0 0 -0.172812647565" />
+                  <joint name="joint_6" type="hinge" axis="0 0 1" limited="true" range="-6.108652375 6.108652375" damping="0" frictionloss="0" />
+                  <geom name="link_6_housing_visual" type="mesh" mesh="link_6_housing" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+                  <geom name="link_6_housing_collision" type="cylinder" size="0.012825 0.009234" pos="0 0 0" quat="0.707106781187 0 0 -0.707106781187" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+                  <geom name="link_6_cap_visual" type="mesh" mesh="link_6_cap" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+                  <geom name="link_6_cap_hub_visual" type="mesh" mesh="link_6_cap_hub" material="metal" contype="0" conaffinity="0" group="2" mass="0" />
+                  <geom name="link_6_rear_cap_visual" type="mesh" mesh="link_6_rear_cap" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+                  <geom name="link_6_rear_cap_hub_visual" type="mesh" mesh="link_6_rear_cap_hub" material="metal" contype="0" conaffinity="0" group="2" mass="0" />
+                  <geom name="link_6_beam_visual" type="mesh" mesh="link_6_beam" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+                  <geom name="link_6_beam_collision" type="box" size="0.0340392993578 0.0279122254734 0.0057" pos="0 0 -0.01425" quat="0 0.707106781187 0.707106781187 0" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+                  <geom name="link_6_flange_visual" type="mesh" mesh="link_6_flange" material="metal" contype="0" conaffinity="0" group="2" mass="0" />
+                  <geom name="link_6_flange_collision" type="cylinder" size="0.0357412643257 0.0061270738844" pos="0 0 -0.0285" quat="5.65245944439e-17 -6.12323399574e-17 -1 -1.78989274359e-16" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+                  <geom name="link_6_flange_fastener_0_visual" type="mesh" mesh="link_6_flange_fastener_0" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+                  <geom name="link_6_flange_fastener_1_visual" type="mesh" mesh="link_6_flange_fastener_1" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+                  <geom name="link_6_flange_fastener_2_visual" type="mesh" mesh="link_6_flange_fastener_2" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+                  <geom name="link_6_flange_fastener_3_visual" type="mesh" mesh="link_6_flange_fastener_3" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+                  <site name="tool_frame" pos="0 0 -0.0285" quat="5.65245944439e-17 -6.12323399574e-17 -1 -1.78989274359e-16" size="0.006" rgba="0.1 0.7 0.8 1" />
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+  <contact>
+    <exclude body1="base_link" body2="link_1" />
+    <exclude body1="link_1" body2="link_2" />
+    <exclude body1="link_2" body2="link_3" />
+    <exclude body1="link_3" body2="link_4" />
+    <exclude body1="link_4" body2="link_5" />
+    <exclude body1="link_5" body2="link_6" />
+  </contact>
+  <actuator>
+    <position name="joint_1_drive" joint="joint_1" forcelimited="true" forcerange="-334.8 334.8" ctrllimited="true" kp="677.8798041735332" kv="252.9667453619859" ctrlrange="-2.967059725 2.967059725" timeconst="0.03" />
+    <position name="joint_2_drive" joint="joint_2" forcelimited="true" forcerange="-260.656529676 260.656529676" ctrllimited="true" kp="1303.282648380836" kv="334.2134085209275" ctrlrange="-3.316125575 0.7853981625" timeconst="0.03" />
+    <position name="joint_3_drive" joint="joint_3" forcelimited="true" forcerange="-137.827375312 137.827375312" ctrllimited="true" kp="689.1368765604733" kv="90.00304947633083" ctrlrange="-2.0943951 2.72271363" timeconst="0.03" />
+    <position name="joint_4_drive" joint="joint_4" forcelimited="true" forcerange="-43.2820690183 43.2820690183" ctrllimited="true" kp="31.169438200252635" kv="2.679445962961186" ctrlrange="-3.2288591125 3.2288591125" timeconst="0.03" />
+    <position name="joint_5_drive" joint="joint_5" forcelimited="true" forcerange="-45.669606844 45.669606844" ctrllimited="true" kp="19.286078811428553" kv="1.2165285675046393" ctrlrange="-2.0943951 2.0943951" timeconst="0.03" />
+    <position name="joint_6_drive" joint="joint_6" forcelimited="true" forcerange="-23.2939212 23.2939212" ctrllimited="true" kp="0.026282855216145" kv="0.009808063762800153" ctrlrange="-6.108652375 6.108652375" timeconst="0.03" />
+  </actuator>
+  <keyframe>
+    <key name="initial" qpos="0.2 -1.1 1.2 0.35 0.6 -0.2" ctrl="0.2 -1.1 1.2 0.35 0.6 -0.2" act="0.2 -1.1 1.2 0.35 0.6 -0.2" />
+  </keyframe>
+</mujoco>

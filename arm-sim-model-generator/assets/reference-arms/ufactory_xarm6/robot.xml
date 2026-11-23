@@ -1,0 +1,166 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mujoco model="ufactory_xarm6_reference">
+  <compiler angle="radian" meshdir="meshes" inertiafromgeom="false" fusestatic="false" />
+  <option gravity="0 0 -9.81" timestep="0.000907463" integrator="implicitfast" />
+  <asset>
+    <material name="body" rgba="0.82 0.84 0.85 1" specular="0.24000000000000002" shininess="0.64" />
+    <material name="joint" rgba="0.16 0.18 0.2 1" specular="0.26" shininess="0.6" />
+    <material name="accent" rgba="0.06 0.36 0.43 1" specular="0.28" shininess="0.6799999999999999" />
+    <material name="metal" rgba="0.55 0.58 0.61 1" specular="0.488" shininess="0.76" />
+    <mesh name="link_base_base" file="link_base_base_visual.stl" />
+    <mesh name="link_base_mounting_rim" file="link_base_mounting_rim_visual.stl" />
+    <mesh name="link_base_beam" file="link_base_beam_visual.stl" />
+    <mesh name="link_base_joint1_stator" file="link_base_joint1_stator_visual.stl" />
+    <mesh name="link1_joint2_stator" file="link1_joint2_stator_visual.stl" />
+    <mesh name="link1_joint1_output_shaft" file="link1_joint1_output_shaft_visual.stl" />
+    <mesh name="link1_joint1_output_fairing" file="link1_joint1_output_fairing_visual.stl" />
+    <mesh name="link1_joint1_rotor_ring" file="link1_joint1_rotor_ring_visual.stl" />
+    <mesh name="link1_joint2_support" file="link1_joint2_support_visual.stl" />
+    <mesh name="link1_joint2_stator_lug" file="link1_joint2_stator_lug_visual.stl" />
+    <mesh name="link2_beam" file="link2_beam_visual.stl" />
+    <mesh name="link2_joint2_output_shaft" file="link2_joint2_output_shaft_visual.stl" />
+    <mesh name="link2_joint2_output_plate" file="link2_joint2_output_plate_visual.stl" />
+    <mesh name="link3_housing" file="link3_housing_visual.stl" />
+    <mesh name="link3_cap" file="link3_cap_visual.stl" />
+    <mesh name="link3_cap_hub" file="link3_cap_hub_visual.stl" />
+    <mesh name="link3_rear_cap" file="link3_rear_cap_visual.stl" />
+    <mesh name="link3_rear_cap_hub" file="link3_rear_cap_hub_visual.stl" />
+    <mesh name="link3_beam" file="link3_beam_visual.stl" />
+    <mesh name="link3_joint4_stator" file="link3_joint4_stator_visual.stl" />
+    <mesh name="link4_joint5_stator" file="link4_joint5_stator_visual.stl" />
+    <mesh name="link4_joint4_output_shaft" file="link4_joint4_output_shaft_visual.stl" />
+    <mesh name="link4_joint4_output_fairing" file="link4_joint4_output_fairing_visual.stl" />
+    <mesh name="link4_joint4_rotor_ring" file="link4_joint4_rotor_ring_visual.stl" />
+    <mesh name="link4_joint5_support" file="link4_joint5_support_visual.stl" />
+    <mesh name="link4_joint5_stator_lug" file="link4_joint5_stator_lug_visual.stl" />
+    <mesh name="link5_beam" file="link5_beam_visual.stl" />
+    <mesh name="link5_joint5_output_shaft" file="link5_joint5_output_shaft_visual.stl" />
+    <mesh name="link5_joint5_output_plate" file="link5_joint5_output_plate_visual.stl" />
+    <mesh name="link6_housing" file="link6_housing_visual.stl" />
+    <mesh name="link6_cap" file="link6_cap_visual.stl" />
+    <mesh name="link6_cap_hub" file="link6_cap_hub_visual.stl" />
+    <mesh name="link6_rear_cap" file="link6_rear_cap_visual.stl" />
+    <mesh name="link6_rear_cap_hub" file="link6_rear_cap_hub_visual.stl" />
+    <mesh name="link6_flange" file="link6_flange_visual.stl" />
+    <mesh name="link6_flange_fastener_0" file="link6_flange_fastener_0_visual.stl" />
+    <mesh name="link6_flange_fastener_1" file="link6_flange_fastener_1_visual.stl" />
+    <mesh name="link6_flange_fastener_2" file="link6_flange_fastener_2_visual.stl" />
+    <mesh name="link6_flange_fastener_3" file="link6_flange_fastener_3_visual.stl" />
+  </asset>
+  <worldbody>
+    <body name="link_base" pos="0 0 0" quat="1 0 0 0">
+      <inertial pos="0 0 0.09103" mass="2.7" diaginertia="0.00221894171752 0.00494030634045 0.00495024194203" quat="0.692171468984 -0.136413881025 -0.695263790787 -0.13747062162" />
+      <geom name="link_base_base_visual" type="mesh" mesh="link_base_base" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+      <geom name="link_base_base_collision" type="cylinder" size="0.0798475446102 0.0359259185626" pos="0 0 -0.0359259185626" quat="1 0 0 0" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+      <geom name="link_base_mounting_rim_visual" type="mesh" mesh="link_base_mounting_rim" material="metal" contype="0" conaffinity="0" group="2" mass="0" />
+      <geom name="link_base_beam_visual" type="mesh" mesh="link_base_beam" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+      <geom name="link_base_beam_collision" type="box" size="0.0438120958081 0.0359259185626 0.024" pos="0 0 0.06" quat="0.707106781187 0 0 -0.707106781187" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+      <geom name="link_base_joint1_stator_visual" type="mesh" mesh="link_base_joint1_stator" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+      <geom name="link_base_joint1_stator_collision" type="cylinder" size="0.0425 0.025" pos="0 0 0.147" quat="0.707106781187 0 0 -0.707106781187" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+      <body name="link1" pos="0 0 0.267" quat="1 0 0 0">
+        <inertial pos="0.00022 0.02951 -0.0124" mass="2.3814" diaginertia="0.00312314615584 0.00544433606682 0.00585696977734" quat="0.687495733127 -0.167758129539 -0.692973046255 0.1378230172" />
+        <joint name="joint1" type="hinge" axis="0 0 1" limited="true" range="-6.28318530718 6.28318530718" damping="0" frictionloss="0" />
+        <geom name="link1_joint2_stator_visual" type="mesh" mesh="link1_joint2_stator" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+        <geom name="link1_joint2_stator_collision" type="cylinder" size="0.05 0.025" pos="0 0.0576567838397 -2.11785192648e-07" quat="0.499999081698 -0.5000009183 -0.5000009183 -0.499999081698" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+        <geom name="link1_joint1_output_shaft_visual" type="mesh" mesh="link1_joint1_output_shaft" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+        <geom name="link1_joint1_output_shaft_collision" type="cylinder" size="0.019975 0.0597498481923" pos="-0 -0 -0.0852501518077" quat="0.707106781187 0 0 -0.707106781187" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+        <geom name="link1_joint1_output_fairing_visual" type="mesh" mesh="link1_joint1_output_fairing" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+        <geom name="link1_joint1_output_fairing_collision" type="cylinder" size="0.0357 0.0207499400226" pos="-0 -0 -0.0702500599774" quat="0.707106781187 0 0 -0.707106781187" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+        <geom name="link1_joint1_rotor_ring_visual" type="mesh" mesh="link1_joint1_rotor_ring" material="metal" contype="0" conaffinity="0" group="2" mass="0" />
+        <geom name="link1_joint1_rotor_ring_collision" type="cylinder" size="0.0408 0.001" pos="0 0 -0.092" quat="0.707106781187 0 0 -0.707106781187" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+        <geom name="link1_joint2_support_visual" type="mesh" mesh="link1_joint2_support" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+        <geom name="link1_joint2_support_collision" type="box" size="0.0055 0.0055 0.0288283919201" pos="0 0.0288281815254 -0.0572782804853" quat="0 0 -0.707108079859 -0.707105482511" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+        <geom name="link1_joint2_stator_lug_visual" type="mesh" mesh="link1_joint2_stator_lug" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+        <geom name="link1_joint2_stator_lug_collision" type="box" size="0.0055 0.0055 0.00988908729653" pos="0 0.0576566097699 -0.0473892990814" quat="0 0 -0.999999999998 1.83660255171e-06" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+        <body name="link2" pos="0 0 0" quat="0.707105482511 -0.707108079859 0 0">
+          <inertial pos="0.03881 -0.22783 0.03496" mass="2.2675" diaginertia="0.00383448645525 0.0281783207087 0.029447668836" quat="0.328329932214 0.539914390632 0.570126827705 0.525021244077" />
+          <joint name="joint2" type="hinge" axis="0 0 1" limited="true" range="-2.059 2.0944" damping="0" frictionloss="0" />
+          <geom name="link2_beam_visual" type="mesh" mesh="link2_beam" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+          <geom name="link2_beam_collision" type="box" size="0.0373863217562 0.0306567838401 0.0897433072719" pos="0.02675 -0.14225 0" quat="0.704055090678 0.704055090678 0.0656233898089 0.0656233898089" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+          <geom name="link2_joint2_output_shaft_visual" type="mesh" mesh="link2_joint2_output_shaft" material="metal" contype="0" conaffinity="0" group="2" mass="0" />
+          <geom name="link2_joint2_output_shaft_collision" type="cylinder" size="0.0235 0.0413283919201" pos="0 0 0.0413283919201" quat="0.707106781187 0 0 -0.707106781187" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+          <geom name="link2_joint2_output_plate_visual" type="mesh" mesh="link2_joint2_output_plate" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+          <geom name="link2_joint2_output_plate_collision" type="cylinder" size="0.0475 0.001" pos="0 0 0.0316567838401" quat="0.707106781187 0 0 -0.707106781187" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+          <body name="link3" pos="0.0535 -0.2845 0" quat="1 0 0 0">
+            <inertial pos="0.07041 0.11631 0.0107" mass="1.875" diaginertia="0.00196753191712 0.00699471119507 0.00714131688781" quat="0.394500002528 -0.390789092678 0.207302608312 -0.805406271168" />
+            <joint name="joint3" type="hinge" axis="0 0 1" limited="true" range="-3.927 0.19198" damping="0" frictionloss="0" />
+            <geom name="link3_housing_visual" type="mesh" mesh="link3_housing" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+            <geom name="link3_housing_collision" type="cylinder" size="0.0461341368859 0.0280222164788" pos="0 0 0" quat="0.707106781187 0 0 -0.707106781187" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+            <geom name="link3_cap_visual" type="mesh" mesh="link3_cap" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+            <geom name="link3_cap_hub_visual" type="mesh" mesh="link3_cap_hub" material="metal" contype="0" conaffinity="0" group="2" mass="0" />
+            <geom name="link3_rear_cap_visual" type="mesh" mesh="link3_rear_cap" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+            <geom name="link3_rear_cap_hub_visual" type="mesh" mesh="link3_rear_cap_hub" material="metal" contype="0" conaffinity="0" group="2" mass="0" />
+            <geom name="link3_beam_visual" type="mesh" mesh="link3_beam" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+            <geom name="link3_beam_collision" type="box" size="0.0341734347303 0.0280222164788 0.0805747228985" pos="0.03875 0.1065 2.37840030446e-07" quat="0.122750892662 0.122750635052 0.696370039759 0.696371501191" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+            <geom name="link3_joint4_stator_visual" type="mesh" mesh="link3_joint4_stator" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+            <geom name="link3_joint4_stator_collision" type="cylinder" size="0.0325 0.0175" pos="0.0775 0.232500000001 4.04052561376e-07" quat="0.499999081698 -0.5000009183 -0.5000009183 -0.499999081698" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+            <body name="link4" pos="0.0775 0.3425 0" quat="0.707105482511 -0.707108079859 0 0">
+              <inertial pos="-0.00018 0.01798 -0.02291" mass="1.3192" diaginertia="0.00132608877904 0.00447402974547 0.00489614147549" quat="0.0211838161886 0.705336092678 -0.0310999045425 -0.70787360329" />
+              <joint name="joint4" type="hinge" axis="0 0 1" limited="true" range="-6.28318530718 6.28318530718" damping="0" frictionloss="0" />
+              <geom name="link4_joint5_stator_visual" type="mesh" mesh="link4_joint5_stator" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+              <geom name="link4_joint5_stator_collision" type="cylinder" size="0.04 0.016" pos="0 -0.0407530817561 -1.49694427887e-07" quat="0.499999081698 0.5000009183 0.5000009183 -0.499999081698" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+              <geom name="link4_joint4_output_shaft_visual" type="mesh" mesh="link4_joint4_output_shaft" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+              <geom name="link4_joint4_output_shaft_collision" type="cylinder" size="0.015275 0.0533498957671" pos="-0 -0 -0.0741501042329" quat="0.707106781187 0 0 -0.707106781187" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+              <geom name="link4_joint4_output_fairing_visual" type="mesh" mesh="link4_joint4_output_fairing" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+              <geom name="link4_joint4_output_fairing_collision" type="cylinder" size="0.0273 0.0242499545386" pos="-0 -0 -0.0642500454614" quat="0.707106781187 0 0 -0.707106781187" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+              <geom name="link4_joint4_rotor_ring_visual" type="mesh" mesh="link4_joint4_rotor_ring" material="metal" contype="0" conaffinity="0" group="2" mass="0" />
+              <geom name="link4_joint4_rotor_ring_collision" type="cylinder" size="0.0312 0.001" pos="0 0 -0.0895" quat="0.707106781187 0 0 -0.707106781187" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+              <geom name="link4_joint5_support_visual" type="mesh" mesh="link4_joint5_support" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+              <geom name="link4_joint5_support_collision" type="box" size="0.0044 0.0044 0.0203765408782" pos="0 -0.0203763710932 -0.0462226145213" quat="0.707105482511 0.707108079859 -0 -0" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+              <geom name="link4_joint5_stator_lug_visual" type="mesh" mesh="link4_joint5_stator_lug" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+              <geom name="link4_joint5_stator_lug_collision" type="box" size="0.0044 0.0044 0.00811126983722" pos="0 -0.0407529417655 -0.0381114195314" quat="1.83660255171e-06 -0.999999999998 -0 -0" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+              <body name="link5" pos="0 0 0" quat="0.707105482511 0.707108079859 -0 -0">
+                <inertial pos="0.0651 0.03096 0.00315" mass="1.33854" diaginertia="0.00108731108823 0.0021336714346 0.00241824147717" quat="0.95139247956 0.0443623146611 0.139402763637 0.271018826586" />
+                <joint name="joint5" type="hinge" axis="0 0 1" limited="true" range="-1.69297 3.14159265359" damping="0" frictionloss="0" />
+                <geom name="link5_beam_visual" type="mesh" mesh="link5_beam" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+                <geom name="link5_beam_collision" type="box" size="0.0277476606784 0.0227530817563 0.0246454864022" pos="0.038 0.0485 0" quat="0.230671633036 0.230671633036 0.668423965543 0.668423965543" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+                <geom name="link5_joint5_output_shaft_visual" type="mesh" mesh="link5_joint5_output_shaft" material="metal" contype="0" conaffinity="0" group="2" mass="0" />
+                <geom name="link5_joint5_output_shaft_collision" type="cylinder" size="0.0188 0.0283765408782" pos="0 0 0.0283765408782" quat="0.707106781187 0 0 -0.707106781187" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+                <geom name="link5_joint5_output_plate_visual" type="mesh" mesh="link5_joint5_output_plate" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+                <geom name="link5_joint5_output_plate_collision" type="cylinder" size="0.038 0.001" pos="0 0 0.0237530817563" quat="0.707106781187 0 0 -0.707106781187" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+                <body name="link6" pos="0.076 0.097 0" quat="0.707105482511 -0.707108079859 0 0">
+                  <inertial pos="0 -0.00677 -0.01098" mass="0.17" diaginertia="5.85236167945e-05 9.3e-05 0.000132176383206" quat="0.70689495069 0.0173068971514 0.0173068971514 -0.70689495069" />
+                  <joint name="joint6" type="hinge" axis="0 0 1" limited="true" range="-6.28318530718 6.28318530718" damping="0" frictionloss="0" />
+                  <geom name="link6_housing_visual" type="mesh" mesh="link6_housing" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+                  <geom name="link6_housing_collision" type="cylinder" size="0.0331219444309 0.0201185143951" pos="0 0 0" quat="0.707106781187 0 0 -0.707106781187" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+                  <geom name="link6_cap_visual" type="mesh" mesh="link6_cap" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+                  <geom name="link6_cap_hub_visual" type="mesh" mesh="link6_cap_hub" material="metal" contype="0" conaffinity="0" group="2" mass="0" />
+                  <geom name="link6_rear_cap_visual" type="mesh" mesh="link6_rear_cap" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+                  <geom name="link6_rear_cap_hub_visual" type="mesh" mesh="link6_rear_cap_hub" material="metal" contype="0" conaffinity="0" group="2" mass="0" />
+                  <geom name="link6_flange_visual" type="mesh" mesh="link6_flange" material="metal" contype="0" conaffinity="0" group="2" mass="0" />
+                  <geom name="link6_flange_collision" type="cylinder" size="0.0257615123351 0.00441625925745" pos="0 0 0" quat="1 0 0 0" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+                  <geom name="link6_flange_fastener_0_visual" type="mesh" mesh="link6_flange_fastener_0" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+                  <geom name="link6_flange_fastener_1_visual" type="mesh" mesh="link6_flange_fastener_1" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+                  <geom name="link6_flange_fastener_2_visual" type="mesh" mesh="link6_flange_fastener_2" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+                  <geom name="link6_flange_fastener_3_visual" type="mesh" mesh="link6_flange_fastener_3" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+                  <site name="tool_frame" pos="0 0 0" quat="1 0 0 0" size="0.006" rgba="0.1 0.7 0.8 1" />
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+  <contact>
+    <exclude body1="link_base" body2="link1" />
+    <exclude body1="link_base" body2="link2" />
+    <exclude body1="link1" body2="link2" />
+    <exclude body1="link2" body2="link3" />
+    <exclude body1="link3" body2="link4" />
+    <exclude body1="link3" body2="link5" />
+    <exclude body1="link4" body2="link5" />
+    <exclude body1="link5" body2="link6" />
+  </contact>
+  <actuator>
+    <position name="joint1_drive" joint="joint1" forcelimited="true" forcerange="-163.2 163.2" ctrllimited="true" kp="119.79648974131509" kv="46.56840709138413" ctrlrange="-6.28318530718 6.28318530718" timeconst="0.03" />
+    <position name="joint2_drive" joint="joint2" forcelimited="true" forcerange="-163.2 163.2" ctrllimited="true" kp="778.4230657537396" kv="135.10720294235807" ctrlrange="-2.059 2.0944" timeconst="0.03" />
+    <position name="joint3_drive" joint="joint3" forcelimited="true" forcerange="-81.6 81.6" ctrllimited="true" kp="368.7508368362768" kv="48.01195492479274" ctrlrange="-3.927 0.19198" timeconst="0.03" />
+    <position name="joint4_drive" joint="joint4" forcelimited="true" forcerange="-81.6 81.6" ctrllimited="true" kp="28.54861078880909" kv="2.217076722453945" ctrlrange="-6.28318530718 6.28318530718" timeconst="0.03" />
+    <position name="joint5_drive" joint="joint5" forcelimited="true" forcerange="-30.6 30.6" ctrllimited="true" kp="31.557402494828537" kv="2.235962064133961" ctrlrange="-1.69297 3.14159265359" timeconst="0.03" />
+    <position name="joint6_drive" joint="joint6" forcelimited="true" forcerange="-30.6 30.6" ctrllimited="true" kp="0.3016059548204076" kv="0.023789148673709185" ctrlrange="-6.28318530718 6.28318530718" timeconst="0.03" />
+  </actuator>
+  <keyframe>
+    <key name="initial" qpos="0.15 -0.35 -1.2 0.3 0.55 0.12" ctrl="0.15 -0.35 -1.2 0.3 0.55 0.12" act="0.15 -0.35 -1.2 0.3 0.55 0.12" />
+  </keyframe>
+</mujoco>

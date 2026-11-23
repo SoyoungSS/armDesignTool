@@ -1,6 +1,14 @@
 {
   "platform": "cp312-win_amd64",
   "source": "https://pypi.org/simple",
+  "shared": [
+    "cycler-0.12.1-py3-none-any.whl",
+    "mujoco_studio_wasm-4.0.1-py3-none-any.whl",
+    "packaging-26.3-py3-none-any.whl",
+    "pyparsing-3.3.3-py3-none-any.whl",
+    "python_dateutil-4.0.0-py3-none-any.whl",
+    "tzdata-2026.6-py2.py3-none-any.whl"
+  ],
   "wheels": {
     "contourpy-1.4.0-cp312-cp312-win_amd64.whl": "6e697d94e69f499ff6bebb899cae97a58d5d14f0e1fe9568b43a0248d2f9af8c",
     "cycler-0.12.1-py3-none-any.whl": "85cef7cff222d8644161529808465972e51340599459b8ac3ccbac5a854e0d30",

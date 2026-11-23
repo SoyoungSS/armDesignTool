@@ -1,0 +1,583 @@
+<?xml version='1.0' encoding='utf-8'?>
+<robot name="ufactory_xarm6_reference">
+  <link name="world" />
+  <link name="link_base">
+    <inertial>
+      <origin xyz="0 0 0.09103" rpy="0 -0 0" />
+      <mass value="2.7" />
+      <inertia ixx="0.00494875" iyy="0.00494174" izz="0.002219" ixy="-3.5e-06" ixz="1.25e-05" iyz="1.67e-06" />
+    </inertial>
+    <visual name="link_base_base_visual">
+      <geometry>
+        <mesh filename="meshes/link_base_base_visual.stl" />
+      </geometry>
+      <material name="link_base_base">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+    <collision name="link_base_base_collision">
+      <origin xyz="0 0 -0.0359259185626" rpy="0 -0 0" />
+      <geometry>
+        <cylinder radius="0.0798475446102221" length="0.07185183712524786" />
+      </geometry>
+    </collision>
+    <visual name="link_base_mounting_rim_visual">
+      <geometry>
+        <mesh filename="meshes/link_base_mounting_rim_visual.stl" />
+      </geometry>
+      <material name="link_base_mounting_rim">
+        <color rgba="0.55 0.58 0.61 1" />
+      </material>
+    </visual>
+    <visual name="link_base_beam_visual">
+      <geometry>
+        <mesh filename="meshes/link_base_beam_visual.stl" />
+      </geometry>
+      <material name="link_base_beam">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="link_base_beam_collision">
+      <origin xyz="0 0 0.06" rpy="0 -0 -1.57079632679" />
+      <geometry>
+        <box size="0.0876241916162 0.0718518371252 0.048" />
+      </geometry>
+    </collision>
+    <visual name="link_base_joint1_stator_visual">
+      <geometry>
+        <mesh filename="meshes/link_base_joint1_stator_visual.stl" />
+      </geometry>
+      <material name="link_base_joint1_stator">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="link_base_joint1_stator_collision">
+      <origin xyz="0 0 0.147" rpy="0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.0425" length="0.05" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="link1">
+    <inertial>
+      <origin xyz="0.00022 0.02951 -0.0124" rpy="0 -0 0" />
+      <mass value="2.3814" />
+      <inertia ixx="0.0058562" iyy="0.0050316" izz="0.003536652" ixy="-1.79e-05" ixz="3.55e-06" iyz="-0.000888336" />
+    </inertial>
+    <visual name="link1_joint2_stator_visual">
+      <geometry>
+        <mesh filename="meshes/link1_joint2_stator_visual.stl" />
+      </geometry>
+      <material name="link1_joint2_stator">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="link1_joint2_stator_collision">
+      <origin xyz="0 0.0576567838397 -2.11785192648e-07" rpy="3.14159265359 -1.57079265358 1.57079632679" />
+      <geometry>
+        <cylinder radius="0.05" length="0.05" />
+      </geometry>
+    </collision>
+    <visual name="link1_joint1_output_shaft_visual">
+      <geometry>
+        <mesh filename="meshes/link1_joint1_output_shaft_visual.stl" />
+      </geometry>
+      <material name="link1_joint1_output_shaft">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="link1_joint1_output_shaft_collision">
+      <origin xyz="-0 -0 -0.0852501518077" rpy="-0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.019975" length="0.11949969638467975" />
+      </geometry>
+    </collision>
+    <visual name="link1_joint1_output_fairing_visual">
+      <geometry>
+        <mesh filename="meshes/link1_joint1_output_fairing_visual.stl" />
+      </geometry>
+      <material name="link1_joint1_output_fairing">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="link1_joint1_output_fairing_collision">
+      <origin xyz="-0 -0 -0.0702500599774" rpy="-0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.0357" length="0.04149988004525538" />
+      </geometry>
+    </collision>
+    <visual name="link1_joint1_rotor_ring_visual">
+      <geometry>
+        <mesh filename="meshes/link1_joint1_rotor_ring_visual.stl" />
+      </geometry>
+      <material name="link1_joint1_rotor_ring">
+        <color rgba="0.55 0.58 0.61 1" />
+      </material>
+    </visual>
+    <collision name="link1_joint1_rotor_ring_collision">
+      <origin xyz="0 0 -0.092" rpy="-0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.0408" length="0.002" />
+      </geometry>
+    </collision>
+    <visual name="link1_joint2_support_visual">
+      <geometry>
+        <mesh filename="meshes/link1_joint2_support_visual.stl" />
+      </geometry>
+      <material name="link1_joint2_support">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="link1_joint2_support_collision">
+      <origin xyz="0 0.0288281815254 -0.0572782804853" rpy="1.5708 -0 3.14159265359" />
+      <geometry>
+        <box size="0.011 0.011 0.0576567838401" />
+      </geometry>
+    </collision>
+    <visual name="link1_joint2_stator_lug_visual">
+      <geometry>
+        <mesh filename="meshes/link1_joint2_stator_lug_visual.stl" />
+      </geometry>
+      <material name="link1_joint2_stator_lug">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="link1_joint2_stator_lug_collision">
+      <origin xyz="0 0.0576566097699 -0.0473892990814" rpy="-3.14158898038 -0 3.14159265359" />
+      <geometry>
+        <box size="0.011 0.011 0.0197781745931" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="link2">
+    <inertial>
+      <origin xyz="0.03881 -0.22783 0.03496" rpy="0 -0 0" />
+      <mass value="2.2675" />
+      <inertia ixx="0.028315776" iyy="0.0058" izz="0.0273447" ixy="0.005" ixz="0.00066546" iyz="-0.0045741" />
+    </inertial>
+    <visual name="link2_beam_visual">
+      <geometry>
+        <mesh filename="meshes/link2_beam_visual.stl" />
+      </geometry>
+      <material name="link2_beam">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="link2_beam_collision">
+      <origin xyz="0.02675 -0.14225 0" rpy="1.57079632679 0 0.185878453925" />
+      <geometry>
+        <box size="0.0747726435125 0.0613135676802 0.179486614544" />
+      </geometry>
+    </collision>
+    <visual name="link2_joint2_output_shaft_visual">
+      <geometry>
+        <mesh filename="meshes/link2_joint2_output_shaft_visual.stl" />
+      </geometry>
+      <material name="link2_joint2_output_shaft">
+        <color rgba="0.55 0.58 0.61 1" />
+      </material>
+    </visual>
+    <collision name="link2_joint2_output_shaft_collision">
+      <origin xyz="0 0 0.0413283919201" rpy="-0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.0235" length="0.08265678384010575" />
+      </geometry>
+    </collision>
+    <visual name="link2_joint2_output_plate_visual">
+      <geometry>
+        <mesh filename="meshes/link2_joint2_output_plate_visual.stl" />
+      </geometry>
+      <material name="link2_joint2_output_plate">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="link2_joint2_output_plate_collision">
+      <origin xyz="0 0 0.0316567838401" rpy="-0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.0475" length="0.002" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="link3">
+    <inertial>
+      <origin xyz="0.07041 0.11631 0.0107" rpy="0 -0 0" />
+      <mass value="1.875" />
+      <inertia ixx="0.0063483" iyy="0.00379758" izz="0.00595768" ixy="-0.0015397" ixz="0.00096858" iyz="0.00186567" />
+    </inertial>
+    <visual name="link3_housing_visual">
+      <geometry>
+        <mesh filename="meshes/link3_housing_visual.stl" />
+      </geometry>
+      <material name="link3_housing">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="link3_housing_collision">
+      <origin xyz="0 0 0" rpy="-0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.0461341368859061" length="0.056044432957693326" />
+      </geometry>
+    </collision>
+    <visual name="link3_cap_visual">
+      <geometry>
+        <mesh filename="meshes/link3_cap_visual.stl" />
+      </geometry>
+      <material name="link3_cap">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+    <visual name="link3_cap_hub_visual">
+      <geometry>
+        <mesh filename="meshes/link3_cap_hub_visual.stl" />
+      </geometry>
+      <material name="link3_cap_hub">
+        <color rgba="0.55 0.58 0.61 1" />
+      </material>
+    </visual>
+    <visual name="link3_rear_cap_visual">
+      <geometry>
+        <mesh filename="meshes/link3_rear_cap_visual.stl" />
+      </geometry>
+      <material name="link3_rear_cap">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+    <visual name="link3_rear_cap_hub_visual">
+      <geometry>
+        <mesh filename="meshes/link3_rear_cap_hub_visual.stl" />
+      </geometry>
+      <material name="link3_rear_cap_hub">
+        <color rgba="0.55 0.58 0.61 1" />
+      </material>
+    </visual>
+    <visual name="link3_beam_visual">
+      <geometry>
+        <mesh filename="meshes/link3_beam_visual.stl" />
+      </geometry>
+      <material name="link3_beam">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="link3_beam_collision">
+      <origin xyz="0.03875 0.1065 2.37840030446e-07" rpy="1.57079422815 1.05879118407e-22 2.79263318412" />
+      <geometry>
+        <box size="0.0683468694606 0.0560444329577 0.161149445797" />
+      </geometry>
+    </collision>
+    <visual name="link3_joint4_stator_visual">
+      <geometry>
+        <mesh filename="meshes/link3_joint4_stator_visual.stl" />
+      </geometry>
+      <material name="link3_joint4_stator">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="link3_joint4_stator_collision">
+      <origin xyz="0.0775 0.232500000001 4.04052561376e-07" rpy="3.14159265359 -1.57079265358 1.57079632679" />
+      <geometry>
+        <cylinder radius="0.0325" length="0.035" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="link4">
+    <inertial>
+      <origin xyz="-0.00018 0.01798 -0.02291" rpy="0 -0 0" />
+      <mass value="1.3192" />
+      <inertia ixx="0.004896" iyy="0.00445694" izz="0.00134332" ixy="-6.925e-06" ixz="-1.418e-05" iyz="-0.00023186" />
+    </inertial>
+    <visual name="link4_joint5_stator_visual">
+      <geometry>
+        <mesh filename="meshes/link4_joint5_stator_visual.stl" />
+      </geometry>
+      <material name="link4_joint5_stator">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="link4_joint5_stator_collision">
+      <origin xyz="0 -0.0407530817561 -1.49694427887e-07" rpy="3.14159265359 1.57079265358 1.57079632679" />
+      <geometry>
+        <cylinder radius="0.04" length="0.032" />
+      </geometry>
+    </collision>
+    <visual name="link4_joint4_output_shaft_visual">
+      <geometry>
+        <mesh filename="meshes/link4_joint4_output_shaft_visual.stl" />
+      </geometry>
+      <material name="link4_joint4_output_shaft">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="link4_joint4_output_shaft_collision">
+      <origin xyz="-0 -0 -0.0741501042329" rpy="-0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.015275" length="0.10669979153429046" />
+      </geometry>
+    </collision>
+    <visual name="link4_joint4_output_fairing_visual">
+      <geometry>
+        <mesh filename="meshes/link4_joint4_output_fairing_visual.stl" />
+      </geometry>
+      <material name="link4_joint4_output_fairing">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="link4_joint4_output_fairing_collision">
+      <origin xyz="-0 -0 -0.0642500454614" rpy="-0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.0273" length="0.048499909077110125" />
+      </geometry>
+    </collision>
+    <visual name="link4_joint4_rotor_ring_visual">
+      <geometry>
+        <mesh filename="meshes/link4_joint4_rotor_ring_visual.stl" />
+      </geometry>
+      <material name="link4_joint4_rotor_ring">
+        <color rgba="0.55 0.58 0.61 1" />
+      </material>
+    </visual>
+    <collision name="link4_joint4_rotor_ring_collision">
+      <origin xyz="0 0 -0.0895" rpy="-0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.0312" length="0.002" />
+      </geometry>
+    </collision>
+    <visual name="link4_joint5_support_visual">
+      <geometry>
+        <mesh filename="meshes/link4_joint5_support_visual.stl" />
+      </geometry>
+      <material name="link4_joint5_support">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="link4_joint5_support_collision">
+      <origin xyz="0 -0.0203763710932 -0.0462226145213" rpy="1.5708 -0 0" />
+      <geometry>
+        <box size="0.0088 0.0088 0.0407530817563" />
+      </geometry>
+    </collision>
+    <visual name="link4_joint5_stator_lug_visual">
+      <geometry>
+        <mesh filename="meshes/link4_joint5_stator_lug_visual.stl" />
+      </geometry>
+      <material name="link4_joint5_stator_lug">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="link4_joint5_stator_lug_collision">
+      <origin xyz="0 -0.0407529417655 -0.0381114195314" rpy="-3.14158898038 -0 0" />
+      <geometry>
+        <box size="0.0088 0.0088 0.0162225396744" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="link5">
+    <inertial>
+      <origin xyz="0.0651 0.03096 0.00315" rpy="0 -0 0" />
+      <mass value="1.33854" />
+      <inertia ixx="0.00146378" iyy="0.00184192" izz="0.002333524" ixy="-0.000450624" ixz="0.000284306" iyz="0.000130866" />
+    </inertial>
+    <visual name="link5_beam_visual">
+      <geometry>
+        <mesh filename="meshes/link5_beam_visual.stl" />
+      </geometry>
+      <material name="link5_beam">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="link5_beam_collision">
+      <origin xyz="0.038 0.0485 0" rpy="1.57079632679 -0 2.4769907809" />
+      <geometry>
+        <box size="0.0554953213569 0.0455061635127 0.0492909728044" />
+      </geometry>
+    </collision>
+    <visual name="link5_joint5_output_shaft_visual">
+      <geometry>
+        <mesh filename="meshes/link5_joint5_output_shaft_visual.stl" />
+      </geometry>
+      <material name="link5_joint5_output_shaft">
+        <color rgba="0.55 0.58 0.61 1" />
+      </material>
+    </visual>
+    <collision name="link5_joint5_output_shaft_collision">
+      <origin xyz="0 0 0.0283765408782" rpy="-0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.0188" length="0.05675308175632848" />
+      </geometry>
+    </collision>
+    <visual name="link5_joint5_output_plate_visual">
+      <geometry>
+        <mesh filename="meshes/link5_joint5_output_plate_visual.stl" />
+      </geometry>
+      <material name="link5_joint5_output_plate">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="link5_joint5_output_plate_collision">
+      <origin xyz="0 0 0.0237530817563" rpy="-0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.038" length="0.002" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="link6">
+    <inertial>
+      <origin xyz="0 -0.00677 -0.01098" rpy="0 -0 0" />
+      <mass value="0.17" />
+      <inertia ixx="9.3e-05" iyy="5.87e-05" izz="0.000132" ixy="0.0" ixz="0.0" iyz="-3.6e-06" />
+    </inertial>
+    <visual name="link6_housing_visual">
+      <geometry>
+        <mesh filename="meshes/link6_housing_visual.stl" />
+      </geometry>
+      <material name="link6_housing">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+    <collision name="link6_housing_collision">
+      <origin xyz="0 0 0" rpy="-0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.03312194443090694" length="0.040237028790138796" />
+      </geometry>
+    </collision>
+    <visual name="link6_cap_visual">
+      <geometry>
+        <mesh filename="meshes/link6_cap_visual.stl" />
+      </geometry>
+      <material name="link6_cap">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+    <visual name="link6_cap_hub_visual">
+      <geometry>
+        <mesh filename="meshes/link6_cap_hub_visual.stl" />
+      </geometry>
+      <material name="link6_cap_hub">
+        <color rgba="0.55 0.58 0.61 1" />
+      </material>
+    </visual>
+    <visual name="link6_rear_cap_visual">
+      <geometry>
+        <mesh filename="meshes/link6_rear_cap_visual.stl" />
+      </geometry>
+      <material name="link6_rear_cap">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+    <visual name="link6_rear_cap_hub_visual">
+      <geometry>
+        <mesh filename="meshes/link6_rear_cap_hub_visual.stl" />
+      </geometry>
+      <material name="link6_rear_cap_hub">
+        <color rgba="0.55 0.58 0.61 1" />
+      </material>
+    </visual>
+    <visual name="link6_flange_visual">
+      <geometry>
+        <mesh filename="meshes/link6_flange_visual.stl" />
+      </geometry>
+      <material name="link6_flange">
+        <color rgba="0.55 0.58 0.61 1" />
+      </material>
+    </visual>
+    <collision name="link6_flange_collision">
+      <origin xyz="0 0 0" rpy="0 -0 0" />
+      <geometry>
+        <cylinder radius="0.025761512335149842" length="0.008832518514908518" />
+      </geometry>
+    </collision>
+    <visual name="link6_flange_fastener_0_visual">
+      <geometry>
+        <mesh filename="meshes/link6_flange_fastener_0_visual.stl" />
+      </geometry>
+      <material name="link6_flange_fastener_0">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+    <visual name="link6_flange_fastener_1_visual">
+      <geometry>
+        <mesh filename="meshes/link6_flange_fastener_1_visual.stl" />
+      </geometry>
+      <material name="link6_flange_fastener_1">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+    <visual name="link6_flange_fastener_2_visual">
+      <geometry>
+        <mesh filename="meshes/link6_flange_fastener_2_visual.stl" />
+      </geometry>
+      <material name="link6_flange_fastener_2">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+    <visual name="link6_flange_fastener_3_visual">
+      <geometry>
+        <mesh filename="meshes/link6_flange_fastener_3_visual.stl" />
+      </geometry>
+      <material name="link6_flange_fastener_3">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+  </link>
+  <link name="tool_frame" />
+  <joint name="world_fixed" type="fixed">
+    <parent link="world" />
+    <child link="link_base" />
+    <origin xyz="0 0 0" rpy="0 -0 0" />
+  </joint>
+  <joint name="joint1" type="revolute">
+    <parent link="link_base" />
+    <child link="link1" />
+    <origin xyz="0 0 0.267" rpy="0 -0 0" />
+    <axis xyz="0 0 1" />
+    <limit lower="-6.283185307179586" upper="6.283185307179586" effort="163.2" velocity="3.14" />
+    <dynamics damping="0" friction="0" />
+  </joint>
+  <joint name="joint2" type="revolute">
+    <parent link="link1" />
+    <child link="link2" />
+    <origin xyz="0 0 0" rpy="-1.5708 -0 0" />
+    <axis xyz="0 0 1" />
+    <limit lower="-2.059" upper="2.0944" effort="163.2" velocity="3.14" />
+    <dynamics damping="0" friction="0" />
+  </joint>
+  <joint name="joint3" type="revolute">
+    <parent link="link2" />
+    <child link="link3" />
+    <origin xyz="0.0535 -0.2845 0" rpy="0 -0 0" />
+    <axis xyz="0 0 1" />
+    <limit lower="-3.927" upper="0.19198" effort="81.6" velocity="3.14" />
+    <dynamics damping="0" friction="0" />
+  </joint>
+  <joint name="joint4" type="revolute">
+    <parent link="link3" />
+    <child link="link4" />
+    <origin xyz="0.0775 0.3425 0" rpy="-1.5708 -0 0" />
+    <axis xyz="0 0 1" />
+    <limit lower="-6.283185307179586" upper="6.283185307179586" effort="81.6" velocity="3.14" />
+    <dynamics damping="0" friction="0" />
+  </joint>
+  <joint name="joint5" type="revolute">
+    <parent link="link4" />
+    <child link="link5" />
+    <origin xyz="0 0 0" rpy="1.5708 -0 0" />
+    <axis xyz="0 0 1" />
+    <limit lower="-1.69297" upper="3.141592653589793" effort="30.6" velocity="3.14" />
+    <dynamics damping="0" friction="0" />
+  </joint>
+  <joint name="joint6" type="revolute">
+    <parent link="link5" />
+    <child link="link6" />
+    <origin xyz="0.076 0.097 0" rpy="-1.5708 -0 0" />
+    <axis xyz="0 0 1" />
+    <limit lower="-6.283185307179586" upper="6.283185307179586" effort="30.6" velocity="3.14" />
+    <dynamics damping="0" friction="0" />
+  </joint>
+  <joint name="tool_fixed" type="fixed">
+    <parent link="link6" />
+    <child link="tool_frame" />
+    <origin xyz="0 0 0" rpy="0 -0 0" />
+  </joint>
+  <mujoco>
+    <compiler strippath="false" discardvisual="false" fusestatic="false" />
+  </mujoco>
+</robot>

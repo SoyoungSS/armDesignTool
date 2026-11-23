@@ -53,9 +53,15 @@ def install(args):
     manifest = json.loads((folder/'bundle.json').read_text(encoding='utf-8'))
     if manifest['platform'] != platform_tag():
         raise ValueError(f'Bundle needs {manifest["platform"]}. This Python is {platform_tag()}.')
+    # Platform-neutral wheels ship once, shared by the two checked-in bundles.
+    shared = set(manifest.get('shared', []))
+    inventory = set(manifest['wheels'])
+    if not shared <= inventory or any(Path(n).name != n for n in inventory):
+        raise ValueError('Invalid wheel inventory in bundle.json')
     files = sorted(folder.glob('*.whl'))
-    if not files or {p.name for p in files} != set(manifest['wheels']):
+    if not inventory or {p.name for p in files} != inventory - shared:
         raise ValueError('Wheel inventory differs from bundle.json')
+    files += [folder.parent/'common'/name for name in sorted(shared)]
     for path in files:
         if file_hash(path) != manifest['wheels'][path.name]:
             raise ValueError('Damaged wheel: ' + path.name)
@@ -65,10 +71,13 @@ def install(args):
             raise ValueError('Choose a new project environment directory')
         venv.EnvBuilder(with_pip=True).create(dest)
     exe = dest/('Scripts/python.exe' if os.name == 'nt' else 'bin/python')
+    check = 'import sys,sysconfig; print(sys.implementation.cache_tag, sysconfig.get_platform(), bool(sysconfig.get_config_var("Py_GIL_DISABLED")))'
+    if subprocess.check_output([str(exe), '-I', '-c', check]) != subprocess.check_output([sys.executable, '-I', '-c', check]):
+        raise ValueError('Existing venv has another ABI. Choose a new --venv directory.')
     # Only local wheel paths reach pip. Resolve all transitive dependencies from the bundle.
     subprocess.run([str(exe), '-I', '-m', 'pip', '--isolated', '--disable-pip-version-check',
                     'install', '--no-index', '--no-cache-dir', '--only-binary=:all:',
-                    '--find-links', str(folder), *map(str, files)], check=True)
+                    *map(str, files)], check=True)
     subprocess.run([str(exe), '-m', 'pip', 'check'], check=True)
     subprocess.run([str(exe), str(Path(__file__).resolve()), 'probe', '--mode', args.mode], check=True)
     print(str(exe))

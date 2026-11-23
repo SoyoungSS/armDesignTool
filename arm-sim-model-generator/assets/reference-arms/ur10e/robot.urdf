@@ -1,0 +1,563 @@
+<?xml version='1.0' encoding='utf-8'?>
+<robot name="ur10e_reference">
+  <link name="world" />
+  <link name="base_link_inertia">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 -0 0" />
+      <mass value="4.0" />
+      <inertia ixx="0.0061063308908" iyy="0.0061063308908" izz="0.01125" ixy="0.0" ixz="0.0" iyz="0.0" />
+    </inertial>
+    <visual name="base_link_inertia_base_visual">
+      <geometry>
+        <mesh filename="meshes/base_link_inertia_base_visual.stl" />
+      </geometry>
+      <material name="base_link_inertia_base">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+    <collision name="base_link_inertia_base_collision">
+      <origin xyz="0 0 -0.041" rpy="0 -0 0" />
+      <geometry>
+        <cylinder radius="0.09112500000000001" length="0.082" />
+      </geometry>
+    </collision>
+    <visual name="base_link_inertia_mounting_rim_visual">
+      <geometry>
+        <mesh filename="meshes/base_link_inertia_mounting_rim_visual.stl" />
+      </geometry>
+      <material name="base_link_inertia_mounting_rim">
+        <color rgba="0.55 0.58 0.61 1" />
+      </material>
+    </visual>
+    <visual name="base_link_inertia_beam_visual">
+      <geometry>
+        <mesh filename="meshes/base_link_inertia_beam_visual.stl" />
+      </geometry>
+      <material name="base_link_inertia_beam">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="base_link_inertia_beam_collision">
+      <origin xyz="0 0 0.0281" rpy="0 -0 -1.57079632679" />
+      <geometry>
+        <box size="0.1 0.082 0.02248" />
+      </geometry>
+    </collision>
+    <visual name="base_link_inertia_shoulder_pan_joint_stator_visual">
+      <geometry>
+        <mesh filename="meshes/base_link_inertia_shoulder_pan_joint_stator_visual.stl" />
+      </geometry>
+      <material name="base_link_inertia_shoulder_pan_joint_stator">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="base_link_inertia_shoulder_pan_joint_stator_collision">
+      <origin xyz="0 0 0.0807" rpy="0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.0375" length="0.045" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="shoulder_link">
+    <inertial>
+      <origin xyz="0.021 -0.027 0" rpy="0 -0 0" />
+      <mass value="7.369" />
+      <inertia ixx="0.03408" iyy="0.02156" izz="0.03529" ixy="0.00425" ixz="2.000000000000189e-05" iyz="-8.00000000000061e-05" />
+    </inertial>
+    <visual name="shoulder_link_shoulder_lift_joint_stator_visual">
+      <geometry>
+        <mesh filename="meshes/shoulder_link_shoulder_lift_joint_stator_visual.stl" />
+      </geometry>
+      <material name="shoulder_link_shoulder_lift_joint_stator">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="shoulder_link_shoulder_lift_joint_stator_collision">
+      <origin xyz="0 -0.0655 -1.34342785785e-11" rpy="0 1.57079632679 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.052" length="0.045" />
+      </geometry>
+    </collision>
+    <visual name="shoulder_link_shoulder_pan_joint_output_shaft_visual">
+      <geometry>
+        <mesh filename="meshes/shoulder_link_shoulder_pan_joint_output_shaft_visual.stl" />
+      </geometry>
+      <material name="shoulder_link_shoulder_pan_joint_output_shaft">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="shoulder_link_shoulder_pan_joint_output_shaft_collision">
+      <origin xyz="-0 -0 -0.074470000009" rpy="-0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.017625" length="0.09605999998195089" />
+      </geometry>
+    </collision>
+    <visual name="shoulder_link_shoulder_pan_joint_output_fairing_visual">
+      <geometry>
+        <mesh filename="meshes/shoulder_link_shoulder_pan_joint_output_fairing_visual.stl" />
+      </geometry>
+      <material name="shoulder_link_shoulder_pan_joint_output_fairing">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="shoulder_link_shoulder_pan_joint_output_fairing_collision">
+      <origin xyz="-0 -0 -0.0624500000044" rpy="-0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.0315" length="0.022099999991180563" />
+      </geometry>
+    </collision>
+    <visual name="shoulder_link_shoulder_pan_joint_rotor_ring_visual">
+      <geometry>
+        <mesh filename="meshes/shoulder_link_shoulder_pan_joint_rotor_ring_visual.stl" />
+      </geometry>
+      <material name="shoulder_link_shoulder_pan_joint_rotor_ring">
+        <color rgba="0.55 0.58 0.61 1" />
+      </material>
+    </visual>
+    <collision name="shoulder_link_shoulder_pan_joint_rotor_ring_collision">
+      <origin xyz="0 0 -0.0745" rpy="-0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.036" length="0.002" />
+      </geometry>
+    </collision>
+    <visual name="shoulder_link_shoulder_lift_joint_support_visual">
+      <geometry>
+        <mesh filename="meshes/shoulder_link_shoulder_lift_joint_support_visual.stl" />
+      </geometry>
+      <material name="shoulder_link_shoulder_lift_joint_support">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="shoulder_link_shoulder_lift_joint_support_collision">
+      <origin xyz="0 -0.0327499999878 -0.0594893015835" rpy="1.570796327 -0 0" />
+      <geometry>
+        <box size="0.01144 0.01144 0.0655" />
+      </geometry>
+    </collision>
+    <visual name="shoulder_link_shoulder_lift_joint_stator_lug_visual">
+      <geometry>
+        <mesh filename="meshes/shoulder_link_shoulder_lift_joint_stator_lug_visual.stl" />
+      </geometry>
+      <material name="shoulder_link_shoulder_lift_joint_stator_lug">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="shoulder_link_shoulder_lift_joint_stator_lug_collision">
+      <origin xyz="0 -0.0654999999899 -0.0492446508018" rpy="-3.14159265338 -0 0" />
+      <geometry>
+        <box size="0.01144 0.01144 0.0204893015768" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="upper_arm_link">
+    <inertial>
+      <origin xyz="-0.2327 0 0.158" rpy="0 -0 0" />
+      <mass value="13.051" />
+      <inertia ixx="0.02814" iyy="0.77068" izz="0.76943" ixy="5e-05" ixz="-0.01561" iyz="2e-05" />
+    </inertial>
+    <visual name="upper_arm_link_beam_visual">
+      <geometry>
+        <mesh filename="meshes/upper_arm_link_beam_visual.stl" />
+      </geometry>
+      <material name="upper_arm_link_beam">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="upper_arm_link_beam_collision">
+      <origin xyz="-0.30635 0 0" rpy="1.57079632679 -0 -1.57079632679" />
+      <geometry>
+        <box size="0.1 0.082 0.4983" />
+      </geometry>
+    </collision>
+    <visual name="upper_arm_link_shoulder_lift_joint_output_shaft_visual">
+      <geometry>
+        <mesh filename="meshes/upper_arm_link_shoulder_lift_joint_output_shaft_visual.stl" />
+      </geometry>
+      <material name="upper_arm_link_shoulder_lift_joint_output_shaft">
+        <color rgba="0.55 0.58 0.61 1" />
+      </material>
+    </visual>
+    <collision name="upper_arm_link_shoulder_lift_joint_output_shaft_collision">
+      <origin xyz="0 0 0.044" rpy="-0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.024439999999999996" length="0.088" />
+      </geometry>
+    </collision>
+    <visual name="upper_arm_link_shoulder_lift_joint_output_plate_visual">
+      <geometry>
+        <mesh filename="meshes/upper_arm_link_shoulder_lift_joint_output_plate_visual.stl" />
+      </geometry>
+      <material name="upper_arm_link_shoulder_lift_joint_output_plate">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="upper_arm_link_shoulder_lift_joint_output_plate_collision">
+      <origin xyz="0 0 0.042" rpy="-0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.04939999999999999" length="0.002" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="forearm_link">
+    <inertial>
+      <origin xyz="-0.33155 0 0.068" rpy="0 -0 0" />
+      <mass value="3.989" />
+      <inertia ixx="0.01014" iyy="0.30928" izz="0.30646" ixy="8e-05" ixz="0.00916" iyz="0.0" />
+    </inertial>
+    <visual name="forearm_link_housing_visual">
+      <geometry>
+        <mesh filename="meshes/forearm_link_housing_visual.stl" />
+      </geometry>
+      <material name="forearm_link_housing">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+    <collision name="forearm_link_housing_collision">
+      <origin xyz="0 0 0" rpy="-0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.05" length="0.065" />
+      </geometry>
+    </collision>
+    <visual name="forearm_link_cap_visual">
+      <geometry>
+        <mesh filename="meshes/forearm_link_cap_visual.stl" />
+      </geometry>
+      <material name="forearm_link_cap">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+    <visual name="forearm_link_cap_hub_visual">
+      <geometry>
+        <mesh filename="meshes/forearm_link_cap_hub_visual.stl" />
+      </geometry>
+      <material name="forearm_link_cap_hub">
+        <color rgba="0.55 0.58 0.61 1" />
+      </material>
+    </visual>
+    <visual name="forearm_link_rear_cap_visual">
+      <geometry>
+        <mesh filename="meshes/forearm_link_rear_cap_visual.stl" />
+      </geometry>
+      <material name="forearm_link_rear_cap">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+    <visual name="forearm_link_rear_cap_hub_visual">
+      <geometry>
+        <mesh filename="meshes/forearm_link_rear_cap_hub_visual.stl" />
+      </geometry>
+      <material name="forearm_link_rear_cap_hub">
+        <color rgba="0.55 0.58 0.61 1" />
+      </material>
+    </visual>
+    <visual name="forearm_link_beam_visual">
+      <geometry>
+        <mesh filename="meshes/forearm_link_beam_visual.stl" />
+      </geometry>
+      <material name="forearm_link_beam">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="forearm_link_beam_collision">
+      <origin xyz="-0.285775 0 0.087075" rpy="1.27503526021 -0 -1.57079632679" />
+      <geometry>
+        <box size="0.1 0.082 0.487492782383" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="wrist_1_link">
+    <inertial>
+      <origin xyz="0 -0.018 0.007" rpy="0 -0 0" />
+      <mass value="2.1" />
+      <inertia ixx="0.00296" iyy="0.00258" izz="0.00222" ixy="4.4408920985006265e-21" ixz="-1e-05" iyz="0.00024000000000000017" />
+    </inertial>
+    <visual name="wrist_1_link_housing_visual">
+      <geometry>
+        <mesh filename="meshes/wrist_1_link_housing_visual.stl" />
+      </geometry>
+      <material name="wrist_1_link_housing">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="wrist_1_link_housing_collision">
+      <origin xyz="0 0 0" rpy="-0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.045" length="0.052" />
+      </geometry>
+    </collision>
+    <visual name="wrist_1_link_cap_visual">
+      <geometry>
+        <mesh filename="meshes/wrist_1_link_cap_visual.stl" />
+      </geometry>
+      <material name="wrist_1_link_cap">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+    <visual name="wrist_1_link_cap_hub_visual">
+      <geometry>
+        <mesh filename="meshes/wrist_1_link_cap_hub_visual.stl" />
+      </geometry>
+      <material name="wrist_1_link_cap_hub">
+        <color rgba="0.55 0.58 0.61 1" />
+      </material>
+    </visual>
+    <visual name="wrist_1_link_rear_cap_visual">
+      <geometry>
+        <mesh filename="meshes/wrist_1_link_rear_cap_visual.stl" />
+      </geometry>
+      <material name="wrist_1_link_rear_cap">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+    <visual name="wrist_1_link_rear_cap_hub_visual">
+      <geometry>
+        <mesh filename="meshes/wrist_1_link_rear_cap_hub_visual.stl" />
+      </geometry>
+      <material name="wrist_1_link_rear_cap_hub">
+        <color rgba="0.55 0.58 0.61 1" />
+      </material>
+    </visual>
+    <visual name="wrist_1_link_beam_visual">
+      <geometry>
+        <mesh filename="meshes/wrist_1_link_beam_visual.stl" />
+      </geometry>
+      <material name="wrist_1_link_beam">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="wrist_1_link_beam_collision">
+      <origin xyz="0 -0.059925 -1.22908229538e-11" rpy="1.570796327 -0 0" />
+      <geometry>
+        <box size="0.0977460531285 0.0801517635654 0.04794" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="wrist_2_link">
+    <inertial>
+      <origin xyz="0 0.018 -0.007" rpy="0 -0 0" />
+      <mass value="1.98" />
+      <inertia ixx="0.00296" iyy="0.00258" izz="0.00222" ixy="4.4408920985006265e-21" ixz="1e-05" iyz="0.00023999999999999984" />
+    </inertial>
+    <visual name="wrist_2_link_housing_visual">
+      <geometry>
+        <mesh filename="meshes/wrist_2_link_housing_visual.stl" />
+      </geometry>
+      <material name="wrist_2_link_housing">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="wrist_2_link_housing_collision">
+      <origin xyz="0 0 0" rpy="-0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.0524475" length="0.07183412772366839" />
+      </geometry>
+    </collision>
+    <visual name="wrist_2_link_cap_visual">
+      <geometry>
+        <mesh filename="meshes/wrist_2_link_cap_visual.stl" />
+      </geometry>
+      <material name="wrist_2_link_cap">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+    <visual name="wrist_2_link_cap_hub_visual">
+      <geometry>
+        <mesh filename="meshes/wrist_2_link_cap_hub_visual.stl" />
+      </geometry>
+      <material name="wrist_2_link_cap_hub">
+        <color rgba="0.55 0.58 0.61 1" />
+      </material>
+    </visual>
+    <visual name="wrist_2_link_rear_cap_visual">
+      <geometry>
+        <mesh filename="meshes/wrist_2_link_rear_cap_visual.stl" />
+      </geometry>
+      <material name="wrist_2_link_rear_cap">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+    <visual name="wrist_2_link_rear_cap_hub_visual">
+      <geometry>
+        <mesh filename="meshes/wrist_2_link_rear_cap_hub_visual.stl" />
+      </geometry>
+      <material name="wrist_2_link_rear_cap_hub">
+        <color rgba="0.55 0.58 0.61 1" />
+      </material>
+    </visual>
+    <visual name="wrist_2_link_beam_visual">
+      <geometry>
+        <mesh filename="meshes/wrist_2_link_beam_visual.stl" />
+      </geometry>
+      <material name="wrist_2_link_beam">
+        <color rgba="0.82 0.84 0.85 1" />
+      </material>
+    </visual>
+    <collision name="wrist_2_link_beam_collision">
+      <origin xyz="0 0.058275 -1.19524022967e-11" rpy="1.570796327 -0 3.14159265359" />
+      <geometry>
+        <box size="0.087602594785 0.0718341277237 0.04662" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="wrist_3_link">
+    <inertial>
+      <origin xyz="0 0 -0.026" rpy="0 -0 0" />
+      <mass value="0.615" />
+      <inertia ixx="0.0004" iyy="0.00041" izz="0.00034" ixy="0.0" ixz="0.0" iyz="0.0" />
+    </inertial>
+    <visual name="wrist_3_link_housing_visual">
+      <geometry>
+        <mesh filename="meshes/wrist_3_link_housing_visual.stl" />
+      </geometry>
+      <material name="wrist_3_link_housing">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+    <collision name="wrist_3_link_housing_collision">
+      <origin xyz="0 0 0" rpy="-0 -0 -1.57079632679" />
+      <geometry>
+        <cylinder radius="0.052284917097971735" length="0.06351649188198047" />
+      </geometry>
+    </collision>
+    <visual name="wrist_3_link_cap_visual">
+      <geometry>
+        <mesh filename="meshes/wrist_3_link_cap_visual.stl" />
+      </geometry>
+      <material name="wrist_3_link_cap">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+    <visual name="wrist_3_link_cap_hub_visual">
+      <geometry>
+        <mesh filename="meshes/wrist_3_link_cap_hub_visual.stl" />
+      </geometry>
+      <material name="wrist_3_link_cap_hub">
+        <color rgba="0.55 0.58 0.61 1" />
+      </material>
+    </visual>
+    <visual name="wrist_3_link_rear_cap_visual">
+      <geometry>
+        <mesh filename="meshes/wrist_3_link_rear_cap_visual.stl" />
+      </geometry>
+      <material name="wrist_3_link_rear_cap">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+    <visual name="wrist_3_link_rear_cap_hub_visual">
+      <geometry>
+        <mesh filename="meshes/wrist_3_link_rear_cap_hub_visual.stl" />
+      </geometry>
+      <material name="wrist_3_link_rear_cap_hub">
+        <color rgba="0.55 0.58 0.61 1" />
+      </material>
+    </visual>
+    <visual name="wrist_3_link_flange_visual">
+      <geometry>
+        <mesh filename="meshes/wrist_3_link_flange_visual.stl" />
+      </geometry>
+      <material name="wrist_3_link_flange">
+        <color rgba="0.55 0.58 0.61 1" />
+      </material>
+    </visual>
+    <collision name="wrist_3_link_flange_collision">
+      <origin xyz="0 0 0" rpy="0 -1.11022302463e-16 1.11022302463e-16" />
+      <geometry>
+        <cylinder radius="0.04066604663175579" length="0.013942644559459129" />
+      </geometry>
+    </collision>
+    <visual name="wrist_3_link_flange_fastener_0_visual">
+      <geometry>
+        <mesh filename="meshes/wrist_3_link_flange_fastener_0_visual.stl" />
+      </geometry>
+      <material name="wrist_3_link_flange_fastener_0">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+    <visual name="wrist_3_link_flange_fastener_1_visual">
+      <geometry>
+        <mesh filename="meshes/wrist_3_link_flange_fastener_1_visual.stl" />
+      </geometry>
+      <material name="wrist_3_link_flange_fastener_1">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+    <visual name="wrist_3_link_flange_fastener_2_visual">
+      <geometry>
+        <mesh filename="meshes/wrist_3_link_flange_fastener_2_visual.stl" />
+      </geometry>
+      <material name="wrist_3_link_flange_fastener_2">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+    <visual name="wrist_3_link_flange_fastener_3_visual">
+      <geometry>
+        <mesh filename="meshes/wrist_3_link_flange_fastener_3_visual.stl" />
+      </geometry>
+      <material name="wrist_3_link_flange_fastener_3">
+        <color rgba="0.16 0.18 0.2 1" />
+      </material>
+    </visual>
+  </link>
+  <link name="tool_frame" />
+  <joint name="world_fixed" type="fixed">
+    <parent link="world" />
+    <child link="base_link_inertia" />
+    <origin xyz="0 0 0" rpy="0 -0 3.14159265359" />
+  </joint>
+  <joint name="shoulder_pan_joint" type="revolute">
+    <parent link="base_link_inertia" />
+    <child link="shoulder_link" />
+    <origin xyz="0 0 0.1807" rpy="0 -0 0" />
+    <axis xyz="0 0 1" />
+    <limit lower="-6.283185307179586" upper="6.283185307179586" effort="330.0" velocity="2.0943951023931953" />
+    <dynamics damping="0" friction="0" />
+  </joint>
+  <joint name="shoulder_lift_joint" type="revolute">
+    <parent link="shoulder_link" />
+    <child link="upper_arm_link" />
+    <origin xyz="0 0 0" rpy="1.570796327 -0 0" />
+    <axis xyz="0 0 1" />
+    <limit lower="-6.283185307179586" upper="6.283185307179586" effort="330.0" velocity="2.0943951023931953" />
+    <dynamics damping="0" friction="0" />
+  </joint>
+  <joint name="elbow_joint" type="revolute">
+    <parent link="upper_arm_link" />
+    <child link="forearm_link" />
+    <origin xyz="-0.6127 0 0" rpy="0 -0 0" />
+    <axis xyz="0 0 1" />
+    <limit lower="-3.141592653589793" upper="3.141592653589793" effort="150.0" velocity="3.141592653589793" />
+    <dynamics damping="0" friction="0" />
+  </joint>
+  <joint name="wrist_1_joint" type="revolute">
+    <parent link="forearm_link" />
+    <child link="wrist_1_link" />
+    <origin xyz="-0.57155 0 0.17415" rpy="0 -0 0" />
+    <axis xyz="0 0 1" />
+    <limit lower="-6.283185307179586" upper="6.283185307179586" effort="54.0" velocity="3.141592653589793" />
+    <dynamics damping="0" friction="0" />
+  </joint>
+  <joint name="wrist_2_joint" type="revolute">
+    <parent link="wrist_1_link" />
+    <child link="wrist_2_link" />
+    <origin xyz="0 -0.11985 -2.45816459076e-11" rpy="1.570796327 -0 0" />
+    <axis xyz="0 0 1" />
+    <limit lower="-6.283185307179586" upper="6.283185307179586" effort="54.0" velocity="3.141592653589793" />
+    <dynamics damping="0" friction="0" />
+  </joint>
+  <joint name="wrist_3_joint" type="revolute">
+    <parent link="wrist_2_link" />
+    <child link="wrist_3_link" />
+    <origin xyz="0 0.11655 -2.39048045935e-11" rpy="-1.570796327 1.22464679915e-16 -1.22464679915e-16" />
+    <axis xyz="0 0 1" />
+    <limit lower="-6.283185307179586" upper="6.283185307179586" effort="54.0" velocity="3.141592653589793" />
+    <dynamics damping="0" friction="0" />
+  </joint>
+  <joint name="tool_fixed" type="fixed">
+    <parent link="wrist_3_link" />
+    <child link="tool_frame" />
+    <origin xyz="0 0 0" rpy="0 -1.11022302463e-16 1.11022302463e-16" />
+  </joint>
+  <mujoco>
+    <compiler strippath="false" discardvisual="false" fusestatic="false" />
+  </mujoco>
+</robot>

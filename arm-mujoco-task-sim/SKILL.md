@@ -11,7 +11,7 @@ description: 接收 arm-sim-model-generator 输出的机械臂模型和自然语
 |---|---|
 | 1. 接入机械臂 | `python <skill>/scripts/inspect_generator.py <模型输出或run> --out <project>/model_inspection.json`。检查入口、哈希、关节和初始 keyframe。读上游零件级碰撞结论与待复核姿态，保留已知质量、惯量、能力和名称。旧模型会标记碰撞未评估。 |
 | 2. 确认任务与路线 | 按[任务确认项](references/intake.md)复用用户已有答复。核对目标、成功判据、查看模式、策略、环境与工具参数、起止条件、节拍、轮数、轮间复位和输出位置。对缺项一次提问。明确指定的方法直接落实；路线有实质差异时按[策略选择与提问示例](references/scene-strategy.md)给出候选并记录用户选择。 |
-| 3. 定好运行环境 | 先用已有解释器执行 `python <skill>/scripts/environment.py probe --mode web`（或 native、headless）。通过即复用。缺依赖时按[离线安装与版本指南](references/install-api.md)安装一次。Web 与本地原生窗口共用 Python 后端；无窗口批量试验需获得相应授权。 |
+| 3. 定好运行环境 | 先用已有解释器执行 `python <skill>/scripts/environment.py probe --mode web`（或 native、headless）。通过即复用。Ubuntu 20.04/22.04/24.04 x86-64 缺环境时用同一条离线命令 `python3 <skill>/scripts/install_ubuntu.py --mode web --venv .venv`。Windows 及其他平台见[离线安装与版本指南](references/install-api.md)。Web 与本地原生窗口共用 Python 后端；无窗口批量试验需获得相应授权。 |
 | 4. 生成场景和控制器 | 从[合同模板](assets/task_contract.template.json)填入参数、来源和真实确认证据。写入资产清单、策略和[控制适配器](references/adapter.md)。按[碰撞合同](references/collision.md)列出各阶段的接触对象、穿透/力阈值来源和轨迹检查方式。保留视觉、碰撞、动力学与传感器各自的几何和数据来源。 |
 | 5. 预检与短试跑 | 运行下方预检命令，读本次 `reports/preflight.json`。按证据修复零件、摆位、路径或阈值来源；修改后重新检查。执行有代表性的接近、接触和退出，检查速度、饱和、抓稳/滑移、接触力及失败处理。[验证方法](references/validation.md) |
 | 6. 正式仿真与交付 | 按确认轮数运行，检查 `reports/result.json`、碰撞诊断、逐轮状态及原始时序。按[输出规范](references/outputs.md)交付 CSV、含限值的 PNG 曲线、失败证据和实际 run 路径。用实际场景验证播放、暂停、恢复、Reset 后再播放、退出和端口释放，再交付启动命令。 |

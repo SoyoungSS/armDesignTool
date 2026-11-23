@@ -1,0 +1,549 @@
+{
+  "schema_version": "1.0",
+  "model": {
+    "name": "ur10e_reference",
+    "base_link": "base_link_inertia",
+    "tip": {
+      "xyz_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rpy_rad": [
+        0.0,
+        -1.1102230246251565e-16,
+        1.1102230246251564e-16
+      ]
+    },
+    "joints": [
+      {
+        "name": "shoulder_pan_joint",
+        "parent": "base_link_inertia",
+        "child": "shoulder_link",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0.0,
+            0.0,
+            0.1807
+          ],
+          "rpy_rad": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "axis": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "limits": [
+          -6.283185307179586,
+          6.283185307179586
+        ],
+        "components": [
+          {
+            "name": "rigid_body",
+            "frame": "shoulder_link",
+            "mass_kg": 7.369,
+            "com_m": [
+              0.021,
+              -0.027,
+              0.0
+            ],
+            "inertia_frame": "component",
+            "inertia_rpy_rad": [
+              1.570796326794897,
+              0.0,
+              0.0
+            ],
+            "inertia_kg_m2": [
+              [
+                0.03408,
+                2e-05,
+                -0.00425
+              ],
+              [
+                2e-05,
+                0.03529,
+                8e-05
+              ],
+              [
+                -0.00425,
+                8e-05,
+                0.02156
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "name": "shoulder_lift_joint",
+        "parent": "shoulder_link",
+        "child": "upper_arm_link",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rpy_rad": [
+            1.570796327,
+            0.0,
+            0.0
+          ]
+        },
+        "axis": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "limits": [
+          -6.283185307179586,
+          6.283185307179586
+        ],
+        "components": [
+          {
+            "name": "rigid_body",
+            "frame": "upper_arm_link",
+            "mass_kg": 13.051,
+            "com_m": [
+              -0.2327,
+              0.0,
+              0.158
+            ],
+            "inertia_frame": "component",
+            "inertia_rpy_rad": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "inertia_kg_m2": [
+              [
+                0.02814,
+                5e-05,
+                -0.01561
+              ],
+              [
+                5e-05,
+                0.77068,
+                2e-05
+              ],
+              [
+                -0.01561,
+                2e-05,
+                0.76943
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "name": "elbow_joint",
+        "parent": "upper_arm_link",
+        "child": "forearm_link",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            -0.6127,
+            0.0,
+            0.0
+          ],
+          "rpy_rad": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "axis": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "limits": [
+          -3.141592653589793,
+          3.141592653589793
+        ],
+        "components": [
+          {
+            "name": "rigid_body",
+            "frame": "forearm_link",
+            "mass_kg": 3.989,
+            "com_m": [
+              -0.33155,
+              0.0,
+              0.068
+            ],
+            "inertia_frame": "component",
+            "inertia_rpy_rad": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "inertia_kg_m2": [
+              [
+                0.01014,
+                8e-05,
+                0.00916
+              ],
+              [
+                8e-05,
+                0.30928,
+                0.0
+              ],
+              [
+                0.00916,
+                0.0,
+                0.30646
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "name": "wrist_1_joint",
+        "parent": "forearm_link",
+        "child": "wrist_1_link",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            -0.57155,
+            0.0,
+            0.17415
+          ],
+          "rpy_rad": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "axis": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "limits": [
+          -6.283185307179586,
+          6.283185307179586
+        ],
+        "components": [
+          {
+            "name": "rigid_body",
+            "frame": "wrist_1_link",
+            "mass_kg": 2.1,
+            "com_m": [
+              0.0,
+              -0.018,
+              0.007
+            ],
+            "inertia_frame": "component",
+            "inertia_rpy_rad": [
+              1.570796326794897,
+              0.0,
+              0.0
+            ],
+            "inertia_kg_m2": [
+              [
+                0.00296,
+                -1e-05,
+                0.0
+              ],
+              [
+                -1e-05,
+                0.00222,
+                -0.00024
+              ],
+              [
+                0.0,
+                -0.00024,
+                0.00258
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "name": "wrist_2_joint",
+        "parent": "wrist_1_link",
+        "child": "wrist_2_link",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0.0,
+            -0.11985,
+            -2.458164590756244e-11
+          ],
+          "rpy_rad": [
+            1.570796327,
+            0.0,
+            0.0
+          ]
+        },
+        "axis": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "limits": [
+          -6.283185307179586,
+          6.283185307179586
+        ],
+        "components": [
+          {
+            "name": "rigid_body",
+            "frame": "wrist_2_link",
+            "mass_kg": 1.98,
+            "com_m": [
+              0.0,
+              0.018,
+              -0.007
+            ],
+            "inertia_frame": "component",
+            "inertia_rpy_rad": [
+              -1.570796326794897,
+              0.0,
+              0.0
+            ],
+            "inertia_kg_m2": [
+              [
+                0.00296,
+                -1e-05,
+                0.0
+              ],
+              [
+                -1e-05,
+                0.00222,
+                -0.00024
+              ],
+              [
+                0.0,
+                -0.00024,
+                0.00258
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "name": "wrist_3_joint",
+        "parent": "wrist_2_link",
+        "child": "wrist_3_link",
+        "type": "revolute",
+        "origin": {
+          "xyz_m": [
+            0.0,
+            0.11655,
+            -2.390480459346185e-11
+          ],
+          "rpy_rad": [
+            1.570796326589793,
+            3.141592653589793,
+            3.141592653589793
+          ]
+        },
+        "axis": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "limits": [
+          -6.283185307179586,
+          6.283185307179586
+        ],
+        "components": [
+          {
+            "name": "rigid_body",
+            "frame": "wrist_3_link",
+            "mass_kg": 0.615,
+            "com_m": [
+              0.0,
+              0.0,
+              -0.026
+            ],
+            "inertia_frame": "component",
+            "inertia_rpy_rad": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "inertia_kg_m2": [
+              [
+                0.0004,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.00041,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.00034
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "physics": {
+    "components": {
+      "base_link_inertia": [
+        {
+          "name": "rigid_body",
+          "frame": "base_link_inertia",
+          "mass_kg": 4.0,
+          "com_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "inertia_frame": "component",
+          "inertia_rpy_rad": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "inertia_kg_m2": [
+            [
+              0.0061063308908,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0061063308908,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.01125
+            ]
+          ]
+        }
+      ]
+    },
+    "payload": {
+      "mass_kg": 0,
+      "com_in_tip_m": [
+        0,
+        0,
+        0
+      ]
+    }
+  },
+  "installation": {
+    "base_in_world": {
+      "xyz_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rpy_rad": [
+        0.0,
+        -0.0,
+        3.141592653589793
+      ]
+    },
+    "gravity_world_m_s2": [
+      0,
+      0,
+      -9.81
+    ]
+  },
+  "poses": {
+    "initial": {
+      "shoulder_pan_joint": 0.2,
+      "shoulder_lift_joint": -1.1,
+      "elbow_joint": 1.0,
+      "wrist_1_joint": -0.65,
+      "wrist_2_joint": 0.72,
+      "wrist_3_joint": -0.25
+    },
+    "acceptance": [
+      {
+        "name": "offset",
+        "q": {
+          "shoulder_pan_joint": 0.3,
+          "shoulder_lift_joint": -1.0,
+          "elbow_joint": 1.1,
+          "wrist_1_joint": -0.55,
+          "wrist_2_joint": 0.82,
+          "wrist_3_joint": -0.15
+        }
+      }
+    ]
+  },
+  "drives": {
+    "shoulder_pan_joint": {
+      "mode": "auto",
+      "effort": 330.0,
+      "velocity": 2.0943951023931953
+    },
+    "shoulder_lift_joint": {
+      "mode": "auto",
+      "effort": 330.0,
+      "velocity": 2.0943951023931953
+    },
+    "elbow_joint": {
+      "mode": "auto",
+      "effort": 150.0,
+      "velocity": 3.141592653589793
+    },
+    "wrist_1_joint": {
+      "mode": "auto",
+      "effort": 54.0,
+      "velocity": 3.141592653589793
+    },
+    "wrist_2_joint": {
+      "mode": "auto",
+      "effort": 54.0,
+      "velocity": 3.141592653589793
+    },
+    "wrist_3_joint": {
+      "mode": "auto",
+      "effort": 54.0,
+      "velocity": 3.141592653589793
+    }
+  },
+  "export": {
+    "mode": "strict",
+    "targets": [
+      "urdf",
+      "mujoco",
+      "isaac"
+    ]
+  },
+  "metadata": {
+    "description": "Nominal ROS dynamics with generated concept shells; empty tool, fixed base.",
+    "source_urdf_sha256": "4d60859d2ad4f720712b58c2168422fbaca28fede1fdf0d1cafcd060ab150af5",
+    "source_tool_link": "tool0",
+    "geometry_basis": "Concept shell dimensions chosen for joint clearance; mass, inertia and kinematic frames retain their source values."
+  },
+  "dimensions": {
+    "joints": {
+      "shoulder_pan_joint": {
+        "diameter_m": 0.075,
+        "axial_width_m": 0.045,
+        "module_retreat_m": 0.1
+      },
+      "shoulder_lift_joint": {
+        "diameter_m": 0.104,
+        "axial_width_m": 0.045
+      },
+      "elbow_joint": {
+        "diameter_m": 0.1,
+        "axial_width_m": 0.065
+      },
+      "wrist_1_joint": {
+        "diameter_m": 0.09,
+        "axial_width_m": 0.052
+      }
+    }
+  }
+}

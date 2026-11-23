@@ -4,6 +4,47 @@
 
 先找到项目启动脚本或已有环境锁记录的 Python，用该解释器执行 `python <skill>/scripts/environment.py probe --mode web`，模式可换为 `native` 或 `headless`。探测会执行物理步进、质量矩阵计算、对应查看器组件导入和绘图。若项目已有独立绘图环境，可设置 `ARM_SIM_ANALYSIS_PYTHON`。通过后保存输出中的解释器路径并直接用于预检与正式运行。界面交互在任务场景中另行验收。
 
+### Ubuntu 20.04、22.04、24.04 共用一套离线环境
+
+三版 **Intel/AMD 64 位（`uname -m` 输出 `x86_64`）** 采用同一份 CPython 3.12.16、MuJoCo Studio/Core 4.0.1 与绘图依赖。20.04、22.04 和 24.04 的系统 Python 分别为 3.8、3.10 和 3.12。只需系统提供 `python3`、`tar` 和常规运行库，安装器会校验并展开 skill 自带的可迁移解释器。无需 sudo、在线 pip、额外软件源或替换系统 Python。
+
+从项目目录执行，将 `/path/to/arm-mujoco-task-sim` 换成实际 skill 路径。选一次所需模式，之后可在同一环境切换：
+
+```sh
+SKILL=/path/to/arm-mujoco-task-sim
+python3 "$SKILL/scripts/install_ubuntu.py" --mode web --venv .venv
+.venv/bin/python "$SKILL/scripts/run_task.py" --project . --preflight
+# 检查同一环境的无窗口模式
+.venv/bin/python "$SKILL/scripts/environment.py" probe --mode headless
+```
+
+极简镜像若连 `python3` 都没有，可直接从同一份归档启动。以下命令需要 `tar`、`sha256sum`，解释器目录须保留供该项目的 venv 使用：
+
+```sh
+bundle="$SKILL/assets/python-linux-x86_64"
+runtime="$HOME/.local/arm-cpython-3.12.16"
+(cd "$bundle" && sha256sum -c SHA256SUMS) &&
+  mkdir -p "$runtime" &&
+  tar -xzf "$bundle"/cpython-*.tar.gz --strip-components=1 -C "$runtime" &&
+  "$runtime/bin/python3.12" "$SKILL/scripts/environment.py" install --mode web --venv .venv
+```
+
+可迁移解释器首次解包到 `${XDG_CACHE_HOME:-$HOME/.cache}/arm-mujoco-task-sim/`，后续项目复用；已有项目环境仍引用这个目录。拷贝整个 skill 即可断网安装。只传输 Linux 所需的安装材料时，保留 `scripts/`、`assets/python-linux-x86_64/`、`assets/wheels/common/` 和 `assets/wheels/cp312-linux_x86_64/` 的相对位置。启动任务还需项目输入以及所用模板和其他任务资产。Windows 与 Linux 共用纯 Python 和 Web 客户端 wheel。
+
+Linux 安装材料合计约 96.5 MB，已含解释器。在联网机只下载 Ubuntu 版任务 skill 时，可用 Git 的按需检出，然后将检出的 `arm-mujoco-task-sim` 文件夹复制到各台离线机器：
+
+```sh
+git clone --depth 1 --filter=blob:none --no-checkout https://github.com/SoyoungSS/armDesignTool.git
+git -C armDesignTool sparse-checkout set --no-cone '/arm-mujoco-task-sim/' '!/arm-mujoco-task-sim/assets/wheels/cp312-win_amd64/'
+git -C armDesignTool checkout
+```
+
+三个 Ubuntu 版本的 glibc 基线依次为 2.31、2.35、2.39。已核对随包解释器、Linux wheel 的 SHA256、Python 依赖和 ELF 导入符号。全套二进制最高要求 GLIBC_2.27、GLIBCXX_3.4.22。精简系统需提供标准 C/C++ 运行库、zlib、libcrypt；本地窗口还要有图形会话和可用驱动，Web 需可访问运行器端口的浏览器。ARM64 / Jetson 使用下文的匹配架构打包流程。包版本、兼容标签和解释器发行信息可核对 [Linux 清单](../assets/wheels/cp312-linux_x86_64/bundle.json) · [可迁移 CPython 原版发行](https://github.com/astral-sh/python-build-standalone/releases/tag/20261110) · [MuJoCo Studio 发行文件](https://pypi.org/project/mujoco-studio/4.0.1/#files)。
+
+**断网实测（2026-11-23）。** 在同一 QEMU Linux 6.6.134 内核下分别启动官方 Ubuntu Base 20.04.1、22.04、24.04.3 amd64 用户空间，禁用虚拟网卡。三者均用归档内的 Python 启动 `install_ubuntu.py` 安装同一组 15 个 wheel，通过 `pip check`、MuJoCo 质量矩阵计算及绘图。相同模型各步进 250 次（0.5 s），末角均为 0.14897657 rad，并各自生成 7933 字节的曲线 PNG。三个环境的 Web 和本地查看器均通过模块导入检查。本轮图形测试范围止于导入，浏览器显示和原生窗口仍需在目标桌面试跑。
+
+### Windows x64
+
 **Windows x64、普通 CPython 3.12** 可从 skill 随附的 15 个原版 wheel 离线安装，覆盖 Studio 4.0.1、物理核心、WASM 客户端、NumPy、Matplotlib 和间接依赖。目标机需已有相应 Python（含 venv 和 pip）、系统运行库；原生查看器还需要桌面和图形驱动。在项目目录执行：
 
 ```powershell
@@ -17,7 +58,9 @@ py -3.12 <skill>/scripts/environment.py install --mode web --venv .venv
 
 这套离线包已在 Windows x64 / CPython 3.12 上完成 Web 后端和本地窗口各 200 步试跑。Windows 上 Studio 4.0.1 的默认显示路径可能报 `Target not found`，本运行器对这一组合使用实测可用的 `opengl_software` 本地呈现模式。需要验证其他原生显示后端时可在合同中指定 `native_gfx`。裸机需一并携带与目标平台匹配、可离线使用的 CPython 发行包和必要的系统运行库。
 
-**其他系统、架构、Python 或 MuJoCo 版本**可在与目标机匹配的联网机器准备离线包（Linux 还应匹配 glibc 基线）。复制整个生成目录，保留 `bundle.json` 和原版 wheel 内的许可证。下面以 Studio 4.0.1 为例：
+### 为其他组合打包
+
+其他系统、架构、Python 或 MuJoCo 版本可在与目标机匹配的联网机器准备离线包（Linux 还应匹配 glibc 基线）。复制整个生成目录，保留 `bundle.json` 和原版 wheel 内的许可证。下面以 Studio 4.0.1 为例：
 
 ```text
 python <skill>/scripts/environment.py pack --mode web --version 4.0.1 --bundle <新目录>

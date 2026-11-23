@@ -1,0 +1,29 @@
+{
+  "platform": "cp312-linux_x86_64",
+  "source": "https://pypi.org/simple",
+  "shared": [
+    "cycler-0.12.1-py3-none-any.whl",
+    "mujoco_studio_wasm-4.0.1-py3-none-any.whl",
+    "packaging-26.3-py3-none-any.whl",
+    "pyparsing-3.3.3-py3-none-any.whl",
+    "python_dateutil-4.0.0-py3-none-any.whl",
+    "tzdata-2026.6-py2.py3-none-any.whl"
+  ],
+  "wheels": {
+    "contourpy-1.4.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl": "875f42444c9cf48d56f724f2637e60d0f73b3b12c9041e1484580a233edf9591",
+    "cycler-0.12.1-py3-none-any.whl": "85cef7cff222d8644161529808465972e51340599459b8ac3ccbac5a854e0d30",
+    "fonttools-4.68.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl": "3edce69ecdefa73ab1041901ca22eefed6ebb93a77bc77e889d940479f25bf7d",
+    "kiwisolver-1.5.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl": "34633ecf50d16187ab8e5528b7a2530f2feb4e23f300db4672538b51cfc5cd38",
+    "matplotlib-3.11.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl": "df4f7784aca81a94f254c0a2767d592ee25f407e488f5fa7203e51093fb6ca27",
+    "mujoco_core-4.0.1-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl": "efbfb6e8f2bd63c5f19473f8093f01696937ef453d647b3c7a92620f5873b845",
+    "mujoco_studio-4.0.1-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl": "c9f8e18cccbc69de0c888f487e2d3348c31b87f578ef557659b7bf4a3a739f38",
+    "mujoco_studio_wasm-4.0.1-py3-none-any.whl": "14d724721c971ec208baeb6b449797a9cd456ea0331bc8e8a8722e7823e60ccc",
+    "numpy-2.5.5-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl": "704d819265e5d1064d932968e9ee85fff2103ccc78c05b878c06943ba27b8507",
+    "packaging-26.3-py3-none-any.whl": "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c",
+    "pillow-13.0.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl": "42d63be3af4f9b951b199b0a9d23365d37ab14687e6d77b74940432c8515c4ca",
+    "pyparsing-3.3.3-py3-none-any.whl": "ece8c00a69cf01b45d0b1dedabb469c90d8caf996d4fda40f147627a122849a4",
+    "python_dateutil-4.0.0-py3-none-any.whl": "a5e246f79eb80475e691bf93862cead98decd8a498cf53ba0516fcdc0f50dc1c",
+    "tzdata-2026.6-py2.py3-none-any.whl": "0a10eec6e13ef16b627fabed9a5f2ba61a62b1c67f327305f4e7e412a70b4aec",
+    "websockets-17.4-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl": "9ae1429ee9e52b139167ed0169757806a27ed7307e942e8c62037a9184e9843b"
+  }
+}

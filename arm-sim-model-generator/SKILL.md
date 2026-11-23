@@ -5,7 +5,7 @@ description: 根据机械臂运动学与初步设计参数自动生成逐连杆�
 
 # 机械臂仿真模型生成
 
-1. **建立输入。** 按 [输入契约](references/input-contract.md) 将用户数据填入 [JSONC 模板](assets/worksheet.jsonc)。先核对轴、安装变换、类型和连接关系。标准输入和现有静力学/工作空间适配器均从同一套 SI 模型生成几何与导出文件。需要参考成熟构型、关节方向、惯量参考系或碰撞代理时，查 [经典机械臂参考](references/reference-arms.md)，保留型号和来源。新臂的额定力矩、几何尺寸、质量和惯量使用本设计的依据。
+1. **建立输入。** 按 [输入契约](references/input-contract.md) 将用户数据填入 [JSONC 模板](assets/worksheet.jsonc)。先核对轴、安装变换、类型和连接关系。标准输入和现有静力学/工作空间适配器均从同一套 SI 模型生成几何与导出文件。需要参考成熟构型、关节方向、惯量参考系或碰撞代理时，按构型选择 UR5e / UR10e、FR3、KUKA KR 6 或 xArm6，查 [经典机械臂参考](references/reference-arms.md)，保留型号和来源。新臂的额定力矩、几何尺寸、质量和惯量使用本设计的依据。
 2. **建立几何与驱动。** 默认使用 rounded-shell-v2 生成外壳和独立碰撞体。按 [外形规则](references/appearance.md) 调尺寸，共点旋转轴另读 [模组布置](references/joint-layout.md)。保留关节 origin、局部轴和质量归属。MuJoCo/USD 共用 [驱动参数规则](references/drives.md)，按已知能力和质量属性补全增益，尊重用户给定值。概念模式使用的估算须在输入与报告中注明。
 3. **生成并复核。** Python ≥3.10，安装 `scripts/requirements.txt`。在本 skill 目录运行下面命令。首条是可直接换输出路径的正例。将输入替换为实际设计并按需选择目标；有 MuJoCo/OpenUSD 时可按 `scripts/requirements-validation.txt` 准备运行环境并追加 `--runtime`。
 

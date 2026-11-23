@@ -1,0 +1,163 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mujoco model="ur10e_reference">
+  <compiler angle="radian" meshdir="meshes" inertiafromgeom="false" fusestatic="false" />
+  <option gravity="0 0 -9.81" timestep="0.001" integrator="implicitfast" />
+  <asset>
+    <material name="body" rgba="0.82 0.84 0.85 1" specular="0.24000000000000002" shininess="0.64" />
+    <material name="joint" rgba="0.16 0.18 0.2 1" specular="0.26" shininess="0.6" />
+    <material name="accent" rgba="0.06 0.36 0.43 1" specular="0.28" shininess="0.6799999999999999" />
+    <material name="metal" rgba="0.55 0.58 0.61 1" specular="0.488" shininess="0.76" />
+    <mesh name="base_link_inertia_base" file="base_link_inertia_base_visual.stl" />
+    <mesh name="base_link_inertia_mounting_rim" file="base_link_inertia_mounting_rim_visual.stl" />
+    <mesh name="base_link_inertia_beam" file="base_link_inertia_beam_visual.stl" />
+    <mesh name="base_link_inertia_shoulder_pan_joint_stator" file="base_link_inertia_shoulder_pan_joint_stator_visual.stl" />
+    <mesh name="shoulder_link_shoulder_lift_joint_stator" file="shoulder_link_shoulder_lift_joint_stator_visual.stl" />
+    <mesh name="shoulder_link_shoulder_pan_joint_output_shaft" file="shoulder_link_shoulder_pan_joint_output_shaft_visual.stl" />
+    <mesh name="shoulder_link_shoulder_pan_joint_output_fairing" file="shoulder_link_shoulder_pan_joint_output_fairing_visual.stl" />
+    <mesh name="shoulder_link_shoulder_pan_joint_rotor_ring" file="shoulder_link_shoulder_pan_joint_rotor_ring_visual.stl" />
+    <mesh name="shoulder_link_shoulder_lift_joint_support" file="shoulder_link_shoulder_lift_joint_support_visual.stl" />
+    <mesh name="shoulder_link_shoulder_lift_joint_stator_lug" file="shoulder_link_shoulder_lift_joint_stator_lug_visual.stl" />
+    <mesh name="upper_arm_link_beam" file="upper_arm_link_beam_visual.stl" />
+    <mesh name="upper_arm_link_shoulder_lift_joint_output_shaft" file="upper_arm_link_shoulder_lift_joint_output_shaft_visual.stl" />
+    <mesh name="upper_arm_link_shoulder_lift_joint_output_plate" file="upper_arm_link_shoulder_lift_joint_output_plate_visual.stl" />
+    <mesh name="forearm_link_housing" file="forearm_link_housing_visual.stl" />
+    <mesh name="forearm_link_cap" file="forearm_link_cap_visual.stl" />
+    <mesh name="forearm_link_cap_hub" file="forearm_link_cap_hub_visual.stl" />
+    <mesh name="forearm_link_rear_cap" file="forearm_link_rear_cap_visual.stl" />
+    <mesh name="forearm_link_rear_cap_hub" file="forearm_link_rear_cap_hub_visual.stl" />
+    <mesh name="forearm_link_beam" file="forearm_link_beam_visual.stl" />
+    <mesh name="wrist_1_link_housing" file="wrist_1_link_housing_visual.stl" />
+    <mesh name="wrist_1_link_cap" file="wrist_1_link_cap_visual.stl" />
+    <mesh name="wrist_1_link_cap_hub" file="wrist_1_link_cap_hub_visual.stl" />
+    <mesh name="wrist_1_link_rear_cap" file="wrist_1_link_rear_cap_visual.stl" />
+    <mesh name="wrist_1_link_rear_cap_hub" file="wrist_1_link_rear_cap_hub_visual.stl" />
+    <mesh name="wrist_1_link_beam" file="wrist_1_link_beam_visual.stl" />
+    <mesh name="wrist_2_link_housing" file="wrist_2_link_housing_visual.stl" />
+    <mesh name="wrist_2_link_cap" file="wrist_2_link_cap_visual.stl" />
+    <mesh name="wrist_2_link_cap_hub" file="wrist_2_link_cap_hub_visual.stl" />
+    <mesh name="wrist_2_link_rear_cap" file="wrist_2_link_rear_cap_visual.stl" />
+    <mesh name="wrist_2_link_rear_cap_hub" file="wrist_2_link_rear_cap_hub_visual.stl" />
+    <mesh name="wrist_2_link_beam" file="wrist_2_link_beam_visual.stl" />
+    <mesh name="wrist_3_link_housing" file="wrist_3_link_housing_visual.stl" />
+    <mesh name="wrist_3_link_cap" file="wrist_3_link_cap_visual.stl" />
+    <mesh name="wrist_3_link_cap_hub" file="wrist_3_link_cap_hub_visual.stl" />
+    <mesh name="wrist_3_link_rear_cap" file="wrist_3_link_rear_cap_visual.stl" />
+    <mesh name="wrist_3_link_rear_cap_hub" file="wrist_3_link_rear_cap_hub_visual.stl" />
+    <mesh name="wrist_3_link_flange" file="wrist_3_link_flange_visual.stl" />
+    <mesh name="wrist_3_link_flange_fastener_0" file="wrist_3_link_flange_fastener_0_visual.stl" />
+    <mesh name="wrist_3_link_flange_fastener_1" file="wrist_3_link_flange_fastener_1_visual.stl" />
+    <mesh name="wrist_3_link_flange_fastener_2" file="wrist_3_link_flange_fastener_2_visual.stl" />
+    <mesh name="wrist_3_link_flange_fastener_3" file="wrist_3_link_flange_fastener_3_visual.stl" />
+  </asset>
+  <worldbody>
+    <body name="base_link_inertia" pos="0 0 0" quat="6.12323399574e-17 0 0 1">
+      <inertial pos="0 0 0" mass="4.0" diaginertia="0.0061063308908 0.0061063308908 0.01125" quat="1 0 0 0" />
+      <geom name="base_link_inertia_base_visual" type="mesh" mesh="base_link_inertia_base" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+      <geom name="base_link_inertia_base_collision" type="cylinder" size="0.091125 0.041" pos="0 0 -0.041" quat="1 0 0 0" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+      <geom name="base_link_inertia_mounting_rim_visual" type="mesh" mesh="base_link_inertia_mounting_rim" material="metal" contype="0" conaffinity="0" group="2" mass="0" />
+      <geom name="base_link_inertia_beam_visual" type="mesh" mesh="base_link_inertia_beam" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+      <geom name="base_link_inertia_beam_collision" type="box" size="0.05 0.041 0.01124" pos="0 0 0.0281" quat="0.707106781187 0 0 -0.707106781187" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+      <geom name="base_link_inertia_shoulder_pan_joint_stator_visual" type="mesh" mesh="base_link_inertia_shoulder_pan_joint_stator" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+      <geom name="base_link_inertia_shoulder_pan_joint_stator_collision" type="cylinder" size="0.0375 0.0225" pos="0 0 0.0807" quat="0.707106781187 0 0 -0.707106781187" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+      <body name="shoulder_link" pos="0 0 0.1807" quat="1 0 0 0">
+        <inertial pos="0.021 -0.027 0" mass="7.369" diaginertia="0.0202531694741 0.0352902506446 0.0353865798812" quat="0.556786029114 -0.580426067979 0.431166948095 -0.408888689334" />
+        <joint name="shoulder_pan_joint" type="hinge" axis="0 0 1" limited="true" range="-6.28318530718 6.28318530718" damping="0" frictionloss="0" />
+        <geom name="shoulder_link_shoulder_lift_joint_stator_visual" type="mesh" mesh="shoulder_link_shoulder_lift_joint_stator" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+        <geom name="shoulder_link_shoulder_lift_joint_stator_collision" type="cylinder" size="0.052 0.0225" pos="0 -0.0655 -1.34342785785e-11" quat="0.499999999949 0.500000000051 0.500000000051 -0.499999999949" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+        <geom name="shoulder_link_shoulder_pan_joint_output_shaft_visual" type="mesh" mesh="shoulder_link_shoulder_pan_joint_output_shaft" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+        <geom name="shoulder_link_shoulder_pan_joint_output_shaft_collision" type="cylinder" size="0.017625 0.048029999991" pos="-0 -0 -0.074470000009" quat="0.707106781187 0 0 -0.707106781187" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+        <geom name="shoulder_link_shoulder_pan_joint_output_fairing_visual" type="mesh" mesh="shoulder_link_shoulder_pan_joint_output_fairing" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+        <geom name="shoulder_link_shoulder_pan_joint_output_fairing_collision" type="cylinder" size="0.0315 0.0110499999956" pos="-0 -0 -0.0624500000044" quat="0.707106781187 0 0 -0.707106781187" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+        <geom name="shoulder_link_shoulder_pan_joint_rotor_ring_visual" type="mesh" mesh="shoulder_link_shoulder_pan_joint_rotor_ring" material="metal" contype="0" conaffinity="0" group="2" mass="0" />
+        <geom name="shoulder_link_shoulder_pan_joint_rotor_ring_collision" type="cylinder" size="0.036 0.001" pos="0 0 -0.0745" quat="0.707106781187 0 0 -0.707106781187" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+        <geom name="shoulder_link_shoulder_lift_joint_support_visual" type="mesh" mesh="shoulder_link_shoulder_lift_joint_support" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+        <geom name="shoulder_link_shoulder_lift_joint_support_collision" type="box" size="0.00572 0.00572 0.03275" pos="0 -0.0327499999878 -0.0594893015835" quat="0.707106781114 0.707106781259 -0 -0" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+        <geom name="shoulder_link_shoulder_lift_joint_stator_lug_visual" type="mesh" mesh="shoulder_link_shoulder_lift_joint_stator_lug" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+        <geom name="shoulder_link_shoulder_lift_joint_stator_lug_collision" type="box" size="0.00572 0.00572 0.0102446507884" pos="0 -0.0654999999899 -0.0492446508018" quat="1.02551744874e-10 -1 -0 -0" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+        <body name="upper_arm_link" pos="0 0 0" quat="0.707106781114 0.707106781259 -0 -0">
+          <inertial pos="-0.2327 0 0.158" mass="13.051" diaginertia="0.0278114286192 0.769758178676 0.770680392705" quat="0.714294492434 -0.699766141844 -0.0074928568898 -0.0073879566031" />
+          <joint name="shoulder_lift_joint" type="hinge" axis="0 0 1" limited="true" range="-6.28318530718 6.28318530718" damping="0" frictionloss="0" />
+          <geom name="upper_arm_link_beam_visual" type="mesh" mesh="upper_arm_link_beam" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+          <geom name="upper_arm_link_beam_collision" type="box" size="0.05 0.041 0.24915" pos="-0.30635 0 0" quat="0.5 0.5 -0.5 -0.5" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+          <geom name="upper_arm_link_shoulder_lift_joint_output_shaft_visual" type="mesh" mesh="upper_arm_link_shoulder_lift_joint_output_shaft" material="metal" contype="0" conaffinity="0" group="2" mass="0" />
+          <geom name="upper_arm_link_shoulder_lift_joint_output_shaft_collision" type="cylinder" size="0.02444 0.044" pos="0 0 0.044" quat="0.707106781187 0 0 -0.707106781187" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+          <geom name="upper_arm_link_shoulder_lift_joint_output_plate_visual" type="mesh" mesh="upper_arm_link_shoulder_lift_joint_output_plate" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+          <geom name="upper_arm_link_shoulder_lift_joint_output_plate_collision" type="cylinder" size="0.0494 0.001" pos="0 0 0.042" quat="0.707106781187 0 0 -0.707106781187" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+          <body name="forearm_link" pos="-0.6127 0 0" quat="1 0 0 0">
+            <inertial pos="-0.33155 0 0.068" mass="3.989" diaginertia="0.00985708996478 0.306742886278 0.309280023758" quat="0.706679820572 0.707365070694 0.0108151356713 -0.0110145721277" />
+            <joint name="elbow_joint" type="hinge" axis="0 0 1" limited="true" range="-3.14159265359 3.14159265359" damping="0" frictionloss="0" />
+            <geom name="forearm_link_housing_visual" type="mesh" mesh="forearm_link_housing" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+            <geom name="forearm_link_housing_collision" type="cylinder" size="0.05 0.0325" pos="0 0 0" quat="0.707106781187 0 0 -0.707106781187" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+            <geom name="forearm_link_cap_visual" type="mesh" mesh="forearm_link_cap" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+            <geom name="forearm_link_cap_hub_visual" type="mesh" mesh="forearm_link_cap_hub" material="metal" contype="0" conaffinity="0" group="2" mass="0" />
+            <geom name="forearm_link_rear_cap_visual" type="mesh" mesh="forearm_link_rear_cap" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+            <geom name="forearm_link_rear_cap_hub_visual" type="mesh" mesh="forearm_link_rear_cap_hub" material="metal" contype="0" conaffinity="0" group="2" mass="0" />
+            <geom name="forearm_link_beam_visual" type="mesh" mesh="forearm_link_beam" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+            <geom name="forearm_link_beam_collision" type="box" size="0.05 0.041 0.243746391192" pos="-0.285775 0 0.087075" quat="0.568213858505 0.420871727492 -0.420871727492 -0.568213858505" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+            <body name="wrist_1_link" pos="-0.57155 0 0.17415" quat="1 0 0 0">
+              <inertial pos="0 -0.018 0.007" mass="2.1" diaginertia="0.0020999069832 0.00269992313907 0.00296016987773" quat="0.693143752509 0.157325313839 -0.683195852179 -0.167463164751" />
+              <joint name="wrist_1_joint" type="hinge" axis="0 0 1" limited="true" range="-6.28318530718 6.28318530718" damping="0" frictionloss="0" />
+              <geom name="wrist_1_link_housing_visual" type="mesh" mesh="wrist_1_link_housing" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+              <geom name="wrist_1_link_housing_collision" type="cylinder" size="0.045 0.026" pos="0 0 0" quat="0.707106781187 0 0 -0.707106781187" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+              <geom name="wrist_1_link_cap_visual" type="mesh" mesh="wrist_1_link_cap" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+              <geom name="wrist_1_link_cap_hub_visual" type="mesh" mesh="wrist_1_link_cap_hub" material="metal" contype="0" conaffinity="0" group="2" mass="0" />
+              <geom name="wrist_1_link_rear_cap_visual" type="mesh" mesh="wrist_1_link_rear_cap" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+              <geom name="wrist_1_link_rear_cap_hub_visual" type="mesh" mesh="wrist_1_link_rear_cap_hub" material="metal" contype="0" conaffinity="0" group="2" mass="0" />
+              <geom name="wrist_1_link_beam_visual" type="mesh" mesh="wrist_1_link_beam" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+              <geom name="wrist_1_link_beam_collision" type="box" size="0.0488730265642 0.0400758817827 0.02397" pos="0 -0.059925 -1.22908229538e-11" quat="0.707106781114 0.707106781259 -0 -0" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+              <body name="wrist_2_link" pos="0 -0.11985 -2.45816459076e-11" quat="0.707106781114 0.707106781259 -0 -0">
+                <inertial pos="0 0.018 -0.007" mass="1.98" diaginertia="0.0020999069832 0.00269992313907 0.00296016987773" quat="0.157325313839 -0.693143752509 -0.167463164751 0.683195852179" />
+                <joint name="wrist_2_joint" type="hinge" axis="0 0 1" limited="true" range="-6.28318530718 6.28318530718" damping="0" frictionloss="0" />
+                <geom name="wrist_2_link_housing_visual" type="mesh" mesh="wrist_2_link_housing" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+                <geom name="wrist_2_link_housing_collision" type="cylinder" size="0.0524475 0.0359170638618" pos="0 0 0" quat="0.707106781187 0 0 -0.707106781187" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+                <geom name="wrist_2_link_cap_visual" type="mesh" mesh="wrist_2_link_cap" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+                <geom name="wrist_2_link_cap_hub_visual" type="mesh" mesh="wrist_2_link_cap_hub" material="metal" contype="0" conaffinity="0" group="2" mass="0" />
+                <geom name="wrist_2_link_rear_cap_visual" type="mesh" mesh="wrist_2_link_rear_cap" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+                <geom name="wrist_2_link_rear_cap_hub_visual" type="mesh" mesh="wrist_2_link_rear_cap_hub" material="metal" contype="0" conaffinity="0" group="2" mass="0" />
+                <geom name="wrist_2_link_beam_visual" type="mesh" mesh="wrist_2_link_beam" material="body" contype="0" conaffinity="0" group="2" mass="0" />
+                <geom name="wrist_2_link_beam_collision" type="box" size="0.0438012973925 0.0359170638618 0.02331" pos="0 0.058275 -1.19524022967e-11" quat="-0 -0 -0.707106781259 -0.707106781114" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+                <body name="wrist_3_link" pos="0 0.11655 -2.39048045935e-11" quat="0.707106781114 -0.707106781259 1.11022302463e-16 8.88053550947e-27">
+                  <inertial pos="0 0 -0.026" mass="0.615" diaginertia="0.00034 0.0004 0.00041" quat="0.5 -0.5 -0.5 -0.5" />
+                  <joint name="wrist_3_joint" type="hinge" axis="0 0 1" limited="true" range="-6.28318530718 6.28318530718" damping="0" frictionloss="0" />
+                  <geom name="wrist_3_link_housing_visual" type="mesh" mesh="wrist_3_link_housing" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+                  <geom name="wrist_3_link_housing_collision" type="cylinder" size="0.052284917098 0.031758245941" pos="0 0 0" quat="0.707106781187 0 0 -0.707106781187" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+                  <geom name="wrist_3_link_cap_visual" type="mesh" mesh="wrist_3_link_cap" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+                  <geom name="wrist_3_link_cap_hub_visual" type="mesh" mesh="wrist_3_link_cap_hub" material="metal" contype="0" conaffinity="0" group="2" mass="0" />
+                  <geom name="wrist_3_link_rear_cap_visual" type="mesh" mesh="wrist_3_link_rear_cap" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+                  <geom name="wrist_3_link_rear_cap_hub_visual" type="mesh" mesh="wrist_3_link_rear_cap_hub" material="metal" contype="0" conaffinity="0" group="2" mass="0" />
+                  <geom name="wrist_3_link_flange_visual" type="mesh" mesh="wrist_3_link_flange" material="metal" contype="0" conaffinity="0" group="2" mass="0" />
+                  <geom name="wrist_3_link_flange_collision" type="cylinder" size="0.0406660466318 0.00697132227973" pos="0 0 0" quat="1 -0 -1.11022302463e-16 5.55111512313e-17" rgba="0.3 0.3 0.3 0.2" group="3" mass="0" />
+                  <geom name="wrist_3_link_flange_fastener_0_visual" type="mesh" mesh="wrist_3_link_flange_fastener_0" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+                  <geom name="wrist_3_link_flange_fastener_1_visual" type="mesh" mesh="wrist_3_link_flange_fastener_1" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+                  <geom name="wrist_3_link_flange_fastener_2_visual" type="mesh" mesh="wrist_3_link_flange_fastener_2" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+                  <geom name="wrist_3_link_flange_fastener_3_visual" type="mesh" mesh="wrist_3_link_flange_fastener_3" material="joint" contype="0" conaffinity="0" group="2" mass="0" />
+                  <site name="tool_frame" pos="0 0 0" quat="1 -0 -1.11022302463e-16 5.55111512313e-17" size="0.006" rgba="0.1 0.7 0.8 1" />
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+  <contact>
+    <exclude body1="base_link_inertia" body2="shoulder_link" />
+    <exclude body1="base_link_inertia" body2="upper_arm_link" />
+    <exclude body1="shoulder_link" body2="upper_arm_link" />
+    <exclude body1="upper_arm_link" body2="forearm_link" />
+    <exclude body1="forearm_link" body2="wrist_1_link" />
+    <exclude body1="wrist_1_link" body2="wrist_2_link" />
+    <exclude body1="wrist_2_link" body2="wrist_3_link" />
+  </contact>
+  <actuator>
+    <position name="shoulder_pan_joint_drive" joint="shoulder_pan_joint" forcelimited="true" forcerange="-330 330" ctrllimited="true" kp="1110.886572052362" kv="433.05422119828893" ctrlrange="-6.28318530718 6.28318530718" timeconst="0.03" />
+    <position name="shoulder_lift_joint_drive" joint="shoulder_lift_joint" forcelimited="true" forcerange="-330 330" ctrllimited="true" kp="1650.0" kv="516.197913887266" ctrlrange="-6.28318530718 6.28318530718" timeconst="0.03" />
+    <position name="elbow_joint_drive" joint="elbow_joint" forcelimited="true" forcerange="-150 150" ctrllimited="true" kp="750.0" kv="165.52670451826933" ctrlrange="-3.14159265359 3.14159265359" timeconst="0.03" />
+    <position name="wrist_1_joint_drive" joint="wrist_1_joint" forcelimited="true" forcerange="-54 54" ctrllimited="true" kp="96.62204555804443" kv="7.745096339820983" ctrlrange="-6.28318530718 6.28318530718" timeconst="0.03" />
+    <position name="wrist_2_joint_drive" joint="wrist_2_joint" forcelimited="true" forcerange="-54 54" ctrllimited="true" kp="24.545401085931882" kv="1.659725019489329" ctrlrange="-6.28318530718 6.28318530718" timeconst="0.03" />
+    <position name="wrist_3_joint_drive" joint="wrist_3_joint" forcelimited="true" forcerange="-54 54" ctrllimited="true" kp="0.030200989467333468" kv="0.011773178560463648" ctrlrange="-6.28318530718 6.28318530718" timeconst="0.03" />
+  </actuator>
+  <keyframe>
+    <key name="initial" qpos="0.2 -1.1 1 -0.65 0.72 -0.25" ctrl="0.2 -1.1 1 -0.65 0.72 -0.25" act="0.2 -1.1 1 -0.65 0.72 -0.25" />
+  </keyframe>
+</mujoco>
