@@ -31,11 +31,11 @@ runtime="$HOME/.local/arm-cpython-3.12.16"
 
 可迁移解释器首次解包到 `${XDG_CACHE_HOME:-$HOME/.cache}/arm-mujoco-task-sim/`，后续项目复用；已有项目环境仍引用这个目录。拷贝整个 skill 即可断网安装。只传输 Linux 所需的安装材料时，保留 `scripts/`、`assets/python-linux-x86_64/`、`assets/wheels/common/` 和 `assets/wheels/cp312-linux_x86_64/` 的相对位置。启动任务还需项目输入以及所用模板和其他任务资产。Windows 与 Linux 共用纯 Python 和 Web 客户端 wheel。
 
-Linux 安装材料合计约 96.5 MB，已含解释器。在联网机只下载 Ubuntu 版任务 skill 时，可用 Git 的按需检出，然后将检出的 `arm-mujoco-task-sim` 文件夹复制到各台离线机器：
+Linux 基础分拣环境约 96.5 MB，已含解释器。OpenUSD、相机和旧版兼容 wheel 单独存放，见[共享离线安装包](offline-dependencies.md)。在联网机只下载 Ubuntu 版任务 skill 时，可用 Git 的按需检出，然后将检出的 `arm-mujoco-task-sim` 文件夹复制到各台离线机器：
 
 ```sh
 git clone --depth 1 --filter=blob:none --no-checkout https://github.com/SoyoungSS/armDesignTool.git
-git -C armDesignTool sparse-checkout set --no-cone '/arm-mujoco-task-sim/' '!/arm-mujoco-task-sim/assets/wheels/cp312-win_amd64/'
+git -C armDesignTool sparse-checkout set --no-cone '/arm-mujoco-task-sim/' '!/arm-mujoco-task-sim/assets/wheels/cp312-win_amd64/' '!/arm-mujoco-task-sim/assets/wheels-optional/cp312-win_amd64/' '!/arm-mujoco-task-sim/assets/python-win_amd64/' '!/arm-mujoco-task-sim/assets/windows-runtime/'
 git -C armDesignTool checkout
 ```
 
@@ -45,7 +45,7 @@ git -C armDesignTool checkout
 
 ### Windows x64
 
-**Windows x64、普通 CPython 3.12** 可从 skill 随附的 15 个原版 wheel 离线安装，覆盖 Studio 4.0.1、物理核心、WASM 客户端、NumPy、Matplotlib 和间接依赖。目标机需已有相应 Python（含 venv 和 pip）、系统运行库；原生查看器还需要桌面和图形驱动。在项目目录执行：
+**Windows x64、普通 CPython 3.12** 可从 skill 随附的 15 个原版 wheel 离线安装，覆盖 Studio 4.0.1、物理核心、WASM 客户端、NumPy、Matplotlib 和间接依赖。随包提供 CPython 3.12.16（含 venv 和 pip）以及微软 x64 运行库。新机可直接按[共享离线安装说明](offline-dependencies.md)用 PowerShell 启动；原生查看器需要桌面和图形驱动。已有 Python 启动器时，在项目目录执行：
 
 ```powershell
 py -3.12 <skill>/scripts/environment.py install --mode web --venv .venv
@@ -54,9 +54,9 @@ py -3.12 <skill>/scripts/environment.py install --mode web --venv .venv
 
 安装器先核对整包文件清单、平台与 SHA256，再用 `--no-index` 从本地安装，最后运行 `pip check` 和模式探测。使用其他模式可在同一环境重新 probe。固定的离线包供复现一次已验证组合，项目也可复用下节列出的其他兼容版本。
 
-没有 `py` 启动器时，直接用已有 64 位 Python 3.12 的可执行文件运行相同命令。首次安装后将探测输出里的 python 路径写入项目启动入口。该环境也已具备上游模型生成和 PNG 预览所需的 NumPy 和 Pillow，生成 MJCF 与任务仿真可以共用它。OpenUSD 导出另需相应版本的 `usd-core`。
+没有 `py` 启动器时，直接用已有 64 位 Python 3.12 的可执行文件运行相同命令。首次安装后将探测输出里的 python 路径写入项目启动入口。该环境也已具备上游模型生成和 PNG 预览所需的 NumPy 和 Pillow，生成 MJCF 与任务仿真可以共用它。OpenUSD 导出可从随包的 `wheels-optional` 安装 `usd` 包组。
 
-这套离线包已在 Windows x64 / CPython 3.12 上完成 Web 后端和本地窗口各 200 步试跑。Windows 上 Studio 4.0.1 的默认显示路径可能报 `Target not found`，本运行器对这一组合使用实测可用的 `opengl_software` 本地呈现模式。需要验证其他原生显示后端时可在合同中指定 `native_gfx`。裸机需一并携带与目标平台匹配、可离线使用的 CPython 发行包和必要的系统运行库。
+这套离线包已在 Windows x64 / CPython 3.12 上完成 Web 后端和本地窗口各 200 步试跑。Windows 上 Studio 4.0.1 的默认显示路径可能报 `Target not found`，本运行器对这一组合使用实测可用的 `opengl_software` 本地呈现模式。需要验证其他原生显示后端时可在合同中指定 `native_gfx`。裸机拷贝本 Skill 时保留 `assets/python-win_amd64/` 和 `assets/windows-runtime/`。
 
 ### 为其他组合打包
 

@@ -74,6 +74,13 @@ def install(args):
     check = 'import sys,sysconfig; print(sys.implementation.cache_tag, sysconfig.get_platform(), bool(sysconfig.get_config_var("Py_GIL_DISABLED")))'
     if subprocess.check_output([str(exe), '-I', '-c', check]) != subprocess.check_output([sys.executable, '-I', '-c', check]):
         raise ValueError('Existing venv has another ABI. Choose a new --venv directory.')
+    if any(path.name.startswith('mujoco_core-4.') for path in files):
+        query = ("from importlib.metadata import distributions; "
+                 "print(next((d.version for d in distributions() "
+                 "if d.metadata['Name'].lower() == 'mujoco'), ''))")
+        existing = subprocess.check_output([str(exe), '-I', '-c', query], text=True).strip()
+        if existing.startswith('3.'):
+            raise ValueError('This venv contains MuJoCo 3.x. Choose a separate --venv for Studio 4.x.')
     # Only local wheel paths reach pip. Resolve all transitive dependencies from the bundle.
     subprocess.run([str(exe), '-I', '-m', 'pip', '--isolated', '--disable-pip-version-check',
                     'install', '--no-index', '--no-cache-dir', '--only-binary=:all:',

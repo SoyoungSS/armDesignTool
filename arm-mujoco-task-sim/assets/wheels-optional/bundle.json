@@ -1,0 +1,106 @@
+{
+  "cp312-win_amd64": {
+    "absl-py": {
+      "version": "2.3.1",
+      "file": "common/absl_py-2.3.1-py3-none-any.whl",
+      "sha256": "eeecf07f0c2a93ace0772c92e596ace6d3d3996c042b2128459aaae2a76de11d"
+    },
+    "etils": {
+      "version": "1.13.0",
+      "file": "common/etils-1.13.0-py3-none-any.whl",
+      "sha256": "d9cd4f40fbe77ad6613b7348a18132cc511237b6c076dbb89105c0b520a4c6bb"
+    },
+    "fsspec": {
+      "version": "2025.10.0",
+      "file": "common/fsspec-2025.10.0-py3-none-any.whl",
+      "sha256": "7c7712353ae7d875407f97715f0e1ffcc21e33d5b24556cb1e090ae9409ec61d"
+    },
+    "glfw": {
+      "version": "2.10.0",
+      "file": "cp312-win_amd64/glfw-2.10.0-py2.py27.py3.py30.py31.py32.py33.py34.py35.py36.py37.py38.p39.p310.p311.p312.p313-none-win_amd64.whl",
+      "sha256": "6292d5d6634d668cd23d337e6089491d3945a9aa4ac6e1667b0003520d7caa51"
+    },
+    "importlib-resources": {
+      "version": "6.5.2",
+      "file": "common/importlib_resources-6.5.2-py3-none-any.whl",
+      "sha256": "789cfdc3ed28c78b67a06acb8126751ced69a3d5f79c095a98298cd8a760ccec"
+    },
+    "mujoco": {
+      "version": "3.3.7",
+      "file": "cp312-win_amd64/mujoco-3.3.7-cp312-cp312-win_amd64.whl",
+      "sha256": "b3aadc804eae9a4932c2476883018acab38257df40384d79a90bd95f5e5b04c4"
+    },
+    "pyopengl": {
+      "version": "3.1.10",
+      "file": "common/pyopengl-3.1.10-py3-none-any.whl",
+      "sha256": "794a943daced39300879e4e47bd94525280685f42dbb5a998d336cfff151d74f"
+    },
+    "typing-extensions": {
+      "version": "4.15.0",
+      "file": "common/typing_extensions-4.15.0-py3-none-any.whl",
+      "sha256": "f0fa19c6845758ab08074a0cfa8b7aecb71c999ca73d62883bc25cc018c4e548"
+    },
+    "usd-core": {
+      "version": "25.11",
+      "file": "cp312-win_amd64/usd_core-25.11-cp312-none-win_amd64.whl",
+      "sha256": "7bc5aaad20287bfc821e73e2ced99123e448e40ffd018acf99b09975eab4012d"
+    },
+    "zipp": {
+      "version": "3.23.0",
+      "file": "common/zipp-3.23.0-py3-none-any.whl",
+      "sha256": "071652d6115ed432f5ce1d34c336c0adfd6a884660d1e9712a256d3d3bd4b14e"
+    }
+  },
+  "cp312-linux_x86_64": {
+    "absl-py": {
+      "version": "2.3.1",
+      "file": "common/absl_py-2.3.1-py3-none-any.whl",
+      "sha256": "eeecf07f0c2a93ace0772c92e596ace6d3d3996c042b2128459aaae2a76de11d"
+    },
+    "etils": {
+      "version": "1.13.0",
+      "file": "common/etils-1.13.0-py3-none-any.whl",
+      "sha256": "d9cd4f40fbe77ad6613b7348a18132cc511237b6c076dbb89105c0b520a4c6bb"
+    },
+    "fsspec": {
+      "version": "2025.10.0",
+      "file": "common/fsspec-2025.10.0-py3-none-any.whl",
+      "sha256": "7c7712353ae7d875407f97715f0e1ffcc21e33d5b24556cb1e090ae9409ec61d"
+    },
+    "glfw": {
+      "version": "2.10.0",
+      "file": "cp312-linux_x86_64/glfw-2.10.0-py2.py27.py3.py30.py31.py32.py33.py34.py35.py36.py37.py38.p39.p310.p311.p312.p313-none-manylinux2014_x86_64.whl",
+      "sha256": "59c53387dc08c62e8bed86bbe3a8d53ab1b27161281ffa0e7f27b64284e2627c"
+    },
+    "importlib-resources": {
+      "version": "6.5.2",
+      "file": "common/importlib_resources-6.5.2-py3-none-any.whl",
+      "sha256": "789cfdc3ed28c78b67a06acb8126751ced69a3d5f79c095a98298cd8a760ccec"
+    },
+    "mujoco": {
+      "version": "3.3.7",
+      "file": "cp312-linux_x86_64/mujoco-3.3.7-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "sha256": "1afdf8880badccc6fdbef33e09967b6d8feeed3b951da881c4cc41addd1ecde9"
+    },
+    "pyopengl": {
+      "version": "3.1.10",
+      "file": "common/pyopengl-3.1.10-py3-none-any.whl",
+      "sha256": "794a943daced39300879e4e47bd94525280685f42dbb5a998d336cfff151d74f"
+    },
+    "typing-extensions": {
+      "version": "4.15.0",
+      "file": "common/typing_extensions-4.15.0-py3-none-any.whl",
+      "sha256": "f0fa19c6845758ab08074a0cfa8b7aecb71c999ca73d62883bc25cc018c4e548"
+    },
+    "usd-core": {
+      "version": "25.11",
+      "file": "cp312-linux_x86_64/usd_core-25.11-cp312-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+      "sha256": "c05c05150f6c4598e0738677f0b7c8f82ff9fc492d040ed78147eb1ad5ce8545"
+    },
+    "zipp": {
+      "version": "3.23.0",
+      "file": "common/zipp-3.23.0-py3-none-any.whl",
+      "sha256": "071652d6115ed432f5ce1d34c336c0adfd6a884660d1e9712a256d3d3bd4b14e"
+    }
+  }
+}
