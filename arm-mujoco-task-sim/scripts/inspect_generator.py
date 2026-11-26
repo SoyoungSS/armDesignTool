@@ -48,11 +48,26 @@ def inspect(path):
         review = json.loads(validation.read_text(encoding='utf-8')).get('collision_review', review)
     if review.get('status') == 'failed':
         problems.append('Confirmed model interference. Inspect collision_review in validation.json.')
+    handoff = None
+    handoff_rel = m.get('load_handoff')
+    if handoff_rel:
+        handoff_path = (p/handoff_rel).resolve()
+        if not handoff_path.is_relative_to(p) or handoff_rel not in m.get('files', {}):
+            problems.append('Load handoff must belong to the verified file inventory')
+        elif handoff_path.is_file():
+            handoff = json.loads(handoff_path.read_text(encoding='utf-8'))
+    elif (p/'report/normalized_model.json').is_file():
+        normalized = json.loads((p/'report/normalized_model.json').read_text(encoding='utf-8'))
+        js = normalized.get('model', {}).get('joints', [])
+        handoff = dict(active_joint_names=[j['name'] for j in js if j['type'] != 'fixed'],
+                       fixed_joint_names=[j['name'] for j in js if j['type'] == 'fixed'],
+                       section_sensors_generated=False)
     return dict(run=str(p), entry=str(entry), run_id=m.get('run_id'), mujoco=target,
+                load_handoff=handoff,
                 collision_review=review,
                 model_grade=m.get('model_grade'), verified_files=verified, problems=problems,
                 ready_for_compile=not problems,
-                reports={n: str(p/'report'/n) for n in ['normalized_model.json', 'drive_design.json', 'validation.json', 'input_snapshot.json'] if (p/'report'/n).is_file()})
+                reports={n: str(p/'report'/n) for n in ['normalized_model.json', 'drive_design.json', 'validation.json', 'input_snapshot.json', 'load_handoff.json'] if (p/'report'/n).is_file()})
 
 
 if __name__ == '__main__':

@@ -131,6 +131,14 @@ def mjcf(n,g,out,source):
                 kind=p['collision_kind']; cs=p.get('collision_size',p['size']); size=np.array(cs)/2 if kind=='box' else [cs[0],cs[1]/2]
                 el(b,'geom',name=key+'_collision',type=kind,size=size,pos=p['T'][:3,3],quat=quat(p['T'][:3,:3]),rgba=[.3,.3,.3,.2],group=3,mass=0)
     tip=tf(n['model']['tip']); el(bodies[n['model']['joints'][-1]['child']],'site',name='tool_frame',pos=tip[:3,3],quat=quat(tip[:3,:3]),size=.006,rgba=[.1,.7,.8,1])
+    # Sites/sensors do not add mass, stiffness or a welded surrogate body.
+    # Fixed links are preserved by fusestatic=false for their interface wrench.
+    sensors=el(root,'sensor')
+    for j in n['model']['joints']:
+        name=j['name']; site='load_site_'+name
+        el(bodies[j['child']],'site',name=site,pos=[0,0,0],quat=[1,0,0,0],size=.002,group=4)
+        el(sensors,'force',name='load_force_'+name,site=site)
+        el(sensors,'torque',name='load_torque_'+name,site=site)
     contact=el(root,'contact')
     for pair in n.get('collision_exclusions',[]): el(contact,'exclude',body1=pair['body1'],body2=pair['body2'])
     act=el(root,'actuator'); active=[j for j in n['model']['joints'] if j['type']!='fixed']

@@ -15,7 +15,7 @@ def dump(path, data):
 
 
 class Recorder:
-    def __init__(self, m, folder, joints, sites):
+    def __init__(self, m, folder, joints, sites, sections=None, coverage=None):
         self.m, self.folder = m, Path(folder)
         self.folder.mkdir(parents=True, exist_ok=True)
         self.joints = []
@@ -25,12 +25,17 @@ class Recorder:
                 raise ValueError('Robot recorder supports hinge/slide only: '+name)
             self.joints.append((name, j.id, int(m.jnt_qposadr[j.id]), int(m.jnt_dofadr[j.id]), kind))
         self.sites = [(name, m.site(name).id) for name in sites]
+        self.sections = [(s, m.site(s['site']).id, m.sensor(s['force_sensor']).id,
+                          m.sensor(s['torque_sensor']).id) for s in (sections or [])]
         self.files = []
         def table(name, cols):
             f = (self.folder/(name+'.csv')).open('w', newline='', encoding='utf-8-sig'); self.files.append(f)
             w = csv.writer(f); w.writerow(cols); return w
         lead = ['time_s', 'cycle', 'phase']
         self.jw = table('joints', lead+['joint', 'type', 'position', 'velocity', 'acceleration', 'effort', 'bias', 'passive', 'constraint', 'applied', 'power_W', 'limit_margin'])
+        self.lw = table('joint_loads', lead+['joint', 'joint_type', 'site']+
+                        [f'force_{a}_N' for a in 'xyz']+[f'torque_{a}_Nm' for a in 'xyz']+
+                        [f'point_world_{a}_m' for a in 'xyz']+[f'rotation_world_{i}' for i in range(9)])
         self.tw = table('end_effectors', lead+['site']+[f'p_{a}_m' for a in 'xyz']+[f'quat_{a}' for a in 'wxyz']+[f'v_{a}_m_s' for a in 'xyz']+[f'a_{a}_m_s2' for a in 'xyz']+[f'omega_{a}_rad_s' for a in 'xyz']+[f'alpha_{a}_rad_s2' for a in 'xyz'])
         self.aw = table('actuators', lead+['actuator', 'ctrl', 'force', 'length', 'velocity', 'ctrl_at_limit'])
         self.cw = table('contacts', lead+['geom1', 'geom2', 'distance_m']+[f'p_{a}_m' for a in 'xyz']+['normal_force_N', 'tangent1_N', 'tangent2_N', 'moment_normal_Nm', 'moment_tangent1_Nm', 'moment_tangent2_Nm']+[f'frame_{i}' for i in range(9)])
@@ -42,13 +47,28 @@ class Recorder:
             sites=sites, frame='world', quaternion='wxyz', sample='instantaneous state at time_s after control + mj_forward, before mj_step',
             acceleration='Jacobian*qacc + Jacobian_time_derivative*qvel; world-coordinate kinematic acceleration, gravity not added',
             contact_frame='3x3 row-major axes in world; wrench from mj_contactForce in this contact frame',
-            sensors=[dict(name=m.sensor(i).name, type=int(m.sensor_type[i]), dim=int(m.sensor_dim[i])) for i in range(m.nsensor)]))
+            sensors=[dict(name=m.sensor(i).name, type=int(m.sensor_type[i]), dim=int(m.sensor_dim[i])) for i in range(m.nsensor)],
+            actuators=[dict(name=m.actuator(i).name or str(i), transmission_type=int(m.actuator_trntype[i]),
+                            transmission_ids=m.actuator_trnid[i].tolist(), gear=m.actuator_gear[i].tolist(),
+                            ctrl_limited=bool(m.actuator_ctrllimited[i]), ctrl_range=m.actuator_ctrlrange[i].tolist(),
+                            force_limited=bool(m.actuator_forcelimited[i]), force_range=m.actuator_forcerange[i].tolist()) for i in range(m.nu)],
+            load_coverage=coverage or {'status':'unverified_legacy_joint_scope'},
+            load_sections=sections or [],
+            load_section_semantics=dict(frame='instantaneous site frame', reference='site origin',
+                sign='MuJoCo force/torque: child towards parent', units=['N','N m'],
+                rotation='rotation_world is row-major R_world_site; world_vector=R_world_site @ site_vector',
+                scope='body-tree interface wrench, not bearing load sharing or actuator generalized effort')))
 
     def sample(self, d, cycle, phase):
         m = self.m; lead = [float(d.time), cycle, phase]
         for name, jid, q, v, kind in self.joints:
             margin = min(d.qpos[q]-m.jnt_range[jid, 0], m.jnt_range[jid, 1]-d.qpos[q]) if m.jnt_limited[jid] else ''
             self.jw.writerow(lead+[name, 'hinge' if kind==3 else 'slide', d.qpos[q], d.qvel[v], d.qacc[v], d.qfrc_actuator[v], d.qfrc_bias[v], d.qfrc_passive[v], d.qfrc_constraint[v], d.qfrc_applied[v], d.qfrc_actuator[v]*d.qvel[v], margin])
+        for section, sid, force, torque in self.sections:
+            fa, ta = int(m.sensor_adr[force]), int(m.sensor_adr[torque])
+            self.lw.writerow(lead+[section['joint'], section['joint_type'], section['site'],
+                                  *d.sensordata[fa:fa+3], *d.sensordata[ta:ta+3],
+                                  *d.site_xpos[sid], *d.site_xmat[sid]])
         for name, sid in self.sites:
             mj.mj_jacSite(m, d, self.jp, self.jr, sid)
             mj.mj_jacDot(m, d, self.dp, self.dr, d.site_xpos[sid], int(m.site_bodyid[sid]))

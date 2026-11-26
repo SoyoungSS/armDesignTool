@@ -17,6 +17,8 @@ import uuid
 from contracts import validate
 from runtime import mj, np, dump, Recorder
 from collision_checks import TaskCollisionChecks
+from recording_contract import resolve as resolve_recording
+from goal_checks import check as check_goals
 
 
 class Session:
@@ -50,6 +52,9 @@ class Session:
             if f.is_file(): copied[f.relative_to(self.run).as_posix()] = hashlib.sha256(f.read_bytes()).hexdigest()
         dump(self.run/'reports/environment.json',dict(mujoco=mj.__version__,numpy=np.__version__,python=platform.python_version(),system=platform.platform(),mode=self.c['mode']))
         self.m = mj.MjModel.from_xml_path(str(self.project/self.c['scene']))
+        joints, sections, coverage = resolve_recording(self.m, self.c, inspection)
+        self.c['robot_joints'] = joints
+        dump(self.run/'reports/load_coverage.json', coverage)
         limits_path = self.run/'input/assets/joint_limits.json'
         limits = json.loads(limits_path.read_text(encoding='utf-8')) if limits_path.is_file() else {'joints':{}}
         for name in self.c['robot_joints']:
@@ -74,7 +79,11 @@ class Session:
         spec = importlib.util.spec_from_file_location('task_adapter',self.project/self.c['adapter'])
         module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
         self.controller = module.create(self.m,self.d,self.c,self.run)
-        self.rec = Recorder(self.m,self.run/'data',self.c['robot_joints'],self.c['end_effector_sites'])
+        goal_validation = check_goals(self.controller, self.m, self.d, self.c.get('require_goal_tests', False))
+        dump(self.run/'reports/goal_validation.json', goal_validation)
+        if goal_validation['status'] == 'failed':
+            raise ValueError('Goal predicate controls failed; see reports/goal_validation.json')
+        self.rec = Recorder(self.m,self.run/'data',self.c['robot_joints'],self.c['end_effector_sites'],sections,coverage)
         self.events = (self.run/'data/events.jsonl').open('w',encoding='utf-8')
         self.last_phase = None; self.done = False; self.reason = 'running'; self.finalized = False
         self.export_queued = False

@@ -1,16 +1,16 @@
 ---
 name: arm-sim-model-generator
 description: >-
-  从机械臂参数生成连杆视觉/碰撞网格、预览、URDF、ROS1 RViz包、MuJoCo MJCF或Isaac Sim USD，并分别报告验证状态。用于固定基座单串联刚体链的概念建模与模型交付；不处理闭链、柔性或任务场景仿真。
+  从机械臂参数生成连杆视觉/碰撞网格、预览、URDF、ROS1 RViz包、MuJoCo MJCF或Isaac Sim USD，并分别报告验证状态。用于固定基座单串联刚体链的参数建模、仿真模型交付与全关节载荷测点准备；不处理闭链、柔性或任务控制。
 metadata:
-  version: "1.2.0"
+  version: "1.3.0"
 ---
 
 # 机械臂仿真模型生成
 
 ## Purpose
 
-使用随附生成器交付可追溯的模型和逐目标验证结果，不把文件生成等同于工程验收。
+使用随附生成器交付可追溯的模型和逐目标验证结果，为通用任务仿真准备完整关节与载荷接口；不把文件生成等同于工程验收。
 
 ## When to use
 
@@ -52,20 +52,20 @@ python scripts/generate.py validate --output "OUTPUT"
 
 ### Step 4 分项判读并修复
 
-读实际run的report/manifest.json与validation.json，按目标分别检查generated、static_checks、装配、碰撞、runtime_validation；详细字段和失败处理见[验收判读](references/operation-guide.md#4-按证据判断不合并不同验收范围)。pending、needs_review、not_evaluated、缺失字段均不能写成通过。
+读实际run的report/manifest.json、validation.json与load_handoff.json，按目标分别检查generated、static_checks、装配、碰撞、runtime_validation；载荷分析还按[全关节测点交接](references/load-handoff.md)核对活动/fixed连接、惯量、驱动与传感器；详细字段和失败处理见[验收判读](references/operation-guide.md#4-按证据判断不合并不同验收范围)。pending、needs_review、not_evaluated、缺失字段均不能写成通过。
 
 退出0只表示流程完成。不能通过删除碰撞体、扩大排除、放宽容差或缩小验收范围掩盖失败；有依据的修复后重新生成，读取新run。缺修复依据时保留诊断并说明缺项。
 
 ### Step 5 交付
 
-交付同一次run。模型资源整体搬移，逐目标说明已生成、通过、失败及待验证范围。目标环境验收时再读[验证方法](references/validation.md)。
+交付同一次run。模型资源整体搬移，逐目标说明已生成、通过、失败及待验证范围。MJCF逐原始关节生成force/torque传感器和load_handoff，含fixed连接；其余格式不宣称具备MuJoCo传感器。不要将任何分拣工具或场景烘入机械臂本体。目标环境验收时再读[验证方法](references/validation.md)。
 
 ## Output format
 
 1. 输入与环境：请求、来源、估算、解释器/依赖、命令与退出码。
 2. 产物：run_directory、真实模型入口、资源包和preview.png；预览图不是仿真运行截图。
 3. 验证表：每目标生成、静态、装配、碰撞、运行状态及原因。
-4. 报告：同run的input_snapshot、normalized_model、manifest、validation和report.md；链接实际存在文件，保留范围与待办。
+4. 报告：同run的input_snapshot、normalized_model、manifest、validation、load_handoff和report.md；链接实际存在文件，保留范围与待办。
 
 ## Rules
 

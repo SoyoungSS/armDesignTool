@@ -65,10 +65,14 @@ def validate(c, project=None):
     if c.get('mode') not in ['web', 'native', 'headless']: errors.append('Choose mode with user')
     if type(c.get('cycles')) is not int or c['cycles'] < 1: errors.append('Confirm positive integer cycles')
     if type(c.get('seed')) is not int: errors.append('Record an explicit integer seed')
+    if 'require_goal_tests' in c and type(c['require_goal_tests']) is not bool:
+        errors.append('require_goal_tests must be boolean')
     for key in ['dt_s', 'max_time_s']:
         if not isinstance(c.get(key), (int, float)) or isinstance(c.get(key), bool) or not math.isfinite(c[key]) or c[key] <= 0:
             errors.append('Positive '+key+' required')
     for key in ['robot_joints', 'end_effector_sites', 'success_criteria']:
+        if key == 'robot_joints' and c.get(key) == 'all': continue
+        if key == 'end_effector_sites' and c.get(key) == []: continue
         if not c.get(key) or not isinstance(c[key], list) or not all(isinstance(x, str) and x.strip() for x in c[key]):
             errors.append('Nonempty string list required: '+key)
     for key in ['robot_joints', 'end_effector_sites']:

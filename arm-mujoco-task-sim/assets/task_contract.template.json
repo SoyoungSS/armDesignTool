@@ -9,7 +9,7 @@
   "adapter": "code/task.py",
   "asset_manifest": "assets/manifest.json",
   "strategy_file": "plan/strategy.json",
-  "robot_joints": [],
+  "robot_joints": "all",
   "end_effector_sites": [],
   "initial_keyframe": null,
   "initial_conditions": null,
@@ -27,5 +27,15 @@
   "max_time_s": null,
   "output_root": "runs",
   "unresolved": [],
-  "confirmation": {"mode": false, "cycles": false, "task": false, "assets_physics": false, "strategy": false, "timing": false, "outputs": false, "evidence": null}
+  "confirmation": {
+    "mode": false,
+    "cycles": false,
+    "task": false,
+    "assets_physics": false,
+    "strategy": false,
+    "timing": false,
+    "outputs": false,
+    "evidence": null
+  },
+  "require_goal_tests": false
 }

@@ -254,6 +254,10 @@ def run_checks(n,run,targets,runtime=False):
                 tree=ET.parse(run/'mujoco'/'robot.xml')
                 for mesh in tree.findall('.//mesh'): read_stl(run/'mujoco'/'meshes'/mesh.get('file'))
                 checks[target]={'xml_and_resources':'passed'}
+                from .load_handoff import check_xml
+                # Older runs without a handoff remain valid legacy models.
+                if tree.find('.//site[@name="load_site_'+n['model']['joints'][0]['name']+'"]') is not None or (run/'report/load_handoff.json').exists():
+                    checks[target]['load_sections'] = check_xml(n, tree)
                 if 'parts' in checks['collision_review']:
                     checks[target]['collision_geom_checks'] = check_mjcf_collision_geoms(tree,checks['collision_review']['parts'])
                 if runtime:

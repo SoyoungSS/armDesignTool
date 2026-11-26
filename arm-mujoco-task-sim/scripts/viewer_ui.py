@@ -11,7 +11,7 @@ def viewer_plugins(contract, idle_seconds):
     class TaskPlots(plugin.ViewerPlugin):
         def __init__(self):
             self.joints = contract.get("live_plot_joints", contract["robot_joints"][:2])
-            self.site = contract["end_effector_sites"][0]
+            self.site = next(iter(contract["end_effector_sites"]), None)
             self.series = ()
             self.samples = deque(maxlen=400)
             self.next_sample = 0.
@@ -25,7 +25,7 @@ def viewer_plugins(contract, idle_seconds):
             self.cycle = None
             self.run_name = session.run.name
             self.joint_ids = [session.m.joint(name).dofadr[0] for name in self.joints]
-            self.site_id = session.m.site(self.site).id
+            self.site_id = session.m.site(self.site).id if self.site else None
 
         def sample(self, data, cycle):
             if cycle != self.cycle:
@@ -35,8 +35,8 @@ def viewer_plugins(contract, idle_seconds):
             if data.time + 1e-10 < self.next_sample:
                 return
             self.next_sample = data.time + .05
-            self.samples.append((float(data.time), *data.qfrc_actuator[self.joint_ids].tolist(),
-                                 *data.site_xpos[self.site_id].tolist()))
+            tcp = data.site_xpos[self.site_id].tolist() if self.site_id is not None else []
+            self.samples.append((float(data.time), *data.qfrc_actuator[self.joint_ids].tolist(), *tcp))
             self.series = tuple(zip(*self.samples))
 
         @messages.handler
@@ -55,8 +55,9 @@ def viewer_plugins(contract, idle_seconds):
                     return
                 groups = [
                     ("Joint effort", "N m / N", self.joints, series[1:1+len(self.joints)]),
-                    ("TCP position", "m", ("X", "Y", "Z"), series[-3:]),
                 ]
+                if self.site_id is not None:
+                    groups.append(("TCP position", "m", ("X", "Y", "Z"), series[-3:]))
                 for title, units, labels, signals in groups:
                     if implot.BeginPlot(title, imgui.Vec2(-1, 136)):
                         implot.SetupAxes("Simulation time (s)", units,

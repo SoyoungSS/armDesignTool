@@ -15,6 +15,7 @@ project/
   runs/<UTC时间-唯一id>/
     input/                       合同、场景、资产、规划和代码快照、hash
     data/joints.csv              关节状态和广义载荷（长表）
+    data/joint_loads.csv         全部可用关节/fixed接口的六维载荷、参考点和方向
     data/end_effectors.csv       TCP 状态（长表）
     data/actuators.csv           控制量和执行器空间量
     data/contacts.csv            每个接触点的接触量与坐标轴
@@ -25,6 +26,12 @@ project/
     data/observations/           任务需要的相机/感知/目标与误差证据
     figures/*.{png,svg}          各关节及各 TCP 的独立时序曲线图
     reports/statistics.csv       整程/逐轮极值、绝对峰值、时间加权 RMS
+    reports/load_coverage.json   上游机械臂关节与实际记录/接口测点覆盖
+    reports/goal_validation.json 成功判据正负例自检或not_provided
+    reports/load_statistics.csv  全程/轮次/阶段的载荷统计
+    reports/load_spectrum.csv    带符号载荷水平—时间驻留谱
+    reports/effort_speed_spectrum.csv 关节力矩/力—速度联合驻留谱
+    reports/load_spectrum.json   本次谱状态、分箱、哈希、范围及任务结果
     reports/limit_exceedances.csv 越限区间、峰值、样本数及限值来源
     reports/result.json          完成状态、实际轮数、逐轮判据、失败原因
     reports/environment.json     实际运行版本和模式
@@ -46,7 +53,7 @@ project/
 
 需要结构切面、轴承六维载荷时，在确认的截面布置 force/torque sensors 或使用核实过的 RNE 空间载荷，明确作用体、符号、参考点和坐标变换；当前通用工具不会把 qfrc_constraint 自动当成六维反力。xfrc_applied 非零时简单广义平衡检查置空，须先转换外力再作残差校验。
 
-**寿命输入**：保留完整带符号循环、停留、起停、冲击和异常记录，另输出逐轮峰值/RMS、速度、功率和统计。载荷谱/雨流计数、疲劳损伤、电机轴换算根据用户需要另计算，需确认任务占空比、减速比/效率、材料 S-N 等参数；不能将有限几轮成功直接称为寿命通过。
+**载荷谱与寿命输入**：保留完整带符号循环、停留、起停、冲击和异常记录，自动导出时间驻留谱与力矩/力—速度联合谱；定义、全关节覆盖、六维参考点和命令见[载荷谱约定](load-spectrum.md)。雨流计数、疲劳损伤、电机轴换算另需相应算法及任务占空比、减速比/效率、材料 S-N 等参数；不能将时间谱当循环谱或将有限几轮成功称为寿命通过。
 
 ## 曲线图与限值
 

@@ -36,6 +36,8 @@ class Controller:
 
 默认规划实现应包含：目标位姿生成、受限 IK、碰撞检查、可行路径、速度/加速度约束下的时间参数化、跟踪与接触控制。规划文件记录算法、容差、采样/迭代预算及失败原因。“未找到可行解”与“数学上不可达”分开。
 
+这里的规划是任务适配器职责，当前没有随包通用RRT规划器；不能把碰撞检查通过说成已完成自动绕障搜索。可复用外部规划器时登记其版本、几何近似和预算，再交给本运行器复核。
+
 工具/环境/视觉规则可以由适配器更新 mocap 或显示状态，但不得以视觉对象位置替换应有的动态物理物体。外部接触/传感器记录可扩展到 `data/observations/`，在报告登记字段和坐标约定。
 
 ## 记录时序
@@ -43,3 +45,23 @@ class Controller:
 本框架每步顺序为 `mj_forward → control → mj_forward → sample → mj_step`。这样记录的 q、qd、qdd、扭矩、末端状态、接触量都对应同一个瞬时状态。`qdd` 是动力学求解加速度，不是两帧速度的差分。遇到隐式积分、滤波或接触非光滑，积分步后的速度差分不必与瞬时 qdd 完全相等。
 
 本框架不支持 RK4 子步回调控制、自定义积分或并行 GPU 物理；需要这些模式时适配并重新校验，不能用当前记录时序作未经验证的保证。CSV 每步一条/对象，渲染帧率不改变采样间隔。
+
+## 成功判据自检
+
+适配器可另外提供两个接口，运行器在真实执行前用独立 MjData 测试，报告 reports/goal_validation.json：
+
+```python
+def goal_success(self, model, data):
+    # 只读物理状态的瞬时目标判据，不读self中的完成历史，不复制done。
+    return bool(...)
+
+def goal_tests(self, model):
+    return [
+        {"name": "not_completed", "expected": False, "setup": setup_negative},
+        {"name": "completed", "expected": True, "setup": setup_positive},
+    ]
+```
+
+setup(model, data) 仅设置本测试的隔离 data；不能改共享 model 或真实任务状态。需要释放/稳定的控制自行在隔离 data 上建立并步进到相应物理状态。运行器恢复同一初始状态、应用setup后forward，再检查布尔输出。必须同时有正负例且名称唯一；测试失败阻止正式运行。require_goal_tests=true 时缺少接口也拒绝；未要求且无接口则明确not_provided。
+
+抓放应测试错误物体、悬空、区域外、未释放等失败状态；插装检查深度/对准/卡滞；擦拭检查覆盖/接触证据。不能将抓放的“必须释放”套到持续持工具任务。带历史的完整任务验收仍由evaluate负责；瞬时目标自检不证明全任务正确。

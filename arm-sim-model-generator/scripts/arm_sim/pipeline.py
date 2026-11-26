@@ -19,6 +19,10 @@ def report(n,manifest,checks,run):
         lines.append('优先检查 ' + ' / '.join(case['parts']) + '，姿态 ' + case['pose'] + '。')
     if (run/'preview.png').is_file():
         lines += ['', '[机械臂初始姿态预览](../preview.png)']
+    if manifest.get('load_handoff'):
+        lines += ['', '## 全关节载荷交接', '',
+                  '[load_handoff.json](load_handoff.json) 保存所有活动关节与fixed连接的命名、轴系、驱动和测点。',
+                  'MJCF在每个原始关节child原点输出force/torque传感器；接口wrench使用随动site系与MuJoCo子体朝父体约定。它不等于关节侧驱动力矩或具体轴承载荷，任务工况与载荷谱由下游实际仿真生成。']
     if n.get('appearance_design'):
         lines+=['','## 外形生成','',f"规则：{n['appearance_design']['policy']}。整链比例、肩肘腕模组空间约束、多截面连续外壳、圆肩端盖和分区材质；使用 NumPy 原生生成，没有 CAD 依赖。",'',
                 '外壳模板是概念设计推定；每个实体部件闭合，但同一连杆的壳体/端盖可局部相交，未执行 CAD 布尔融合。碰撞使用中央梁盒体与模组圆柱近似，圆滑过渡不等同于精确接触表面。实体重叠不重复计重。详细规则、尺寸与模板见 appearance_design.json 和下方逐连杆记录。','']
@@ -81,6 +85,10 @@ def generate(input_path,output,targets=None,runtime=False):
                 st.update(generated=True,status='generated',entry=str(path.relative_to(run)))
             except ImportError as e: st.update(status='pending',reason='optional runtime dependency unavailable: '+str(e))
             except Exception as e: st.update(status='failed',error=str(e))
+        from .load_handoff import build as build_load_handoff
+        handoff=build_load_handoff(n,manifest['targets'])
+        write_json(run/'report'/'load_handoff.json',handoff)
+        manifest['load_handoff']='report/load_handoff.json'
         checks=run_checks(n,run,manifest['targets'],runtime)
         manifest['status']='failed' if any(v['status']=='failed' for v in manifest['targets'].values()) else 'completed'
         manifest['model_grade']=n['model_grade']; manifest['runtime_versions_requested']=n['export'].get('runtime_versions',{})

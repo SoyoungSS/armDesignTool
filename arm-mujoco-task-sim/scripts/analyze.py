@@ -152,6 +152,8 @@ def analyze(run, png=None):
     figures, reports = run/"figures", run/"reports"
     figures.mkdir(exist_ok=True)
     reports.mkdir(exist_ok=True)
+    from load_spectrum import export as export_load_spectrum, SECTION_SIGNALS
+    export_load_spectrum(run)
     if png is None:
         import importlib.util
         png = importlib.util.find_spec("matplotlib") is not None
@@ -168,19 +170,24 @@ def analyze(run, png=None):
     kinds = {j["name"]: j["type"] for j in meta["joints"]}
     starts = segment_starts(run)
     stats, links, alerts = [], [], []
-    for table, identity, signals in (("joints","joint",JOINT_SIGNALS),
-                                      ("end_effectors","site",TCP_SIGNALS)):
+    tables = [("joints","joint",JOINT_SIGNALS), ("end_effectors","site",TCP_SIGNALS)]
+    if meta.get('load_sections'):
+        tables.append(("joint_loads", "joint", list(SECTION_SIGNALS)))
+    for table, identity, signals in tables:
         for name, values in sorted(samples(run/"data"/(table+".csv"), identity, signals).items()):
             cycle, t, *series = map(np.asarray, values)
             cuts = np.unique(np.searchsorted(t, starts))
             cuts = cuts[(cuts > 0) & (cuts < len(t))]
             hinge = kinds.get(name)=="hinge"
             for signal, y in zip(signals, series):
-                unit = ({"position":"rad" if hinge else "m","velocity":"rad/s" if hinge else "m/s",
+                if table == 'joint_loads':
+                    unit = SECTION_SIGNALS[signal]
+                elif table == 'joints':
+                    unit = {"position":"rad" if hinge else "m","velocity":"rad/s" if hinge else "m/s",
                          "acceleration":"rad/s^2" if hinge else "m/s^2","effort":"N m" if hinge else "N",
-                         "power_W":"W"}[signal] if table=="joints" else
-                        {"p":"m","v":"m/s","a":"m/s^2","omega":"rad/s","alpha":"rad/s^2","quat":"unitless"}
-                        [signal.split("_")[0]])
+                         "power_W":"W"}[signal]
+                else:
+                    unit = {"p":"m","v":"m/s","a":"m/s^2","omega":"rad/s","alpha":"rad/s^2","quat":"unitless"}[signal.split("_")[0]]
                 label = f"{name} | {signal}"
                 stem = f"{len(links):03d}-"+re.sub(r"[^A-Za-z0-9_-]", "_", name+"_"+signal)
                 spec = limits.get(name, {}).get(signal) if table=="joints" else None
@@ -218,6 +225,9 @@ def analyze(run, png=None):
             f'<p>碰撞规则验收 · {escape(result.get("collision", {}).get("status", "not_evaluated"))}　'
             f'已检查轨迹段 · {result.get("collision_path", {}).get("segments_checked", result.get("collision", {}).get("path_segments", 0))}</p>'
             '<p><a href="result.json">逐轮结果</a> · <a href="statistics.csv">峰值与 RMS</a> · '
+            '<a href="load_spectrum.json">载荷谱范围与来源</a> · <a href="load_spectrum.csv">全关节载荷谱</a> · '
+            '<a href="effort_speed_spectrum.csv">力矩/力—速度联合谱</a> · '
+            '<a href="../data/joint_loads.csv">接口六维载荷时序</a> · '
             '<a href="limit_exceedances.csv">越限明细</a> · <a href="../data/joints.csv">关节 CSV</a> · '
             '<a href="../data/end_effectors.csv">末端 CSV</a></p>'
             '<p>橙色虚线表示已知限值，红色表示越限区间和峰值。灰色虚线为复位边界。</p>')

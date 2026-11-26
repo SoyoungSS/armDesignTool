@@ -7,8 +7,8 @@
 - **`arm-statics-parametric`**：保持载荷、关节范围内大载荷姿态搜索及静态驱动需求，支持任意基座安装朝向和重力分量。
 - **`arm-workspace-parametric`**：关节采样点云、目标位置/姿态 IK、空间与采样灵巧空间分类、几何不可达与待定点分析。
 - **`arm-kinematics-dynamics`**：关节轨迹生成/导入、TCP 状态、运动约束、奇异性与刚体逆动力学载荷。
-- **`arm-sim-model-generator`**：生成机械臂网格、初始姿态 PNG、URDF 和 MJCF，按目标导出其他格式。
-- **`arm-mujoco-task-sim`**：两种默认示例分别完成三轮红左蓝右桌面分拣，保留接触、轨迹与落盘证据。
+- **`arm-sim-model-generator`**：生成机械臂网格、初始姿态 PNG、URDF 和 MJCF，按目标导出其他格式；MJCF包含逐关节六维接口传感器，并提供load_handoff交接表。
+- **`arm-mujoco-task-sim`**：面向自由运动、保持、抓放、擦拭、推压、插装等通用工况，导出全关节驱动力矩/力、六维接口载荷与时间驻留谱；双模型桌面分拣仅为端到端示例。[载荷谱说明](arm-mujoco-task-sim/references/load-spectrum.md)。
 
 五个计算/仿真 Skill 均内置选型表七轴单臂和 Franka FR3 的可运行示例。三个分析 Skill 均可通过 CLI 独立运行；网页后端启动真实 CLI，返回计算结果、输入哈希和执行来源。计算不依赖大模型在线推理，也不需要 CUDA。构型选择 Skill 位于参数计算之前；概念初选结果不能直接当作计算或模型生成请求。
 
