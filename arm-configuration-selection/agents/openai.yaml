@@ -1,0 +1,4 @@
+interface:
+  display_name: "机械臂构型选择"
+  short_description: "依据统一知识库，按任务筛选机构、轴系、驱动与部署，给出取舍和验证条件"
+  default_prompt: "使用 $arm-configuration-selection，依据我的任务场景比较机械臂构型，给出候选组合、选择依据和待验证项。"

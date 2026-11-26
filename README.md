@@ -1,6 +1,8 @@
 # RobotArm DesignTool — 机械臂设计、静力学校核与工作空间分析工作台
 
-本工程将 **SRS Lab 网页工作台** 与五个独立 Skill 放在同一仓库中：
+本工程将 **SRS Lab 网页工作台**、五个计算/仿真 Skill 与一个构型选择 Skill 放在同一仓库中：
+
+- **`arm-configuration-selection`**：依据统一机械臂构型知识库，从任务场景筛选机构族、自由度、轴线、肘腕、驱动和部署组合，交付候选、证据与验证计划。入口见[构型选择技能](arm-configuration-selection/SKILL.md)，参考资料随包提供，不依赖原始挂载盘。
 
 - **`arm-statics-parametric`**：保持载荷、关节范围内大载荷姿态搜索及静态驱动需求，支持任意基座安装朝向和重力分量。
 - **`arm-workspace-parametric`**：关节采样点云、目标位置/姿态 IK、空间与采样灵巧空间分类、几何不可达与待定点分析。
@@ -8,7 +10,10 @@
 - **`arm-sim-model-generator`**：生成机械臂网格、初始姿态 PNG、URDF 和 MJCF，按目标导出其他格式。
 - **`arm-mujoco-task-sim`**：两种默认示例分别完成三轮红左蓝右桌面分拣，保留接触、轨迹与落盘证据。
 
-五个 Skill 均内置选型表七轴单臂和 Franka FR3 的可运行示例。三个分析 Skill 均可通过 CLI 独立运行；网页后端启动真实 CLI，返回计算结果、输入哈希和执行来源。计算不依赖大模型在线推理，也不需要 CUDA。
+五个计算/仿真 Skill 均内置选型表七轴单臂和 Franka FR3 的可运行示例。三个分析 Skill 均可通过 CLI 独立运行；网页后端启动真实 CLI，返回计算结果、输入哈希和执行来源。计算不依赖大模型在线推理，也不需要 CUDA。构型选择 Skill 位于参数计算之前；概念初选结果不能直接当作计算或模型生成请求。
+
+六个技能已统一为标准元数据、明确输入、分步执行、结果判读与能力降级入口。其他模型接入、纯文本使用和依赖迁移见[跨模型使用说明](docs/skill-portability.md)。
+构型选择技能的任务分解、候选组合和验证思路见[方案设计说明](docs/arm-configuration-selection-design.md)。
 
 ## 查看默认模型和桌面分拣
 

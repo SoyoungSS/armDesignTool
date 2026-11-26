@@ -1,47 +1,90 @@
 ---
 name: arm-workspace-parametric
-description: 参数化串联机械臂工作空间分析，支持 FK 点云、目标位姿 IK、按朝向成功率着色的灵巧空间体素图及可移动剖面。区分几何不可达和给定求解设置下未找到解。
+description: >-
+  分析参数化串联机械臂的FK采样点云、目标位置/姿态IK和离散朝向灵巧空间体素，输出成功解与可复现报告。用于工作范围和任务位姿覆盖分析；区分几何不可达与预算内未找到解，不检查碰撞或带载能力。
+metadata:
+  version: "1.2.0"
 ---
 
 # 机械臂可达工作空间分析
 
-先读 [输入与结果契约](references/input-contract.md)。参考来源和与GPU原项目的差异见 [Dexbot源码分析](references/dexbot-source-review.md)。
+## Purpose
 
-- 使用标准串联几何输入，不要求质量、质心或重力，也不把缺失CAD参数补成现有样例。
-- `joint_sampling` 计算限位内随机/网格姿态的末端点云；`pose_reachability` 检查指定点或球壳点及可选姿态。两者含义不同。
-- `dexterity_voxels` 在基座系规则体素中心测试共用的均匀随机朝向，按成功比例着色。FR3 全空间初扫可用 **10 cm、20 个朝向**。分析会测试全部计划位姿，网页可手动取消。若需更细分辨率，可用 `bounds_base_m` 限定任务区域。
-- 用关节名称映射姿态。关节轴在安装后的局部坐标系，长度m、角度rad。基座到世界变换单独给出，目标与结果基坐标几何均在B中。
-- IK失败表示声明预算内未找到解，不证明不可达。姿态成功率仅针对输入采样集合，不是连续姿态空间比例或体积。
-- 位置IK与姿态IK分开检查；位置有解而指定朝向无解仍计为空间可达。至少两个不同旋转全部找到解，才显示“采样灵巧空间”，单姿态或周期重复姿态不作为灵巧判据。
-- 只有超出三角不等式保守几何外界的目标才标为不可达；界内未解点为待定。FK采样无法判定未采样区域，不能据点云空洞声称不可达。
-- 保存成功解、误差、输入哈希和内核版本，重放前复核关节限位与模型一致性。
-- 不检查碰撞、自碰撞、负载扭矩、热或双臂协同；左右臂单独运行不等于双臂协同验证。
+用随附几何内核回答哪些位置/位姿找到解，保留模型、求解预算和结果边界。
 
-## 双默认示例
+## When to use
 
-在本工具目录使用 Node.js 20 或更高版本运行。选型表采用同一套七轴单臂的侧装模型，FR3 采用 Franka ROS 标称模型。两份请求均可单独运行。[选型表七轴单臂](assets/examples/defaults/worksheet.json) · [Franka FR3](assets/examples/defaults/fr3.json)
+需要点云、指定目标可达性或离散朝向覆盖时使用；质量、驱动和任务接触不是本技能的计算目标。
 
-```bash
-node scripts/run.mjs --input assets/examples/defaults/worksheet.json --output outputs/worksheet/result.json --report-dir outputs/worksheet
-node scripts/run.mjs --input assets/examples/defaults/fr3.json --output outputs/fr3/result.json --report-dir outputs/fr3
+## Inputs
+
+先读[输入与结果契约](references/input-contract.md)。需要串联几何、局部关节轴、有限限位、tip及所选模式设置。长度m、角度rad；目标在基座系B，base_in_world独立表示安装，不能重复写入首关节。不需要质量、COM或重力。
+
+| 用户问题 | mode | 需要的设置 |
+| --- | --- | --- |
+| 看限位内采到的末端位置 | joint_sampling | 随机/网格、数量及种子/固定轴 |
+| 检查目标点及可选朝向 | pose_reachability | 目标点/球壳、可选朝向、IK预算与容差 |
+| 按离散朝向成功率看体素 | dexterity_voxels | 分辨率、朝向数、任务区域与IK预算 |
+
+原生请求使用契约；内嵌公共模型请求先读[公共输入](references/design-model.md)。URDF串联路径转换按输入契约末节执行，不能直接把静力学请求交给本CLI。
+
+## Workflow
+
+### Step 1 确定问题与坐标
+
+从目标选择表中选一种模式，保留用户指定模式。目标坐标、轴系或单位不明时集中询问；没有真实几何时只整理输入，不能改用示例冒充。
+
+### Step 2 建立请求并核对预算
+
+按契约构造请求，关节名映射姿态，确认限位、tip、安装、采样范围和朝向集合。先核对点数/迭代预算；过大时说明影响并建议缩小区域或分批，不静默截断。只有用户选择默认演示时才使用FR3初扫10cm/20朝向。
+
+### Step 3 执行
+
+工作目录为本技能根目录。确认Node.js ≥20、同级shared存在。将REQUEST和RUN替换为实际请求和本次新目录，运行：
+
+```sh
+node scripts/run.mjs --input "REQUEST.json" --output "RUN/result.json" --report-dir "RUN"
 ```
 
-两例分别用种子 42 在七轴关节限位内抽取 30,000 组姿态，导出基座系及世界系法兰点云、三个方向的投影图和 CSV。选型表采用侧装基座，FR3 采用标准直立安装。
+记录退出码与stdout/stderr。非零退出时按错误path检查输入/预算/依赖，保留失败记录；旧结果不作为新请求结果。
 
-FR3 保留七个活动轴的标称质量、局部质心和惯性张量、基座安装及 0.107 m 法兰偏移，使用无手爪、空载配置。上游公用惯性表采用 Gaz 等人针对 Panda 的辨识结果。[Franka 固定版本惯性来源](https://github.com/frankarobotics/franka_ros/blob/ddd2fffd9de44b02ad15b4bbb2bfa2cec4d60d98/franka_description/robots/common/inertial.yaml) · [上游许可证](references/franka-fr3-LICENSE.txt)
+### Step 4 分类并核对证据
 
-CLI 导出结果 JSON、点云 CSV、Markdown 报告和 XY/XZ/YZ 投影 SVG。运行 `node --test scripts/tests/*.test.mjs` 可复核内核。
+读取本次summary、scope、warnings及成功解。位置IK与姿态IK分开；按关节名、限位和模型版本重放成功解。使用以下结论范围：
 
-三类空间及未解点的带注释演示见 `assets/examples/worksheet-classification.jsonc`。分类颜色、筛选、JSON/CSV字段与报告使用统一定义。
+| 证据/分类 | 可以说什么 |
+| --- | --- |
+| FK点云 | 已采到的位置可达；空洞不能证明不可达 |
+| spatial_reachable | 位置已有解；姿态覆盖不一定满足 |
+| sampled_dexterous / partially_dexterous | 至少两个不同旋转的采样朝向全部/部分找到解 |
+| unreachable | 超出保守几何外界，位置不可达 |
+| unresolved / 体素0% | 给定预算/测试中未找到解，不能称不可达 |
 
+### Step 5 交付
 
-## 公共参数模型与独立分发（P0/P1）
+给出模式、范围、分类和代表解；按下方结构保存结果。研究来源或原GPU项目差异时再读[源码分析](references/dexbot-source-review.md)。
 
-CLI 与 `analyze(input)` 另外接受 `schema_name: "arm-analysis-request"`、`schema_version: "1.0"` 的公共请求，design_model 内嵌参数模型，options 保留本 Skill 的分析设置。无需网页、CAD 或 URDF。完整示例为 `assets/examples/design-seven-axis.json`；读取 [公共输入说明](references/design-model.md) 后再构造这种请求。旧格式继续支持。
+## Output format
 
-独立执行仍使用本 Skill 的 `scripts/run.mjs --input ... --output ... --report-dir ...`。共享代码位于同包根的 `shared/`，单独分发时使用仓库 `shared/scripts/package-skill.mjs` 生成 bundle；保留 skill 与 shared 同级结构，不依赖网页源码或原始仓库路径。
+1. 输入与设置：模型、安装/目标坐标、模式、预算、种子、容差。
+2. 结果：成功与未解数量、适用分类/朝向成功比例、代表解及误差。
+3. 证据：命令、退出码、输入/模型哈希、result.json、points.csv、report.md、request.json和projection/section SVG实际路径。
+4. 限制与下一步：采样/求解边界、未知项和未执行检查。
 
+## Rules
 
-## 历史几何输入
+IK失败不证明不可达；离散姿态成功率不代表连续SO(3)覆盖率。重复旋转不能获得灵巧标签；采样体积不是真实空间体积。只支持固定基座串联几何，不检查碰撞、自碰撞、负载、热或双臂协同。主JSON原子替换不代表全部配套文件有目录事务。
 
-早期导入的 `assets/examples/franka-fr3.workspace.json` 保留原始用户几何、末端固定关节和旧软件限位，适用于重放该版本结果。其原文件指纹见 [历史来源](references/franka-fr3-source.json)。
+## Examples
+
+- “看FR3点云”：使用[双默认示例](references/operation-guide.md#双默认示例)，先选FR3，不额外启动体素全空间求解。
+- “目标IK失败，是否够不到”：区分unreachable与unresolved，报告预算；位置有解但朝向无解也要分别说明。
+
+## Resource loading and fallback
+
+需要 Node.js ≥20、文件读写及随包 `shared/`；不要求网页、URDF、联网或特定模型API。`agents/openai.yaml` 如存在仅用于界面。独立分发必须保留技能与 shared 同级，详见[操作细则](references/operation-guide.md)。
+
+- 能读文件并执行：按Workflow逐步运行，每步保留输入路径、输出路径、退出码和待处理项。
+- 能读文件但不能执行：核对请求，提供可运行命令和待验证项，明确“未执行”，不给计算结果。
+- 只有文本输入：由调用方提供本入口、相关契约和请求正文；缺资料时列出所缺字段，不猜字段、不假称读取文件。
+- 上下文较小：先完成输入核对，再读取当前模式的契约；记录关节ID、单位、坐标、请求路径和检查进度后继续，不一次载入所有示例。

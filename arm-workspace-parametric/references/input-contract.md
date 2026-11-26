@@ -95,7 +95,7 @@ JSON包括input_snapshot、normalized_input、input_sha256、model_sha256、join
 每点保留B/W位置。FK 保留 q。`pose_reachability` 保留每个成功姿态的 q、姿态编号及位置/姿态误差，`reachability` 为成功姿态数除以本点声明的姿态数。仅位置模式的分母为 1，几何不可达目标全部计失败。q 优先为成功姿态解，其次为独立位置解。体素模式的逐点输出见上节。
 summary的包围盒只统计已找到解点；全部失败时为null。`sampled_voxel_volume_m3`只表示已占据采样格子的体积，受分辨率与样本数影响，不能当作真实工作空间体积。
 
-核心输出不含实际耗时或随机运行 ID。未触发体素时限时，同版本、同输入、同环境的计算可复现。跨平台浮点运算允许微小容差。网页桥接的 `execution` 包含实际运行 ID、耗时、时间和原始文本哈希。
+核心输出不含实际耗时或随机运行 ID。完整批次完成时，同版本、同输入、同环境的计算可复现；当前体素模式不按time_budget_s截断，手动取消不代表完整结果。跨平台浮点运算允许微小容差。网页桥接的 `execution` 包含实际运行 ID、耗时、时间和原始文本哈希。
 
 CLI输出主JSON、points.csv、report.md、request.json，以及三个projection和三个section SVG。主JSON在配套文件完成后原子替换；配套文件不是目录事务。失败必须检查退出码，旧结果可能仍存在。
 

@@ -1,49 +1,91 @@
 ---
 name: arm-kinematics-dynamics
-description: 为参数化机械臂生成可复现的关节空间随机轨迹，并分析关节轨迹、TCP运动状态和任务相关奇异性。支持五次多项式轨迹、外部时间轨迹和刚体逆动力学载荷计算，无需URDF或网页。
+description: >-
+  为参数化串联机械臂生成或导入关节轨迹，分析TCP状态、运动约束、奇异性和可选刚体逆动力学载荷。用于轨迹状态与动态载荷分析、可复现随机关节轨迹生成；不替代碰撞、接触任务仿真、热或寿命验收。
+metadata:
+  version: "1.2.0"
 ---
 
-# 轨迹状态与奇异性分析
+# 轨迹状态、奇异性与动态载荷分析
 
-接受 `arm-motion-request` 1.0。启用 `dynamics.enabled=true` 后计算关节输出端动态载荷。输入字段、单位、坐标与限制见 [请求契约](references/input-contract.md)。公开示例仅有选型表七轴单臂和 Franka FR3，位于 assets/examples。运动限制是明确的演示假设，不是 FR3 厂家能力。
+## Purpose
 
-## 双默认示例
+使用随附轨迹与刚体动力学内核，输出可复现的时序及有范围的可行性结论。
 
-在本工具目录使用 Node.js 20 或更高版本运行。选型表采用同一套七轴单臂的侧装模型，FR3 采用 Franka ROS 标称模型。两份请求均可单独运行。[选型表七轴单臂](assets/examples/defaults/worksheet.json) · [Franka FR3](assets/examples/defaults/fr3.json)
+## When to use
 
-```bash
-node scripts/run.mjs --input assets/examples/defaults/worksheet.json --output outputs/worksheet/result.json --report-dir outputs/worksheet
-node scripts/run.mjs --input assets/examples/defaults/fr3.json --output outputs/fr3/result.json --report-dir outputs/fr3
+用户需要关节轨迹、TCP状态、奇异性或已知运动的动态载荷时使用。笛卡尔路径规划、碰撞规避和接触求解不属于本入口。
+
+## Inputs
+
+先读[请求契约](references/input-contract.md)中所选模式。请求为严格JSON，不将JSONC传入此CLI。公共design_model的字段见[模型契约](../shared/contracts/design-model.schema.json)，含完整结构的示例见[FR3请求](assets/examples/defaults/fr3.json)。SI单位；主动关节数组顺序必须明确，外部轨迹用joint_ids映射。
+
+| 任务 | 请求与关键数据 |
+| --- | --- |
+| 关键点生成 | arm-motion-request 1.0；design_model、waypoints、motion_limits、时长/采样间隔 |
+| 导入轨迹 | 同上；samples、时间和joint_ids，明确导数是否提供/允许估计 |
+| 随机生成一批关节轨迹 | arm-random-motion-request 1.0；template与settings，生成后逐条分析 |
+| 动态载荷 | motion请求加dynamics.enabled=true；质量、COM、惯量、重力、完整q/dq/ddq及正质量负载惯量 |
+
+仅运动学不要求惯量。缺动力学参数时说明影响，可在用户要求运动学时完成该部分，不能擅自填演示球惯量。
+
+## Workflow
+
+### Step 1 选择模式与分析范围
+
+确认生成、导入或随机批次；确认是否计算动态载荷。保留模型、单位、坐标、关节ID和TCP定义。缺关键输入时集中列出，不默认使用FR3、3kg或演示运动限制。
+
+### Step 2 建立请求
+
+按契约检查限位、时间、导数和运动限制。生成模式的strict只诊断时长不足，stretch会延长时长，保留用户选择。外部轨迹不自动补导数，仅derivatives=estimate才估计并记录噪声风险。动态输入再读[动态载荷](references/operation-guide.md#动态载荷)。
+
+### Step 3 执行
+
+工作目录为本技能根目录；确认Node.js ≥20及同级shared。将REQUEST和RUN替换为本次实际路径，RUN为新输出目录。
+
+```sh
+node scripts/run.mjs --input "REQUEST.json" --output "RUN/result.json" --report-dir "RUN"
 ```
 
-两例均生成 5 s 的往返轨迹，包含 1 s 保持段，标称采样间隔 0.02 s。结果包括法兰运动、奇异性、关节动态力矩、峰值与 RMS。选型表按半径 0.04 m 的均匀实心球近似部件惯量，3 kg 负载的球半径为 0.05 m。FR3 采用参考文件给出的逐轴速度限值和演示用 2 rad/s² 加速度上限。
+随机生成请求**不传--report-dir**，命令如下（GENERATION替换为批次请求）：
 
-FR3 保留七个活动轴的标称质量、局部质心和惯性张量、基座安装及 0.107 m 法兰偏移，使用无手爪、空载配置。上游公用惯性表采用 Gaz 等人针对 Panda 的辨识结果。[Franka 固定版本惯性来源](https://github.com/frankarobotics/franka_ros/blob/ddd2fffd9de44b02ad15b4bbb2bfa2cec4d60d98/franka_description/robots/common/inertial.yaml) · [上游许可证](references/franka-fr3-LICENSE.txt)
+```sh
+node scripts/run.mjs --input "GENERATION.json" --output "RUN/batch.json"
+```
 
-`analyze(input)` 位于 scripts/lib/analyze.mjs。独立分发用仓库 shared/scripts/package-skill.mjs，保持 Skill 与 shared 同级，不依赖网页。JSON 请求内嵌参数模型。仅做运动学时可省略质量与惯量。
+取trajectories条目内的request分别保存，再以上述分析命令计算。记录退出码和stdout/stderr；失败按path修复，不使用旧结果冒充本次结果。
 
-同一 CLI 接受 `arm-random-motion-request` 1.0。使用 `--input` 和 `--output` 获取一批可复现的轨迹，每条的 `request` 可提交给原分析入口。程序入口为 `scripts/lib/random-trajectory.mjs` 的 `generateRandomTrajectories(input)`。字段见 [请求契约](references/input-contract.md)。
+### Step 4 判读约束和奇异性
 
-## 结果解释
+读取summary、scope、warnings、events。trajectory_feasible=false表示已有约束违规；true仅表示生成轨迹的声明运动约束解析检查通过；null表示证据不足。CLI成功不等于轨迹可行或任务完成。
 
-- waypoints：按关节 ID 的模型顺序给出数组；每个关键点停车，q/dq/ddq 用解析五次多项式生成。strict 时长不满足限制时仍输出诊断但 trajectory_feasible=false；stretch 延长时长并重新计算。位置关键点超限直接拒绝。
-- samples：joint_ids 显式映射外部数组，时刻严格递增；不自动推导缺失速度/加速度。derivatives=estimate 才使用三点非均匀时间局部多项式估计，噪声风险需保留。
-- 奇异性按 position 或 pose 的雅可比分析。平移行按 characteristic_length_m 缩放，移动关节列按同一长度缩放。数值秩、最小奇异值、条件数和阈值随结果保存；阈值不是普适安全标准。
-- task_underactuated 是任务维度大于关节数，与姿态秩下降区分。几何奇异风险不等于关节轨迹必然不可执行；没有目标末端运动时不判断任务方向跟踪。
-- 生成轨迹按解析段极值检查速度/加速度及可选跃度，近限位/奇异性仍仅为采样观察。导入轨迹约束只检查样本，不能认证点间安全。
-- 若缺导数或限制，约束状态为 incomplete 或 samples_passed，不擅自判全程通过。
+奇异性按position/pose任务及声明尺度和阈值解释；task_underactuated与秩下降不同。样本近奇异不代表轨迹必然不可执行；没有期望末端运动不能宣称跟踪成功。外部轨迹即使样本通过也不认证点间安全。
 
-输出主 JSON、trajectory.csv、report.md、request.json，保留输入/模型哈希和假设。CLI执行成功不等于轨迹可行。失败返回非零退出码和结构化错误，主结果在成功完成后原子替换；失败时不要读取旧输出冒充新结果。
+### Step 5 交付与动态统计
 
-FK、雅可比复用 shared/kinematics/serial.mjs；不复制现有工作空间 IK。首版只处理关节路径，不调用笛卡尔路径 IK，动力学支持刚体逆动力学，热、碰撞、柔性和自动绕奇异功能留待后续。
+动态载荷报告峰值、时间加权RMS、输出端机械功率和接口载荷；需要峰值收敛判断时减小采样间隔比较，不将未比较写成收敛。具体坐标/算法和结果解释见[操作细则](references/operation-guide.md)。
 
+## Output format
 
-## 动态载荷
+1. 输入与假设：模型、轨迹模式、关节映射、TCP、限制/惯量来源及估计项。
+2. 结果：运动约束状态、TCP与奇异区间；启用动力学才输出动态峰值/RMS。
+3. 证据：命令、退出码、哈希及result.json；分析模式的trajectory.csv、report.md、request.json，动力学实际启用时的dynamic-loads.csv。随机批次仅列实际生成文件。
+4. 限制与后续：已检查范围、未知项、未执行验证。
 
-在请求中设置 `dynamics.enabled=true`。所有运动部件需要显式质量、质心和绕质心惯性张量，惯量表达在所属关节运动后坐标系中。模型需要显式重力。正质量末端负载还需 `dynamics.payload_inertia_kg_m2`，采用物理 tip 坐标轴、绕负载质心。质量为零的部件可省略惯量，`components: []` 声明无质量刚体。缺失参数返回输入错误。
+## Rules
 
-`assets/examples/worksheet-dynamics.json` 是选型表动力学演示。部件惯量按半径 0.04 m 均匀实心球估算，3 kg 负载按半径 0.05 m 估算。假设记录在 provenance 中，使用真实设计数据时替换这些惯量。当前双默认示例使用选型表侧装版本及 FR3 标称刚体模型。
+不复制另一套FK/动力学公式，由随包内核计算。不做笛卡尔路径IK、碰撞、柔性、热或接触求解。动力学外载荷作用点是物理tip，TCP偏移仅改变观察点。模型支持范围、惯量系和载荷符号以契约为准。主JSON原子替换，失败后仍需防止配套旧文件混用。
 
-`scripts/lib/dynamics.mjs` 采用基座坐标表达的递归 Newton–Euler 法，支持旋转、移动、固定关节及多个刚体部件，输出动态力矩/推力和接口载荷。`dynamic-loads.csv` 随 `--report-dir` 导出。功率为关节输出端机械功率。RMS 根据非均匀采样时间，对力矩/推力平方进行梯形积分后计算。峰值与 RMS 需要通过减小采样间隔检查收敛。
+## Examples
 
-当前计算包含刚体惯性、重力和可选的恒定世界系末端外力/力矩。传动损失、摩擦、电机转子惯量、柔性和接触求解需后续补充。载荷时序供后续工况占比、循环次数和载荷谱统计使用。
+- “比较选型表臂与FR3往返轨迹”：读[双默认示例](references/operation-guide.md#双默认示例)，演示速度/加速度不是厂家能力。
+- “只有位置采样，直接算动力矩”：先补齐导数或取得估计依据及惯量等参数；不能把缺失值填0。
+
+## Resource loading and fallback
+
+需要 Node.js ≥20、文件读写及随包 `shared/`；不要求网页、URDF、联网或特定模型API。`agents/openai.yaml` 如存在仅用于界面。独立分发必须保留技能与 shared 同级，详见[操作细则](references/operation-guide.md)。
+
+- 能读文件并执行：按Workflow逐步运行，每步保留输入路径、输出路径、退出码和待处理项。
+- 能读文件但不能执行：核对请求，提供可运行命令和待验证项，明确“未执行”，不给计算结果。
+- 只有文本输入：由调用方提供本入口、相关契约和请求正文；缺资料时列出所缺字段，不猜字段、不假称读取文件。
+- 上下文较小：先完成输入核对，再读取当前模式的契约；记录关节ID、单位、坐标、请求路径和检查进度后继续，不一次载入所有示例。

@@ -1,61 +1,85 @@
 ---
 name: arm-sim-model-generator
-description: 根据机械臂运动学与初步设计参数自动生成逐连杆视觉/碰撞 Mesh、机械臂预览 PNG、独立 URDF、ROS1 RViz 描述包、MuJoCo MJCF 和 Isaac Sim USD。支持固定基座单条串联 revolute/prismatic/fixed 刚体链及静力学/工作空间输入适配；用于概念建模与仿真模型交付，不处理闭链、柔性或网页可视化。
+description: >-
+  从机械臂参数生成连杆视觉/碰撞网格、预览、URDF、ROS1 RViz包、MuJoCo MJCF或Isaac Sim USD，并分别报告验证状态。用于固定基座单串联刚体链的概念建模与模型交付；不处理闭链、柔性或任务场景仿真。
+metadata:
+  version: "1.2.0"
 ---
 
 # 机械臂仿真模型生成
 
-## 离线依赖速查
+## Purpose
 
-缺少 Python 或包时，先查同一仓库的 `arm-mujoco-task-sim/assets/`。本机共享目录为 `D:\Users\78165\Desktop\Arm_Statics\armDesignTool\arm-mujoco-task-sim`。复制到其他机器后按相对路径使用。[离线安装命令、文件校验和系统依赖](../arm-mujoco-task-sim/references/offline-dependencies.md)
+使用随附生成器交付可追溯的模型和逐目标验证结果，不把文件生成等同于工程验收。
 
-| 需要的功能或缺少的包 | 随附版本 | 共享安装包位置（相对 `arm-mujoco-task-sim/assets/`） |
-|---|---|---|
-| Windows x64 / Ubuntu 20.04、22.04、24.04 x86-64 的 Python、pip、venv | CPython 3.12.16 | `python-win_amd64/`、`python-linux-x86_64/`。三个 Ubuntu 版本共用一份 |
-| 生成网格、URDF、MJCF 和 PNG（`numpy`、`PIL`） | NumPy 2.5.5、Pillow 13.0.0 | `wheels/<平台>/`，只做模型生成可选 `model` |
-| 任务物理仿真、Web 和原生窗口 | mujoco-core / mujoco-studio / mujoco-studio-wasm 4.0.1、websockets 17.4 | `wheels/<平台>/` 和 `wheels/common/` |
-| 曲线和报告 | Matplotlib 3.11.2、contourpy 1.4.0、fonttools 4.68.0、kiwisolver 1.5.1、cycler 0.12.1、packaging 26.3、pyparsing 3.3.3、python-dateutil 4.0.0、tzdata 2026.6 | 随任务环境安装，位于 `wheels/<平台>/` 和 `wheels/common/` |
-| USD 导出和静态校验（`pxr`） | usd-core 25.11 | `wheels-optional/<平台>/`，选 `usd` |
-| Python 相机渲染 | glfw 2.10.0、PyOpenGL 3.1.10 | `wheels-optional/<平台>/` 和 `wheels-optional/common/`，选 `camera` |
-| 复现生成器的旧版验证环境 | mujoco 3.3.7、absl-py 2.3.1、etils 1.13.0、fsspec 2025.10.0、importlib-resources 6.5.2、zipp 3.23.0、typing-extensions 4.15.0，另含上述 OpenUSD、渲染和模型基础包 | 在独立环境选 `generator-3.3.7`，从两组 wheel 目录取包 |
-| Windows 缺少 MSVCP140 / VCRUNTIME140 系列 DLL | Microsoft Visual C++ x64 14.52.37029.0 | `windows-runtime/vc_redist.x64.exe`，按需安装 |
+## When to use
 
-`<平台>` 在 Windows 上是 `cp312-win_amd64`，在 Ubuntu 上是 `cp312-linux_x86_64`。
+需要参数建模、多格式导出、已有模型包复核或指定机械臂轨迹干涉检查时使用。任务工具/工件/桌面接触另由任务仿真验证。
 
-## 模型生成与验收
+## Inputs
 
-1. **建立输入。** 按 [输入契约](references/input-contract.md) 将用户数据填入 [JSONC 模板](assets/worksheet.jsonc)。先核对轴、安装变换、类型和连接关系。标准输入和现有静力学/工作空间适配器均从同一套 SI 模型生成几何与导出文件。需要参考成熟构型、关节方向、惯量参考系或碰撞代理时，按构型选择 UR5e / UR10e、FR3、KUKA KR 6 或 xArm6，查 [经典机械臂参考](references/reference-arms.md)，保留型号和来源。新臂的额定力矩、几何尺寸、质量和惯量使用本设计的依据。
-2. **建立几何与驱动。** 默认使用 rounded-shell-v2 生成外壳和独立碰撞体。按 [外形规则](references/appearance.md) 调尺寸，共点旋转轴另读 [模组布置](references/joint-layout.md)。保留关节 origin、局部轴和质量归属。MuJoCo/USD 共用 [驱动参数规则](references/drives.md)，按已知能力和质量属性补全增益，尊重用户给定值。概念模式使用的估算须在输入与报告中注明。
-3. **生成并复核。** Python ≥3.10，安装 `scripts/requirements.txt`。在本 skill 目录运行下面命令。首条是可直接换输出路径的正例。将输入替换为实际设计并按需选择目标；有 MuJoCo/OpenUSD 时可按 `scripts/requirements-validation.txt` 准备运行环境并追加 `--runtime`。
+普通生成先读[输入契约](references/input-contract.md)。需要请求文件、输出目录、目标格式和要求的运行验证范围。固定基座单串联revolute/prismatic/fixed链；几何、安装、限位、初始姿态、质量/COM、惯量及驱动的适用要求按目标核对。
 
-```sh
-python scripts/generate.py generate --input assets/two-revolute-driven.json --output output --targets urdf mujoco
-python scripts/generate.py validate --output output
-python -m unittest discover -s scripts/tests -p test_collision_review.py -v
-```
+| 用户目标 | 入口与资料 |
+| --- | --- |
+| 自定义参数或支持的原始静力学/工作空间请求 | 普通generate流程，输入契约 |
+| 默认选型表臂/FR3 | [默认模型与轨迹](references/default-workflows.md)，default_model.py，需MuJoCo |
+| 已有包复核 | validate，先定位真实run，不重猜输入 |
+| 检查记录的机械臂运动 | 默认模型与轨迹中的check_path.py，不替代任务接触检查 |
 
-4. **判断结果。** 读取退出码和 `output/latest_attempt.json` 指向的实际 run。查 `report/manifest.json` 的逐目标状态，再查 `report/validation.json` 的 `collision_review`、`module_packing` 和运行时检查。按 [碰撞判读和修复](references/collision-review.md) 定位零件对、姿态和允许配合。有碰撞失败时回到相应的结构或输入参数；遇到待复核候选时说明范围并检查证据。深度、载荷或误差均须保留单位和来源。
-5. **交付。** 链接同一 run 的模型、初始姿态 `preview.png`、归一化输入、驱动来源及报告。零位和初始姿态分别保存；MuJoCo 通过交付目录的 `mujoco/run.py` 恢复 keyframe，USD 搬移时保留零位层和配置。按 [各目标验证](references/validation.md) 列出已检查和仍待目标环境验证的项目。下游任务从 run 接入，碰撞体名称和配合范围见 `collision_review.parts`、`mating_pairs`。
+## Workflow
 
-[斜轴滑台](assets/skew-prismatic.json) 和 [七轴驱动](assets/seven-axis-driven.json) 保留原始设计，可用于复现“驱动或格式检查通过，零件级碰撞验收失败”。两者的已知干涉见 [碰撞样例](references/collision-review.md)。
+### Step 1 核对请求
 
-项目的两台默认七轴机械臂有独立输入。[原表格空载臂](assets/examples/defaults/worksheet.json)的运动部件共 3.612 kg。静力学的 3 kg 末端负载另有[独立工况](assets/examples/defaults/worksheet-with-3kg.json)。分拣场景使用空载输入，另建实际夹爪和自由物体。[FR3 空载参考臂](assets/examples/defaults/fr3.json)保留参考刚体惯量和轴系，工作模型在肘、腕为概念外壳留出转动空间。
+按[输入核对细则](references/operation-guide.md#2-确认输入保留设计依据)检查坐标、单位、质量归属、限位与驱动来源。安装只施加一次；初始关节值不折入origin。缺关键数据先列出；概念质量/惯量估算与驱动占位必须显式配置，不能为通过校验自动补参数。
 
-在装有 MuJoCo 的环境中运行默认例子。每条命令都生成独立模型、预览和运行时检查，并复核一段指定运动。读取各自输出目录的 `default_acceptance.json`，其中 `nominal_motion_collision` 对应表格臂的零位至初始位，或 FR3 的初始位至偏置位。`full_range_collision` 单独记录原限位抽查。通用生成命令在宽范围内检出干涉时返回失败；此默认入口按声明的运动范围返回退出码。
+公共arm-design-model、normalized_input和normalized_model不是本生成器请求；先显式映射。示例仅用于用户选择的演示。
+
+### Step 2 确定目标与环境
+
+CLI目标名仅urdf、ros1、mujoco、isaac；MJCF选mujoco，USD选isaac。命令显式给--targets，不默认生成全部。检查同一Python ≥3.10及numpy/PIL，依赖见scripts/requirements.txt；USD还需pxr，MuJoCo运行检查还需mujoco。缺环境读[环境与依赖](references/environment.md)，安装清单不作为已安装证据。
+
+### Step 3 执行
+
+工作目录为本技能根目录，python替换为已验证解释器。REQUEST与OUTPUT替换为本次实际路径；下面示例目标按实际请求修改。
 
 ```sh
-python scripts/default_model.py --arm worksheet --output output/worksheet
-python scripts/default_model.py --arm fr3 --output output/fr3
+python scripts/generate.py generate --input "REQUEST.json" --output "OUTPUT" --targets urdf mujoco
+python scripts/generate.py validate --output "OUTPUT"
 ```
 
-这两个默认例子的指定运动、原始限位干涉反例和生成器运行时检查，均已在 MuJoCo 3.3.7、4.0.1 实测。
+每条命令记录退出码与JSON输出；生成完成后先读OUTPUT/latest_attempt.json取得run_directory。存在顶层error、running或缺关键报告时按失败/未完成处理，不选旧成功run。要求MuJoCo运行检查且依赖具备时，两条命令均加--runtime；否则明确待验证。
 
-两台默认臂的初始位通过零件复核，部分极限姿态仍有关节外壳干涉。评估限定任务时保留原始全范围报告。将同一模型实际运行的每个物理步写成含 `time_s,cycle,phase` 和所有活动关节名的 CSV，旋转值用 rad，移动值用 m。在 MuJoCo 环境运行下列命令，报告存到任务目录：
+### Step 4 分项判读并修复
 
-```sh
-python scripts/check_path.py --run output --trajectory task/data/arm_path.csv --output task/reports/arm_path_collision.json
-```
+读实际run的report/manifest.json与validation.json，按目标分别检查generated、static_checks、装配、碰撞、runtime_validation；详细字段和失败处理见[验收判读](references/operation-guide.md#4-按证据判断不合并不同验收范围)。pending、needs_review、not_evaluated、缺失字段均不能写成通过。
 
-脚本核对模型资源指纹，按连杆运动距离细分相邻记录，再直接计算跨连杆碰撞体之间的距离。判定范围为本次记录的机械臂轨迹。工具、工件、桌面接触和抓持保持情况由任务场景同步验收。用分拣通过的结果报告对应轨迹，并保留模型报告中的极限位冲突。
+退出0只表示流程完成。不能通过删除碰撞体、扩大排除、放宽容差或缩小验收范围掩盖失败；有依据的修复后重新生成，读取新run。缺修复依据时保留诊断并说明缺项。
 
-可在 `scripts/` 导入 `arm_sim.pipeline.generate(input_path, output, targets=None, runtime=False)`、`validate(output, runtime=False)`。URDF/ROS1 可在缺少动力学属性时交付可视模型；MJCF 动力学等待质量和惯量补齐。世界安装仅应用一次，旋转使用 `Rz Ry Rx`，关节轴在局部关节系。负载以独立质量或已计入部件标注。
+### Step 5 交付
+
+交付同一次run。模型资源整体搬移，逐目标说明已生成、通过、失败及待验证范围。目标环境验收时再读[验证方法](references/validation.md)。
+
+## Output format
+
+1. 输入与环境：请求、来源、估算、解释器/依赖、命令与退出码。
+2. 产物：run_directory、真实模型入口、资源包和preview.png；预览图不是仿真运行截图。
+3. 验证表：每目标生成、静态、装配、碰撞、运行状态及原因。
+4. 报告：同run的input_snapshot、normalized_model、manifest、validation和report.md；链接实际存在文件，保留范围与待办。
+
+## Rules
+
+参考臂额定值不是新臂能力，静力学保持载荷也不是驱动限值。有限姿态/轨迹通过不证明全空间无干涉。AABB重叠不等于穿透深度；生成、格式、碰撞和运行状态不能合并。MuJoCo验证不能替代ROS GUI或Isaac/PhysX验收。
+
+## Examples
+
+- “生成双轴URDF与MJCF”：使用[双旋转轴正例](assets/two-revolute-driven.json)试用；真实请求需替换输入，保留所选targets。
+- “生成退出0但碰撞needs_review”：报告待复核，不能写成全部验收通过。
+
+## Resource loading and fallback
+
+核心执行需要文件读写与Python，不依赖特定模型API或网页；agents/openai.yaml如存在仅用于界面。可选安装包来自相邻技能，独立分发时可能没有，不能假定固定机器路径存在。
+
+有文件/执行能力时逐步运行并保留请求、目标、run和状态。仅能读文件时核对输入并给命令，说明未执行；纯文本时由调用方提供契约与请求正文，缺资料就列缺项，不编造模型文件、截图或验收。小上下文时一次处理一个目标，保留同一输入和run后再汇总。
+
+调整外壳读[外形](references/appearance.md)，共点轴读[模组布置](references/joint-layout.md)，驱动读[驱动规则](references/drives.md)，借鉴轴系/惯量读[参考臂](references/reference-arms.md)，碰撞解释读[碰撞判读](references/collision-review.md)；不默认加载所有参考。

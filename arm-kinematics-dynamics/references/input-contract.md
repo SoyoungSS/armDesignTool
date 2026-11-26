@@ -1,6 +1,6 @@
 # 轨迹、运动状态与动态载荷输入输出契约
 
-根字段：schema_name="arm-motion-request"、schema_version="1.0"、design_model（公共参数模型）、trajectory；可选 motion_limits、singularity、tcp_offset、dynamics。未知字段拒绝，全部采用 SI 单位。最多16主动关节、20,000个样本；旋转与移动关节分别使用rad与m。
+根字段：schema_name="arm-motion-request"、schema_version="1.0"、design_model（[公共参数模型Schema](../../shared/contracts/design-model.schema.json)，[完整FR3请求](../assets/examples/defaults/fr3.json)）、trajectory；可选 motion_limits、singularity、tcp_offset、dynamics。未知字段拒绝，全部采用 SI 单位。最多16主动关节、20,000个样本；旋转与移动关节分别使用rad与m。
 
 ## 生成轨迹
 

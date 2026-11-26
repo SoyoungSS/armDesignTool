@@ -2,7 +2,7 @@
 
 ## 接入上游
 
-接受生成器 output 根目录、`runs/<run_id>`、其 `mujoco/` 目录或明确的 XML。output 根目录通过 `latest_attempt.json` 的 `run_directory`（当前生成器）或 `run_id`（兼容格式）定位本次尝试；若本次失败不得偷用旧成功运行。搬移后绝对路径失效时向用户确认实际 run，不能任挑一个目录。检查 `report/manifest.json` 中 `targets.mujoco`、entry、generated、status、static_checks、runtime_validation 和 files 哈希；报告中的 pending 不是 passed。
+接受生成器 output 根目录、`runs/<run_id>`、其 `mujoco/` 目录或该完整run中的明确 XML。独立外部XML没有生成器manifest时，现有inspect_generator不支持直接接入；应补完整run或另行实现独立导入与验证，不编造上游报告。output 根目录通过 `latest_attempt.json` 的 `run_directory`（当前生成器）或 `run_id`（兼容格式）定位本次尝试；若本次失败不得偷用旧成功运行。搬移后绝对路径失效时向用户确认实际 run，不能任挑一个目录。检查 `report/manifest.json` 中 `targets.mujoco`、entry、generated、status、static_checks、runtime_validation 和 files 哈希；报告中的 pending 不是 passed。
 
 当前生成器通常输出 `mujoco/robot.xml`、`mujoco/run.py`、meshes，以及 `report/normalized_model.json`、`drive_design.json`、`validation.json`、`input_snapshot.json`。历史版本可能不同，以实际清单为准，不能靠固定文件名静默回退。`runtime_config.json` 可能仅在 Isaac 目录，不应臆造为 MJCF 必需文件。
 

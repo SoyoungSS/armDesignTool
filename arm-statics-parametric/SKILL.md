@@ -1,69 +1,89 @@
 ---
 name: arm-statics-parametric
-description: 不依赖URDF的参数化机械臂静力学校核。支持标准输入和简易连杆输入，计算串联旋转、移动及固定关节链的自重、附件、偏心负载与已知外力产生的保持载荷，搜索关节范围内大载荷姿态，输出逐轴结果与驱动静态需求。用于机械臂概念设计、典型姿态校核、静态驱动初选和网页接入；不替代动力学、热保持、碰撞或结构强度验收。
+description: >-
+  对参数化串联机械臂计算自重、附件、偏心负载和已知外力产生的静态保持载荷，搜索大载荷姿态并评估已声明的静态驱动能力。用于概念设计、指定姿态校核与静态驱动初选；不替代动态、热保持、碰撞或结构验收。
+metadata:
+  version: "1.2.0"
 ---
 
 # 参数化机械臂静力学校核
 
-先阅读 [输入与坐标约定](references/input-contract.md)。网页接入时阅读 [集成接口](references/web-integration.md)；解释精度时阅读 [验证与边界](references/validation.md)。
+## Purpose
 
-## 输入选择
+使用随附确定性内核输出逐轴保持载荷、最大已检查载荷及有条件的静态驱动需求，不由语言模型填写力矩结果。
 
-- 使用 standard 接收逐关节原点、安装旋转、局部轴、限位、质量部件和局部质心。支持1～64个串联 revolute/prismatic/fixed 关节；搜索至多16主动关节。
-- 使用 simple 接收每段轴向、长度、方向、质量和限位。支持1～32个旋转关节，展开后使用同一标准内核。
-- 重力输入二选一：`gravity_m_s2` 为模型基座坐标系中的重力；或用 `installation` 给出世界重力与基座相对世界的 RPY（rad），内核计算 `g_B=R_WBᵀg_W`。两者不能同时给出；不能由J1轴向推断安装朝向。
-- 显式给出重力向量、负载质量及负载质心。无负载时填0。不要将缺失质量或COM默认为0。
-- 接收构型选择Skill的参数，不要求URDF。缺真实COM时可以采用简易输入的中点估算，但必须保留warnings，不能称为CAD精度。
-- 将模组固定端、运动端质量分配到正确刚体。简易输入整模组放入当前输出刚体只是概念近似。
-- 使用关节名称映射角度，禁止依赖隐含的左右臂数组顺序。
-- 保留旧版arm-statics；本版本契约不同，不把新JSON直接传给旧脚本。
+## When to use
 
-注释输入可用 `assets/examples/worksheet-minimal.jsonc`；严格 JSON 对照为同名 `.json`。CLI、参考网页和 HTTP 统一通过 `scripts/lib/input-text.mjs` 解析，支持 `//` 与 `/* */` 注释及 UTF-8 BOM，不支持尾逗号。`analyze(input)` 仍接收普通对象，输出始终为严格 JSON。详细示例见 [精简输入与输出](references/minimal-input-output.md)。
+用户需要指定姿态保持载荷、关节范围搜索或静态驱动需求时使用。运动轨迹的惯性载荷不属于本技能。
 
-## 双默认示例
+## Inputs
 
-在本工具目录使用 Node.js 20 或更高版本运行。选型表采用同一套七轴单臂的侧装模型，FR3 采用 Franka ROS 标称模型。两份请求均可单独运行。[选型表七轴单臂](assets/examples/defaults/worksheet.json) · [Franka FR3](assets/examples/defaults/fr3.json)
+先读[输入与坐标约定](references/input-contract.md)，按下表选择一种请求；不要混合字段。
 
-```bash
-node scripts/run.mjs --input assets/examples/defaults/worksheet.json --output outputs/worksheet/result.json --report-dir outputs/worksheet
-node scripts/run.mjs --input assets/examples/defaults/fr3.json --output outputs/fr3/result.json --report-dir outputs/fr3
+| 输入 | 何时选择 | 按需读取 |
+| --- | --- | --- |
+| standard | 已有逐关节原点、局部轴、质量部件与COM | 输入契约 |
+| simple | 仅有连杆长度、方向、质量等概念参数 | [精简输入输出](references/minimal-input-output.md) |
+| arm-analysis-request 1.0 | 已有内嵌公共design_model | [公共输入](references/design-model.md) |
+
+必须明确几何、限位、质量/COM、重力、负载质量和COM；无负载显式填0，缺质量不等于0。指定姿态按名称映射；搜索设置与驱动参数依用户要求填写。完整范围见契约。
+
+## Workflow
+
+### Step 1 核对输入
+
+区分硬数据和概念估算，保留来源。重力向量在基座系，或使用installation给世界重力与安装RPY，两者二选一；不能从J1轴推断安装。模组固定端/运动端质量归属不同；安装变换只施加一次。
+
+### Step 2 建立本次请求
+
+按所选契约保存请求，保留原文件；“平举”需转成该轴系的明确姿态。缺关键几何、质量、COM或坐标时集中询问；中点COM等概念估算须显式记录warnings。构型选择记录和normalized_input不能直接当请求。
+
+### Step 3 执行
+
+工作目录为本技能根目录。确认 `node --version` ≥20 且同级shared存在。以下为命令模板：将REQUEST和RUN替换为本次实际路径，路径含空格仍保留引号；RUN使用新的输出目录。
+
+```sh
+node scripts/run.mjs --input "REQUEST.json" --output "RUN/result.json" --report-dir "RUN"
 ```
 
-两例以种子 42 搜索 20,000 个姿态并计算指定姿态的七轴保持力矩。选型表含 3 kg 负载和前、侧平举工况。FR3 采用重力 9.81 m/s²，在初始和偏置姿态检查空载法兰。
+记录退出码和stdout/stderr。非零退出立即按错误中的path修复输入或环境；不读取旧result当本次成功，不通过改物理参数掩盖错误。主JSON完成后原子替换，但配套文件不是目录事务。
 
-FR3 保留七个活动轴的标称质量、局部质心和惯性张量、基座安装及 0.107 m 法兰偏移，使用无手爪、空载配置。上游公用惯性表采用 Gaz 等人针对 Panda 的辨识结果。[Franka 固定版本惯性来源](https://github.com/frankarobotics/franka_ros/blob/ddd2fffd9de44b02ad15b4bbb2bfa2cec4d60d98/franka_description/robots/common/inertial.yaml) · [上游许可证](references/franka-fr3-LICENSE.txt)
+### Step 4 判读与复核
 
-将示例替换成实际请求。失败返回非零退出码与结构化错误；不得把仍存在的旧结果解释为新请求成功。主JSON在计算及配套导出完成后原子替换，配套文件不是整目录事务。
+读取本次result的summary、warnings和哈希。按名称对应关节，旋转轴N·m、移动轴N。每轴临界姿态可单点重算；搜索最大值只称“最大已检查”，不称全局最坏值。设计系数只乘一次。
 
-## 工作步骤
+| 状态 | 结论 |
+| --- | --- |
+| not_sized | 缺驱动能力，不能判定选型 |
+| capacity_conditions_unknown | 连续能力适用条件未知 |
+| exceeds_capacity | 已检查需求超出声明能力 |
+| satisfies_checked_cases | 声明条件下满足已检查工况 |
 
-1. 核对几何、质量、COM坐标系、安装重力及负载偏置。区分表格和CAD模型版本，不混用质量分布。
-2. 选择standard或simple。把“平举”等工况转成明确关节角，不假设所有构型零位都是前平举。
-3. 调用确定性内核，禁止由语言模型手填力矩结果。
-4. 计算指定姿态及可选固定种子搜索。每关节保存临界姿态并单点复核；不要声称已证明全局最坏值。
-5. 展示带符号保持载荷、最大绝对值、分项贡献和设计系数。旋转单位Nm，移动单位N。
-6. 缺驱动参数时解释为not_sized；连续能力条件不明时为capacity_conditions_unknown。只有satisfies_checked_cases可解释为声明条件下已检查范围满足。
-7. 明确热、碰撞、动态和结构未检查；静态需求不证明无抱闸持续平举30分钟已达标。
-8. 按用户要求保存分析交付物。技能代码通过Skills工作区Git保存，不另复制到Library。
+### Step 5 交付
 
-## 网页接口
+使用下方结构交付。解释算法或搜索精度时读[验证边界](references/validation.md)；网页/API接入才读[集成接口](references/web-integration.md)。
 
-- Node与浏览器均导入 `scripts/lib/statics.mjs` 的 `analyze(input)`，禁止复制第二套公式。
-- 使用 `assets/web/adapter.mjs` 的 `analyzeInWorker` 隔离搜索，支持取消与超时。
-- 使用 `toStandardInput(input)` 生成可重新计算的标准请求并继承估算假设。结果中的normalized_input是内部快照，不是请求格式。
-- 执行 `node scripts/server.mjs --port 8765` 打开参考页面及POST /api/statics。现有网页映射表单与结果字段即可，无需重建网站。
-- 用references/schemas/request.schema.json做预校验；内核再次检查名称引用、限位、非法数值等。
+## Output format
 
-## 示例与测试
+1. 输入与假设：模型/请求、单位、安装、载荷、估算和缺项。
+2. 逐轴表：带符号保持载荷、最大绝对值、临界姿态、设计需求与驱动状态。
+3. 执行证据：命令、退出码、实际result、joint_summary.csv、report.md、standard_request.json及输入哈希；仅链接本次存在的文件。
+4. 范围与下一步：已检查姿态/搜索范围，以及未执行的验证。
 
-- 旧版简易格式、安装参数和轴向约定可通过 worksheet-minimal.json/jsonc 与 worksheet-installation.jsonc 重放。单杆、两杆和移动关节等回归数据见 scripts/tests/fixtures。
-- 执行 `node --test scripts/tests/*.test.mjs`。不要将未运行的浏览器或服务检查写成已通过。
+## Rules
 
-只支持固定基座串联刚体链。闭链、柔性、浮动基座、未知接触反力与被动关节平衡不求解。fixed代表几何锁定，不模拟有限容量抱闸。重力静力学不要求惯性张量。
+仅固定基座串联刚体链；闭链、柔性、未知接触反力、浮动基座与被动关节平衡不求解。fixed仅几何锁定，不是有限抱闸能力。静态结果不能证明连续平举30分钟、热、动态、碰撞或结构合格。重力静力学不需要惯性张量。
 
+## Examples
 
-## 公共参数模型与独立分发（P0/P1）
+- “看选型表七轴或FR3示例”：读[双默认示例](references/operation-guide.md#双默认示例)，显式选择模型；不要把演示3kg负载带入用户设计。
+- “载荷算完了，能长期平举吗”：先核对驱动状态与连续条件，热保持仍待验证。
 
-CLI 与 `analyze(input)` 另外接受 `schema_name: "arm-analysis-request"`、`schema_version: "1.0"` 的公共请求，design_model 内嵌参数模型，options 保留本 Skill 的分析设置。无需网页、CAD 或 URDF。完整示例为 `assets/examples/design-seven-axis.json`；读取 [公共输入说明](references/design-model.md) 后再构造这种请求。旧格式继续支持。
+## Resource loading and fallback
 
-独立执行仍使用本 Skill 的 `scripts/run.mjs --input ... --output ... --report-dir ...`。共享代码位于同包根的 `shared/`，单独分发时使用仓库 `shared/scripts/package-skill.mjs` 生成 bundle；保留 skill 与 shared 同级结构，不依赖网页源码或原始仓库路径。
+需要 Node.js ≥20、文件读写及随包 `shared/`；不要求网页、URDF、联网或特定模型API。`agents/openai.yaml` 如存在仅用于界面。独立分发必须保留技能与 shared 同级，详见[操作细则](references/operation-guide.md)。
+
+- 能读文件并执行：按Workflow逐步运行，每步保留输入路径、输出路径、退出码和待处理项。
+- 能读文件但不能执行：核对请求，提供可运行命令和待验证项，明确“未执行”，不给计算结果。
+- 只有文本输入：由调用方提供本入口、相关契约和请求正文；缺资料时列出所缺字段，不猜字段、不假称读取文件。
+- 上下文较小：先完成输入核对，再读取当前模式的契约；记录关节ID、单位、坐标、请求路径和检查进度后继续，不一次载入所有示例。
