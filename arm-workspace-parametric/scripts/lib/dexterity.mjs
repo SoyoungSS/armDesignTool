@@ -14,6 +14,8 @@ export function analyzeDexterity({options,cells,world,orientationRandom,solve}) 
   const orientations=Array.from({length:options.orientations_per_voxel},()=>sampleRotation(orientationRandom));
   const cached=new Map();
   const points=cells.map(({index,position},id)=>{
+    const positionResult=solve(position,null);
+    let positionSolution=positionResult.success?positionResult:null;
     const neighbors=index.map((_,axis)=>cached.get(index.map((v,k)=>v-(axis===k?1:0)).join(',')));
     const seeds=[], successfulOrientations=[];
     let example=null;
@@ -26,15 +28,17 @@ export function analyzeDexterity({options,cells,world,orientationRandom,solve}) 
       example??={orientation_index:k,...solution};
     }
     const successes=successfulOrientations.length;
+    positionSolution??=example?{...example,orientation_error_rad:null}:null;
     if(successes)cached.set(index.join(','),seeds);
     return {id,voxel_index:index,position_base_m:position,position_world_m:world(position),
       orientation_total:orientations.length,orientation_tested:orientations.length,orientation_successes:successes,
       successful_orientation_indices:successfulOrientations,reachability:successes/orientations.length,
-      q:example?.q??null,solutions:example?[example]:[],
-      spatial_status:successes?'reachable':'unresolved',
-      category:successes===orientations.length?'sampled_dexterous':successes?'partially_dexterous':'unresolved'};
+      q:example?.q??positionSolution?.q??null,solutions:example?[example]:[],position_solution:positionSolution,
+      spatial_status:positionSolution?'reachable':'unresolved',
+      dexterity_status:successes===orientations.length?'all_sampled_solved':successes?'partial_sampled_solved':'no_sampled_solution',
+      category:successes===orientations.length?'sampled_dexterous':successes?'partially_dexterous':positionSolution?'spatial_reachable':'unresolved'};
   });
-  return {points,calls:points.length*orientations.length,detail:{voxel_size_m:options.voxel_size_m,
+  return {points,calls:points.length*(orientations.length+1),position_calls:points.length,detail:{voxel_size_m:options.voxel_size_m,
     orientations_wxyz:orientations.map(r=>r.quaternion),time_budget_s:null,
     completed_voxels:points.length,incomplete_voxels:0,completed:true}};
 }

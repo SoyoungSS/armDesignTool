@@ -10,6 +10,10 @@ try{
  await test('motion routes serve separate model requests and browser modules',async()=>{
   for(const path of ['/motion-worksheet.json','/motion-fr3.json','/motion-worksheet-dynamics.json','/motion-export.mjs','/motion-client.mjs','/motion-page.mjs','/api/motion/health'])assert.equal((await fetch(url+path)).status,200,path);
   assert.equal((await fetch(url+'/motion-secret.json')).status,404);
+  const executor=await (await fetch(url+'/api/execution')).json();
+  assert.equal(executor.mode,process.env.ARM_EXECUTION_MODE||'local');
+  assert.equal(executor.protocol,'arm-skill-execution/1');
+  assert.deepEqual(executor.operations,['analysis','simulation.generate','configuration.select','scene.plan','scene.prepare']);
  });
  await test('real motion CLI HTTP bridge equals independent API for both geometry-only-capable examples',async()=>{
   for(const name of ['worksheet','franka-fr3','worksheet-dynamics']){const request=JSON.parse(await readFile(new URL(`../../arm-kinematics-dynamics/assets/examples/${name==='worksheet-dynamics'?name:name+'-motion'}.json`,import.meta.url),'utf8'));

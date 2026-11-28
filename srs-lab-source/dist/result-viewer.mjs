@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {generatedModelHTML,mountGeneratedModel} from './generated-model-view.mjs';
 import { OrbitControls } from './vendor/three/OrbitControls.js';
 
 const arms = {worksheet:'选型表七轴单臂', fr3:'Franka FR3'};
@@ -121,6 +122,7 @@ function createScene(viewport, spec) {
 }
 
 export function viewerHTML(task) {
+  if(!task)return generatedModelHTML();
   return `<section class="card run-view" id="run-view">
     <div class="card-head"><label>机械臂 <select data-arm>${Object.entries(arms).map(([id,label])=>`<option value="${id}" ${id===selected?'selected':''}>${label}</option>`).join('')}</select></label>
     <button type="button" class="button" data-reset>复位视角</button></div>
@@ -141,6 +143,7 @@ export function closeViewer() {
 }
 
 export async function mountViewer(task) {
+  if(!task)return mountGeneratedModel({createScene,closeViewer,setDispose:value=>{disposeActive=value;}});
   closeViewer();
   const el = document.getElementById('run-view');
   if (!el) return;
@@ -245,3 +248,24 @@ export async function mountViewer(task) {
   }
 }
 
+
+export function taskReplayHTML(){return `<section class="card" id="scene-replay"><div class="card-head"><h2>本次实测三维回放</h2><button class="button" data-replay-reset>复位视角</button></div><div class="run-canvas" aria-label="当前任务实测姿态回放"></div><div class="card-body"><p data-replay-status role="status">正在载入实际记录…</p><div class="actions-row"><button class="button primary" data-replay-play disabled>播放</button><input type="range" data-replay-seek min="0" step="1" value="0" aria-label="实测时间游标"><output data-replay-clock></output></div><small>拖动旋转 · 滚轮缩放 · 右键平移。回放基于实际物理采样，不是实时查看器验收。</small></div></section>`;}
+export async function mountTaskReplay(url){
+  closeViewer();const el=document.getElementById('scene-replay');if(!el)return;
+  const find=selector=>el.querySelector(selector),controller=new AbortController();let view,animation,index=0,playing=false,previous=0,elapsed=0;
+  disposeActive=()=>{controller.abort();cancelAnimationFrame(animation);view?.dispose();};
+  try{
+    const response=await fetch(url,{signal:controller.signal});if(!response.ok)throw Error('无法读取本次回放');
+    const spec=await response.json();if(controller.signal.aborted)return;
+    if(!spec.frames?.length)throw Error('本次未记录到可回放姿态');
+    view=createScene(find('.run-canvas'),spec);const frames=spec.frames,play=find('[data-replay-play]'),seek=find('[data-replay-seek]');
+    seek.max=frames.length-1;play.disabled=false;
+    find('[data-replay-reset]').onclick=view.reset;
+    function show(i){index=i;view.show(i);seek.value=i;find('[data-replay-clock]').textContent=`${frames[i].t.toFixed(2)} s · 第 ${frames[i].cycle} 轮 · ${frames[i].phase}`;}
+    function pause(){playing=false;play.textContent='播放';cancelAnimationFrame(animation);}
+    function tick(now){elapsed+=(now-previous)/1000;previous=now;let next=index;while(next+1<frames.length&&frames[next+1].t-frames[next].t<=elapsed){elapsed-=Math.max(0,frames[next+1].t-frames[next].t);next++;}if(next!==index)show(next);if(index===frames.length-1){pause();return;}animation=requestAnimationFrame(tick);}
+    play.onclick=()=>{if(playing){pause();return;}if(index===frames.length-1)show(0);playing=true;elapsed=0;previous=performance.now();play.textContent='暂停';animation=requestAnimationFrame(tick);};
+    seek.oninput=()=>{pause();show(Number(seek.value));};
+    find('[data-replay-status]').textContent=`${frames.length} 个实际采样姿态 · ${spec.result?.status==='passed'?'任务通过':'任务未通过或未完成，保留实际记录'}`;show(0);
+  }catch(error){if(!controller.signal.aborted)find('[data-replay-status]').textContent=error.message;}
+}

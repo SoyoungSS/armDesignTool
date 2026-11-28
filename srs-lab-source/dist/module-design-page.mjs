@@ -3,7 +3,7 @@ const esc=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>
 const card=(title,body)=>`<section class="card"><div class="card-head"><h2>${title}</h2></div><div class="card-body">${body}</div></section>`;
 const fixed2=value=>Number(value).toFixed(2);
 const zero=[0,0,0];
-const state={model:null,edits:{},busy:false,message:'正在读取选型表模型…',spec:null,applied:null};
+const state={model:null,edits:{},busy:false,message:'正在读取选型表模型…',spec:null,applied:null,analysisActive:false};
 const toDeg=value=>value*180/Math.PI;
 const toRad=value=>value*Math.PI/180;
 const mm=values=>values.map(value=>value*1000);
@@ -18,66 +18,19 @@ const examples=[
 ];
 const simulationFormats={urdf:'URDF',ros1:'ROS1 / RViz',mujoco:'MuJoCo MJCF',isaac:'Isaac Sim USD'};
 const simulationStatus={generated:'已生成',static_checked:'静态检查通过',runtime_validated:'运行时检查通过',pending:'待补齐或验证',failed:'失败'};
-const simulation={busy:false,message:'',robotName:'robot_arm',targets:['urdf'],limits:new Map(),estimate:false,density:'',runtime:false};
-simulation.environment='auto';
-simulation.environments=null;
-let checkingEnvironments=false;
+const simulation={busy:false,message:'',robotName:'robot_arm',targets:Object.keys(simulationFormats),limits:new Map(),density:2000};
 let hooks;
-
-async function refreshSimulationEnvironments(){
-  if(checkingEnvironments)return;
-  checkingEnvironments=true;
-  updateSimulationEnvironments();
-  try{
-    const response=await fetch('/api/simulation-environments',{cache:'no-store'});
-    if(!response.ok)throw Error();
-    simulation.environments=(await response.json()).environments;
-    simulation.environmentError='';
-  }catch{
-    simulation.environmentError='无法检查导出环境。请确认网页后端已启动并已更新。';
-  }finally{
-    checkingEnvironments=false;
-    updateSimulationEnvironments();
-  }
-}
-
-function updateSimulationEnvironments(){
-  const form=$('simulationExport');
-  if(!form)return;
-  const environments=simulation.environments??[];
-  const available=environments.filter(item=>item.ready);
-  const select=form.elements.pythonEnvironment;
-  if(!available.some(item=>item.id===simulation.environment))simulation.environment='auto';
-  select.innerHTML='<option value="auto">自动选择（按导出格式）</option>'+available.map(item=>
-    `<option value="${esc(item.id)}">${esc(item.label)} · Python ${esc(item.python)}</option>`).join('');
-  select.value=simulation.environment;
-  form.elements.checkEnvironment.disabled=checkingEnvironments;
-  const eligible=simulation.environment==='auto'?available:available.filter(item=>item.id===simulation.environment);
-  const needsUsd=simulation.targets.includes('isaac');
-  const needsMujoco=simulation.targets.includes('mujoco')&&simulation.runtime;
-  const ready=eligible.find(item=>(!needsUsd||item.usd)&&(!needsMujoco||item.mujoco));
-  let message=simulation.environmentError??'';
-  if(checkingEnvironments)message='正在检查后端 Python 环境…';
-  else if(!message&&simulation.environments){
-    if(ready)message=`${ready.label}：Python ${ready.python} / NumPy ${ready.numpy} / USD ${ready.usd?'可用':'不可用'} / MuJoCo 运行检查 ${ready.mujoco?'可用':'不可用'}。`;
-    else if(!eligible.length)message='没有可用的 Python + NumPy 环境，请按下方命令安装后重新检查。';
-    else if(needsUsd&&!eligible.some(item=>item.usd))message='当前可选环境均无法加载 pxr，ZIP 可能缺少 USD。请安装 usd-core 或切换环境。';
-    else message='当前环境无法同时满足所选格式和运行时检查。请安装 MuJoCo 或切换环境。';
-  }
-  $('simulationEnvironmentStatus').textContent=message;
-}
-
 
 function loadModel(model){
   hooks.clear();
   simulation.limits.clear();
-  simulation.estimate=false;
-  simulation.density='';
+  simulation.density=2000;
   state.model=model;
   state.baseRows=(model.base_components??[]).slice();
   state.edits={};
   state.spec=null;
   state.applied=null;
+  state.analysisActive=false;
 }
 async function loadExample(key=examples[0][0]){
   const response=await fetch('/model-examples/'+key+'.json');
@@ -126,8 +79,9 @@ function basePropertiesHTML(disabled){
       <button class="button" type="button" data-remove-base="${index}" ${disabled}>移除此部件</button>
     </fieldset>`;
   }).join('');
-  return `<details ${state.baseRows.length?'open':''}><summary>基座质量属性（仿真导出，可选）</summary>
-    <p>基座固定部件用于仿真导出，其质量不计入活动关节载荷。质心位置从基座原点量起，惯量取绕部件质心、沿基座轴表达的值。惯量六项可一起留空；填写时请核对 CAD 报告的参考点、单位和惯性积符号。</p>
+  return `<p><strong>基座约束：固定在世界坐标系</strong>。基座不参与运动，位置和安装朝向由上方基座 XYZ、安装 RPY 设置。无需填写基座质量或为其设置密度即可按固定基座导出。</p>
+    <details><summary>高级：基座质量属性（可选，默认无需填写）</summary>
+    <p>仅在需要保留基座实际质量属性时填写；留空时向仿真 Skill 声明固定基座并省略其质量属性，仍保留支座几何，不使用密度补齐基座。填写属性也不会解除固定约束，其质量不计入活动关节载荷。质心位置从基座原点量起，惯量取绕部件质心、沿基座轴表达的值。惯量六项可一起留空；填写时请核对 CAD 报告的参考点、单位和惯性积符号。</p>
     ${rows}<button class="button" type="button" id="addBaseComponent" ${disabled}>添加基座部件</button>
     </details>`;
 }
@@ -169,8 +123,7 @@ function specsHTML(){
     <p>规格表使用中位往返轨迹，旋转关节默认 1 rad/s、2 rad/s²，移动关节默认 0.2 m/s、0.5 m/s²。固定安装、关节坐标系旋转及部件属性从模型保留。缺省重力为世界系 Z 向下 9.8 m/s²。</p></details>
     <div class="actions-row">
       <button class="button" id="moduleSave" ${disabled}>下载模型 JSON</button>
-      <button class="button" id="moduleApply" ${disabled}>应用到三个 Skill</button>
-      <button class="button primary" id="moduleRun" ${disabled}>运行三个 Skill 并生成规格表</button>
+      <button class="button primary" id="moduleApply" ${disabled}>应用到所有 Skill</button>
     </div><p id="moduleStatus" role="status">${esc(state.message)}</p>`);
 }
 function numeric(key,label){
@@ -242,10 +195,10 @@ function buildModel(){
   }
   return model;
 }
-function specificationsHTML(){
+function specificationsHTML(inline=false){
   const progress=state.applied?`<p>${Object.entries(skillLabels).map(([key,label])=>label+' '+(state.applied.results[key]?'已完成':'待计算')).join(' · ')}</p>`:'';
   if(!state.spec)return card('关节模组概念规格',`<p>完成三个 Skill 的同模型计算后，这里会显示规格表和导出按钮。</p>${progress}
-    <div class="actions-row"><button class="button" data-go="specs">打开规格与模型</button>
+    <div class="actions-row"><button class="button" data-go="specs">打开规格与模型</button><button class="button" data-go="motion">返回动力学分析</button>
     <button class="button primary" id="moduleRun" ${state.busy?'disabled':''}>运行三个 Skill 并生成规格表</button></div>
     <p id="moduleStatus" role="status">${esc(state.message)}</p>`);
   const spec=state.spec;
@@ -259,10 +212,11 @@ function specificationsHTML(){
   return card('关节模组概念规格',`<p><strong>${esc(spec.model_name)}</strong> · ${fixed2(spec.cycle.duration_s)} s 轨迹 · 可达空间分析 ${spec.workspace.sample_count} 点</p>
     <p>${bounds?'基座系采样范围 / m · '+['X','Y','Z'].map((axis,i)=>axis+' '+fixed2(bounds.min[i])+' ～ '+fixed2(bounds.max[i])).join(' · '):'本次工作空间分析未获得可达位置。'}</p>
     <div class="table-scroll"><table><thead><tr><th>关节</th><th>设计行程</th><th>静态保持</th><th>动态峰值</th><th>轨迹 RMS</th><th>已查最大需求</th><th>轨迹最高速度</th><th>峰值附近 / s</th><th>轴向力 / N</th><th>径向力 / N</th><th>弯矩 / N·m</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <h3>关节模组规格指导</h3><p>以静态保持与动态峰值的较大值作为已查输出端最大需求，以轨迹 RMS 评估连续转矩需求，以最高速度确定输出转速；同时核对行程、轴向力、径向力及弯矩。选用减速器和电机时结合速比、效率、安全系数与热工况换算，不能将采样结果直接当作产品额定值。</p>
     <p>峰值附近时长统计本次峰值所在的连续区间，阈值为峰值的 90%。${spec.cycle.constraint_status==='verified'?'':' 轨迹约束状态：'+esc(spec.cycle.constraint_status)+'。'}</p>
     ${groupRows?`<h3>七轴分组参考</h3><div class="table-scroll"><table><thead><tr><th>组</th><th>静态保持 / Nm</th><th>动态峰值 / Nm</th><th>已查最大需求 / Nm</th><th>轨迹最高转速 / rpm</th></tr></thead><tbody>${groupRows}</tbody></table></div>`:''}
     <div class="actions-row"><button class="button primary" id="moduleCSV">下载规格表 CSV</button>
-    <button class="button" id="moduleJSON">下载规格表 JSON</button><button class="button" data-go="specs">修改模型</button></div>
+    <button class="button" id="moduleJSON">下载规格表 JSON</button>${inline?'':'<button class="button" data-go="specs">修改模型</button><button class="button" data-go="motion">返回动力学分析</button>'}</div>
     <details><summary>工况假设与结果来源</summary><ul>${spec.assumptions.map(x=>'<li>'+esc(x)+'</li>').join('')}</ul>
     <ul>${Object.entries(spec.sources).map(([key,source])=>'<li>'+skillLabels[key]+' · '+esc(source.engine_version)+' · '+esc(source.input_sha256)+'</li>').join('')}</ul></details>`);
 }
@@ -275,12 +229,14 @@ function csv(spec){
   ]);
   return '\ufeff'+[header,...rows].map(row=>row.map(encode).join(',')).join('\r\n')+'\r\n';
 }
-async function action(mode,load){
+async function action(mode,load,motionRequest){
   if(state.busy)return;
+  const inline=!!motionRequest;
+  if(inline)state.analysisActive=true;
   state.busy=true;
   state.message=mode==='run'?'正在运行静力学、可达空间及运动学与动力学 Skill…':'正在验证模型…';
   if(mode==='run'){state.spec=null;state.applied=null;}
-  if(mode==='run'&&!['#specs','#sizing'].includes(location.hash))hooks.go('sizing');
+  if(mode==='run'&&!inline&&!['#specs','#sizing'].includes(location.hash))hooks.go('sizing');
   else hooks.render();
   let showSizing=false;
   try{
@@ -288,7 +244,7 @@ async function action(mode,load){
     else if(!state.model)await loadExample();
     if(mode==='run')state.message='正在运行静力学、可达空间及运动学与动力学 Skill…';
     const response=await fetch('/api/module-specs',{method:'POST',headers:{'content-type':'application/json'},
-      body:JSON.stringify({design_model:buildModel(),prepare_only:mode!=='run'})});
+      body:JSON.stringify({design_model:buildModel(),prepare_only:mode!=='run',...(motionRequest?{motion_request:motionRequest}:{})})});
     const data=await response.json();
     if(!response.ok||!data.ok)throw Error((skillLabels[data.stage]?skillLabels[data.stage]+' · ':'')+(data.detail??data.error));
     if(mode==='download'){
@@ -298,8 +254,8 @@ async function action(mode,load){
       hooks.apply(data);
       state.applied={model:data.requests.motion.design_model,hash:data.modelHash,results:data.results??{}};
       state.spec=data.specifications??null;
-      state.message=state.spec?'规格表已生成。':'已填入三个 Skill，可在各页单独运行。';
-      showSizing=!!state.spec;
+      state.message=state.spec?'规格表已生成。':'公共模型已应用到所有 Skill，可在对应页面继续操作。';
+      showSizing=!!state.spec&&!inline;
     }
   }catch(error){state.message=error.message;}
   finally{state.busy=false;if(showSizing)hooks.go('sizing');else hooks.render();}
@@ -356,6 +312,9 @@ function bind(nextHooks){
   if($('moduleSave'))$('moduleSave').onclick=()=>action('download');
   if($('moduleApply'))$('moduleApply').onclick=()=>action('apply');
   if($('moduleRun'))$('moduleRun').onclick=()=>action('run');
+  bindSpecifications();
+}
+function bindSpecifications(){
   if($('moduleCSV'))$('moduleCSV').onclick=()=>hooks.download('arm-module-requirements.csv',csv(state.spec),'text/csv;charset=utf-8');
   if($('moduleJSON'))$('moduleJSON').onclick=()=>hooks.download('arm-module-requirements.json',JSON.stringify(state.spec,null,2));
 }
@@ -392,47 +351,21 @@ function simulationHTML(){
   return card('导出仿真模型',`<div class="card-body">
     <p>当前模型 <strong>${esc(value('name',state.model.name))}</strong>
     <button class="button" data-go="specs">编辑规格与模型</button></p>
+    <p><strong>基座：固定安装</strong>。保留公共模型中的安装位置与朝向；未填写基座质量属性时，直接省略基座质量、质心和惯量，无需为基座填写估算密度。运动刚体的质量属性仍需提供或估算。</p>
     <form id="simulationExport"><fieldset ${disabled}>
       <div class="actions-row">${Object.entries(simulationFormats).map(([target,label])=>
         `<label><input type="checkbox" name="target" value="${target}" ${simulation.targets.includes(target)?'checked':''}> ${label}</label>`).join('')}</div>
-      <div class="actions-row">
-        <label>导出 Python 环境 <select name="pythonEnvironment"></select></label>
-        <button type="button" name="checkEnvironment" class="button">重新检查环境</button>
-      </div>
-      <p id="simulationEnvironmentStatus" role="status"></p>
-      <p>下拉框显示运行网页服务的电脑上的 Python 环境。要加入自己的 Conda 或虚拟环境，请用 <code>ARM_SIM_PYTHON</code> 指定该环境的 Python 可执行文件，再重启网页服务。</p>
-      <details class="simulation-environment-guide">
-        <summary>配置导出环境与启动命令</summary>
-        <p>在运行网页服务的电脑上安装 Python ≥3.10 和 NumPy 1.24–2.x。生成 Isaac Sim USD 还需 usd-core（提供 pxr），MuJoCo 运行时检查需 mujoco。生成 USD 可以在未安装 Isaac Sim 的电脑上完成。</p>
-        <h3>使用已有环境</h3>
-        <p>例如使用 <code>dexonomy-isaac</code> 时，先在该环境中运行 <code>python -c "import sys; print(sys.executable)"</code> 获取 Python 路径。停止旧网页服务，在工程根目录执行对应命令，并替换示例中的 Python 路径。</p>
-        <p>Linux / macOS</p>
-        <pre><code>ARM_SIM_PYTHON="/path/to/env/bin/python" STATICS_SKILL_DIR="$PWD/arm-statics-parametric" npm --prefix srs-lab-source start</code></pre>
-        <p>Windows PowerShell</p>
-        <pre><code>$env:ARM_SIM_PYTHON = 'C:\\path\\to\\env\\python.exe'
-$env:STATICS_SKILL_DIR = (Resolve-Path ./arm-statics-parametric).Path
-npm.cmd --prefix srs-lab-source start</code></pre>
-        <p>启动后刷新网页，选择「服务器指定的 Python」。勾选 Isaac Sim USD 前确认状态显示「USD 可用」。若显示 MuJoCo 运行检查不可用，仍可生成 MJCF 文件。</p>
-        <h3>创建项目虚拟环境</h3>
-        <p>在工程根目录运行以下命令。安装完成后点击「重新检查环境」，选择项目虚拟环境，或保留自动选择。</p>
-        <p>Linux / macOS</p>
-        <pre><code>python3 -m venv .venv-arm-sim
-.venv-arm-sim/bin/python -m pip install -r arm-sim-model-generator/scripts/requirements-validation.txt</code></pre>
-        <p>Windows PowerShell</p>
-        <pre><code>py -3.11 -m venv .venv-arm-sim
-.\\.venv-arm-sim\\Scripts\\python.exe -m pip install -r arm-sim-model-generator/scripts/requirements-validation.txt</code></pre>
-        <p>导出后查看 ZIP 内的 <code>report/manifest.json</code>，确认所选格式均已生成。USD 的入口文件为 <code>isaac/robot.usd</code>。</p>
-      </details>
       <label>导出模型名 <input name="robotName" required maxlength="64" pattern="[A-Za-z][A-Za-z0-9_]*" value="${esc(simulation.robotName)}"></label>
       <h3>关节导出限值</h3><p>模型中已有的上限会自动带入，请补填空白项。</p>
       <div class="table-scroll"><table><thead><tr><th>关节</th><th>力矩或力上限</th><th>速度上限</th></tr></thead><tbody>${rows}</tbody></table></div>
+      <p><strong>质量属性：自动补齐</strong>。默认使用几何代理估算缺失属性；已有质量、质心和惯量优先保留。仅缺惯量时按已知质量估算；运动刚体缺少质量部件时按等效密度 ${esc(simulation.density)} kg/m³ 估算（默认 2000）。未填写属性的固定基座不参与估算。</p>
+      <details><summary>高级：调整估算密度与查看估算说明</summary>
+        <label>等效估算密度 / kg/m³ <input type="number" name="density" min="0.000001" step="any" value="${esc(simulation.density)}" required></label>
+        <p>默认 2000 kg/m³ 是前期概念估算假设，可按实际设计修改。仅在整个运动刚体缺少质量部件时，使用「密度 × 代理实体体积」估算质量；已有质量不受密度影响。若代理体积为 0.001 m³、目标质量为 2 kg，等效密度填 2000。</p>
+        <p>「规格与模型 → 基座质量属性」可填写固定基座实际质量、质心和惯量。基座留空则省略其质量属性；已填基座质量但缺惯量时，按已知质量和代理几何补齐惯量。固定约束始终保留。</p>
+        <p>估算只用于本次仿真导出，不回写公共模型。模型中的正质量末端负载作为附加质量导出，估算来源会保留在导出报告中。</p>
+      </details>
       <div class="actions-row">
-        <label><input type="checkbox" name="estimate" ${simulation.estimate?'checked':''}> 用几何代理补齐缺失的质量属性</label>
-        <label>估算密度 / kg/m³ <input type="number" name="density" min="0" step="any" value="${esc(simulation.density)}" ${simulation.estimate?'required':'disabled'}></label>
-      </div>
-      <p>启用估算后，已知质量和质心用于估算缺失惯量。缺少质量的部件（含基座）按所填密度估算。模型中的正质量末端负载会作为附加质量导出。</p>
-      <div class="actions-row">
-        <label><input type="checkbox" name="runtime" ${simulation.runtime?'checked':''}> 运行目标环境检查</label>
         <button type="submit" class="button primary">${simulation.busy?'正在生成…':'生成并下载 ZIP'}</button>
       </div>
     </fieldset></form><p id="simulationStatus" role="status">${esc(simulation.message)}</p>
@@ -444,9 +377,7 @@ function bindSimulation(form){
   const readSettings=()=>{
     simulation.robotName=fields.robotName.value;
     simulation.targets=Array.from(form.querySelectorAll('input[name="target"]:checked'),input=>input.value);
-    simulation.estimate=fields.estimate.checked;
     simulation.density=fields.density.value;
-    simulation.runtime=fields.runtime.checked;
     for(const [index,joint] of active.entries()){
       const limits={};
       for(const field of ['effort','velocity']){
@@ -455,17 +386,8 @@ function bindSimulation(form){
       }
       simulation.limits.set(joint.id,limits);
     }
-    fields.density.disabled=!simulation.estimate;
-    fields.density.required=simulation.estimate;
   };
-  form.oninput=event=>{
-    readSettings();
-    if(event.target===fields.pythonEnvironment)simulation.environment=fields.pythonEnvironment.value;
-    if(['target','runtime','pythonEnvironment'].includes(event.target.name))updateSimulationEnvironments();
-  };
-  fields.checkEnvironment.onclick=refreshSimulationEnvironments;
-  updateSimulationEnvironments();
-  if(!simulation.environments&&!simulation.environmentError)refreshSimulationEnvironments();
+  form.oninput=readSettings;
   form.onsubmit=async event=>{
     event.preventDefault();
     if(simulation.busy||state.busy)return;
@@ -479,17 +401,19 @@ function bindSimulation(form){
         id,Object.fromEntries(Object.entries(limit).map(([field,value])=>[field,Number(value)])),
       ]));
       const response=await fetch('/api/simulation-export',{method:'POST',headers:{'content-type':'application/json'},
-        body:JSON.stringify({design_model,robot_name:simulation.robotName,targets:simulation.targets,limits,python_environment:simulation.environment,
-          density_kg_m3:simulation.estimate?Number(simulation.density):undefined,runtime:simulation.runtime})});
+        body:JSON.stringify({design_model,robot_name:simulation.robotName,targets:simulation.targets,limits,
+          density_kg_m3:Number(simulation.density)})});
       if(!response.ok){
         const error=await response.json();
         throw Error(error.detail??error.error);
       }
       const targets=JSON.parse(response.headers.get('x-simulation-targets'));
+      const sceneModelId=response.headers.get('x-scene-model-id');
+      if(sceneModelId){try{sessionStorage.setItem('srs-latest-generated-model',sceneModelId);}catch{}}
       const filename=response.headers.get('content-disposition')?.match(/filename="([^"]+)"/)?.[1]??'arm-simulation.zip';
       hooks.download(filename,await response.blob(),'application/zip');
       const statuses=Object.entries(targets).map(([target,status])=>simulationFormats[target]+' '+(simulationStatus[status]??status));
-      simulation.message=design_model.name+' · 已下载 ZIP。'+statuses.join('；')+'。详细状态见 report/manifest.json。';
+      simulation.message=design_model.name+' · 已下载 ZIP。'+statuses.join('；')+'。'+(sceneModelId?'模型已联通「机械臂 3D 模型」与「场景仿真」。':'')+'详细状态见 report/manifest.json。';
     }catch(error){simulation.message=error.message;}
     finally{simulation.busy=false;hooks.render();}
   };
@@ -504,7 +428,7 @@ function provenanceHTML(){
     <ul>${[...sources,...assumptions].map(text=>'<li>'+esc(text)+'</li>').join('')}</ul>
     <button class="button" data-go="specs">打开规格与模型</button>`);
 }
-export const ModuleDesignPage={modelName:()=>state.model?value('name',state.model.name):null,specsHTML,specificationsHTML,provenanceHTML,simulationHTML,bind,record,run:()=>action('run'),save:()=>action('download'),
+export const ModuleDesignPage={modelName:()=>state.model?value('name',state.model.name):null,specsHTML,specificationsHTML,provenanceHTML,simulationHTML,bind,bindSpecifications,analysisHTML:()=>state.analysisActive?(state.busy?card('关节模组分析','<p role="status">正在联合计算静力学、可达空间与动态载荷，请稍候…</p>'):state.spec?specificationsHTML(true):card('关节模组分析',`<p role="status">${esc(state.message)}</p>`)):'',analysisBusy:()=>state.busy,record,run:()=>action('run'),analyze:request=>action('run',null,request),save:()=>action('download'),
   exportSpecifications:kind=>{
     if(!state.spec)return false;
     if(kind==='csv')hooks.download('arm-module-requirements.csv',csv(state.spec),'text/csv;charset=utf-8');

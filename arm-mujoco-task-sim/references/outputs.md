@@ -35,7 +35,13 @@ project/
     reports/limit_exceedances.csv 越限区间、峰值、样本数及限值来源
     reports/result.json          完成状态、实际轮数、逐轮判据、失败原因
     reports/environment.json     实际运行版本和模式
-    reports/report.html          自动数据索引和摘要
+    reports/report.html          单文件离线总报告，内嵌全部关节/接口/TCP 曲线
+    data/joint_modules/*_state.csv 每关节模组完整状态与对齐的六维接口载荷
+    data/joint_modules/*_actuators.csv 每模组映射到的执行器原始信号
+    data/joint_states_wide.csv    全关节同一时刻的状态宽表
+    reports/joint_module_summary.csv 每模组覆盖、运动范围、峰值及时间 RMS
+    reports/data_dictionary.json 字段单位、坐标、缺测和多执行器语义
+    reports/joint_exports.json   导出索引、来源 SHA-256 与覆盖状态
     reports/implementation.md    agent 必须完成的任务实现与结果说明
     reports/validation.json      物理/任务/数值/可视化检查
     logs/                       stdout、stderr、过程记录、截图/录像索引
@@ -68,3 +74,15 @@ project/
 `implementation.md` 用用户语言写清：原任务与确认记录；输入模型/质量可信度；资产生成方法与物理参数表；策略和真实观测来源；阶段与轮次定义；安装/启动/再次导出命令；实现方法与数据采样定义；每轮实际结果与失败/重试；检查/收敛结果；主要载荷和曲线链接；准确输出路径；已知限制与后续设计可用/不可用范围。
 
 自动 HTML 提供曲线索引。文档还须给出实际任务判据、结果和查看器验证记录。场景截图或视频如来自回放或离屏复跑，应注明来源及适用的时间倍率。
+
+## 概念试算来源
+
+结果附 assumption_policy、simulation_scope、实际 assumptions 与原始输入；load_proxy 只报告代理工况的物理运行和谱，不称原任务验证通过。默认授权是补齐参数的委托，不能把 Agent 估值标为用户实测。修改描述后新建 run，关联 previous_job_id；失败记录保留。
+
+## 全关节单文件报告与模组 CSV
+
+`analyze.py RUN` 自动调用 `joint_exports.py`。对已经存在的真实记录，可执行 `python scripts/joint_exports.py RUN` 补齐，不再调用 Agent、修改控制器或执行物理仿真。HTML 内嵌全部曲线，不依赖外部图片或联网脚本；完整 CSV 的相对链接需解压整个记录 ZIP 后使用。
+
+每个模组状态表按精确仿真时间、cycle、phase 对齐状态、接口及可映射执行器信号；不插值、不降采样。包含位置、速度、加速度、实际驱动输出、功率及广义分量、限位余量、六维接口载荷、测点和 R_world_site。旋转轴另附角度/角速度/角加速度的度制列；原 SI 列保留。单个可映射执行器时填 drive_*，多执行器时不平均，分别保存在该模组的 actuators CSV。
+
+固定连接只有已记录的接口数据，不伪造运动 DOF。未测温度、电流、减速器内部状态或寿命不作推断。缺测留空并记录覆盖状态；重复或不对齐的样本使整理失败，旧成功标记被替换。`exported` 仅表示已记录数据整理完成，上游全关节范围仍看 load_coverage。原始状态、接口、末端、接触、事件、谱和越限文件继续保留。

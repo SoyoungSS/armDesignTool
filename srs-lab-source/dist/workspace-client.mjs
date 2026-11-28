@@ -29,13 +29,53 @@ export function asWorkspaceMode(input,mode,settings){
   if(mode==='joint_sampling')return {...base,mode,sampling:{method:'random',samples:5000,seed}};
   if(mode!=='pose_reachability')throw Error('未知工作空间分析方式');
   const bound=conservativeReachBound(input.model);
-  return {...base,mode,reachability:{sphere:{center_m:bound.center_base_m,radius_m:bound.radius_m,radial_steps:2,theta_steps:8,phi_steps:5},orientations_rpy_rad:[[0,0,0],[0,Math.PI/2,0]],orientation_frame:'base',seed,ik:{attempts:2,max_iterations:60}}};
+  return {...base,mode,reachability:{points_m:[bound.center_base_m.map((v,k)=>v+(k===2?bound.radius_m*.5:0))],orientations_rpy_rad:[[0,0,0],[0,Math.PI/2,0]],orientation_frame:'base',seed,ik:{attempts:2,max_iterations:60}}};
+}
+const controlEscape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+export function workspaceModeControls(mode,busy=false){
+  const disabled=busy?'disabled':'';
+  return `<label for="workspaceMode">分析功能</label><select id="workspaceMode" ${disabled}><option value="joint_sampling" ${mode==='joint_sampling'?'selected':''}>快速工作范围（FK 点云）</option><option value="ik" ${mode!=='joint_sampling'?'selected':''}>空间可达与灵巧分析（IK）</option></select>${mode==='joint_sampling'?'':`<label for="workspaceIKMode">分析方式</label><select id="workspaceIKMode" ${disabled}><option value="dexterity_voxels" ${mode==='dexterity_voxels'?'selected':''}>区域扫描（默认）</option><option value="pose_reachability" ${mode==='pose_reachability'?'selected':''}>指定任务点</option></select>`}`;
+}
+export function workspaceIKControls(input,mode,busy=false){
+  if(mode==='joint_sampling')return '';
+  const options=input?.schema_name==='arm-analysis-request'?input.options:input;
+  const setting=(mode==='dexterity_voxels'?options?.dexterity:options?.reachability)??{};
+  const disabled=busy?'disabled':'';
+  const rows=values=>(values??[]).map(row=>row.join(', ')).join('\n');
+  const body=mode==='dexterity_voxels'?`<p>扫描区域以基座坐标系 B 表达；边界留空时使用模型几何外界内的区域。</p><div class="form-grid"><label>区域最小 XYZ / m<input id="workspaceBoundsMin" value="${controlEscape(setting.bounds_base_m?.min?.join(', '))}" placeholder="例如 -0.5, -0.5, 0"></label><label>区域最大 XYZ / m<input id="workspaceBoundsMax" value="${controlEscape(setting.bounds_base_m?.max?.join(', '))}" placeholder="例如 0.5, 0.5, 0.8"></label></div>`:
+    `<div class="form-grid"><label>目标位置 XYZ / m（基座系 B，每行一个点）<textarea id="workspaceTaskPoints" rows="4" placeholder="0.3, 0, 0.5">${controlEscape(rows(setting.points_m))}</textarea></label><label>末端朝向 RPY / °（每行一个；留空只检查位置）<textarea id="workspaceTaskOrientations" rows="4">${controlEscape(rows(setting.orientations_rpy_rad?.map(row=>row.map(v=>v*180/Math.PI))))}</textarea></label></div>${setting.sphere?'<p>已导入球形目标定义；位置列表留空将沿用该定义。朝向参考系沿用高级输入的 orientation_frame；填写位置列表后使用基座系。</p>':''}`;
+  return `<fieldset ${disabled}>${body}<details><summary>求解设置（可选）</summary><label>随机种子<input id="workspaceIKSeed" type="number" min="0" step="1" value="${setting.seed??42}"></label><label>IK 求解参数 JSON<textarea id="workspaceIKOptions" rows="4">${controlEscape(JSON.stringify(setting.ik??{},null,2))}</textarea></label><p>未指定项使用内核默认值。未找到解不等于不可达；不检查碰撞与负载。</p></details></fieldset>`;
+}
+export function applyWorkspaceIKControls(input,fields){
+  const result=structuredClone(input),options=result.schema_name==='arm-analysis-request'?result.options:result;
+  const vectors=(text,label)=>{
+    let rows;
+    try{rows=text.trim().startsWith('[')?JSON.parse(text):text.trim().split(/\n+/).map(line=>line.trim().split(/[,，\s]+/).map(token=>token?Number(token):NaN));}catch{throw Error(label+'格式无效');}
+    if(Array.isArray(rows)&&rows.length===3&&rows.every(v=>typeof v==='number'))rows=[rows];
+    if(!Array.isArray(rows)||!rows.length||rows.some(row=>!Array.isArray(row)||row.length!==3||row.some(v=>typeof v!=='number'||!Number.isFinite(v))))throw Error(label+'每行须填写三个有限数值');
+    return rows;
+  };
+  const setting=options.mode==='dexterity_voxels'?options.dexterity:options.reachability;
+  if(options.mode==='dexterity_voxels'){
+    const min=fields.min?.trim(),max=fields.max?.trim();
+    if(!!min!==!!max)throw Error('区域最小和最大 XYZ 须同时填写，或同时留空');
+    if(min){const lo=vectors(min,'区域最小值'),hi=vectors(max,'区域最大值');if(lo.length!==1||hi.length!==1||lo[0].some((v,i)=>v>=hi[0][i]))throw Error('每个轴的区域最小值须小于最大值');setting.bounds_base_m={min:lo[0],max:hi[0]};}
+    else delete setting.bounds_base_m;
+  }else{
+    if(fields.points?.trim()){setting.points_m=vectors(fields.points,'目标位置');delete setting.sphere;setting.orientation_frame='base';}
+    else if(!setting.sphere)throw Error('请至少填写一个目标位置');
+    if(fields.orientations?.trim())setting.orientations_rpy_rad=vectors(fields.orientations,'末端朝向').map(row=>row.map(v=>v*Math.PI/180));
+    else delete setting.orientations_rpy_rad;
+  }
+  if(fields.ik!==undefined){try{setting.ik=JSON.parse(fields.ik||'{}');}catch{throw Error('IK 求解参数须为有效 JSON');}if(!setting.ik||Array.isArray(setting.ik)||typeof setting.ik!=='object')throw Error('IK 求解参数须为 JSON 对象');}
+  if(fields.seed!==undefined){const seed=Number(fields.seed);if(!String(fields.seed).trim()||!Number.isInteger(seed)||seed<0||seed>4294967295)throw Error('随机种子须为 0–4294967295 的整数');setting.seed=seed;}
+  return result;
 }
 export function estimateDexterity(request){
   if(request?.schema_name==='arm-analysis-request')request={...request.options,model:request.design_model};
   const plan=voxelPlan(request.model,request.dexterity);
   // Full FR3 web run: 81,040 checks in 189.263 s. Other models and IK settings can differ.
-  return {centers:plan.cells.length,checks:plan.checks,seconds:plan.checks*.00234,
+  return {centers:plan.cells.length,checks:plan.checks+plan.cells.length,seconds:(plan.checks+plan.cells.length)*.00234,
     withinLimit:plan.within_limit};
 }
 export function sectionCornersWorld(result,section){

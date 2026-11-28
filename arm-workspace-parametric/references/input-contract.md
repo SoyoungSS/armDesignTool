@@ -80,9 +80,9 @@ FK模式只能给出已采到的蓝色位置可达点，不能据未采样区域
 ```
 
 - 体素边长默认 0.10 m。中心以基座坐标原点为格点锚点，每轴为 `(索引 + 0.5) × 边长`。只检查保守几何外界内的中心。可选 `bounds_base_m: {"min":[x,y,z],"max":[x,y,z]}` 进一步裁剪任务区。
-- 朝向数默认 20，允许 2–100。由 `seed` 生成一组共用的均匀 SO(3) 随机朝向，每个中心按相同顺序测试。以相邻体素同朝向的已知解作为额外初值，失败后用常规多初值 IK。可选 `ik` 与目标模式相同，默认 6 个初值，每个 180 次迭代。
+- 朝向数默认 20，允许 2–100。由 `seed` 生成一组共用的均匀 SO(3) 随机朝向，每个中心按相同顺序测试。每个中心先独立执行位置 IK，再测试朝向；位置解单独保存在 `position_solution`，朝向全未解也不丢失该位置证据。以相邻体素同朝向的已知解作为额外初值，失败后用常规多初值 IK。可选 `ik` 与目标模式相同，默认 6 个初值，每个 180 次迭代。
 - 批次不限时，完成全部计划位姿后输出结果。网页的预估耗时仅供参考，运行时可手动取消。旧输入的 `time_budget_s` 字段仍可读取，求解时忽略。单批限制 100,000 个包围盒格子、50,000 个候选中心及 1,000,000 个计划位姿检查。
-- `dexterity.orientations_wxyz` 记录实际测试的四元数。每点记录 `voxel_index`、中心坐标、`orientation_tested`、`orientation_successes`、`orientation_total`、`successful_orientation_indices` 和一个示例关节解。体素的 `reachability` 为成功数除以计划朝向数。0% 表示测试中没有找到解，几何可达性仍待定。结果中 `dexterity.completed` 为 `true`，`time_budget_s` 为 `null`。
+- `dexterity.orientations_wxyz` 记录实际测试的四元数。`position_check_count` 为中心数，`ik_query_count` 仅计朝向查询，`numerical_ik_solve_count` 包含位置与朝向两类调用；朝向成功率的分母不混入位置检查。每点记录 `voxel_index`、中心坐标、`orientation_tested`、`orientation_successes`、`orientation_total`、`successful_orientation_indices` 和一个示例关节解。体素的 `reachability` 为成功数除以计划朝向数。0% 表示测试中没有找到解，若独立位置 IK 有解则分类为 `spatial_reachable`；位置与所有姿态均未解才为 `unresolved`，不判为不可达。结果中 `dexterity.completed` 为 `true`，`time_budget_s` 为 `null`。
 - 网页剖面用基座系 XY、YZ 或 XZ。拖动滑块逐层移动，三维剖面随安装变换转入世界系，可仅显示当前层。CLI 的三个剖面 SVG 使用最靠近 `sections.center_m` 的层，CSV 包含每个中心的测试数和得分。
 
 ## 剖面与输出
@@ -107,3 +107,7 @@ node scripts/run.mjs --input outputs/right.json --output outputs/right-result.js
 ```
 
 转换器仅使用Python标准库，提取指定base到tip的有向串联路径；固定段保留，不加载STL、碰撞、惯量或GPU配置。拒绝mimic和无有限限位的continuous关节；应先建立明确的分析范围和等效模型。生成请求仍由内核校验。
+
+## 网页统一入口
+
+网页只显示“快速工作范围（FK 点云）”与“空间可达与灵巧分析（IK）”。IK 内默认“区域扫描”，可切换“指定任务点”；区域边界和位置以基座系米制输入，任务 RPY 输入框使用度并在请求中转换为弧度。原 `joint_sampling`、`pose_reachability`、`dexterity_voxels` API/CLI mode 保留，旧 JSON 可继续导入。两个 IK 子方式共用位置/朝向分类，区域扫描保留朝向得分热力图、分类筛选和剖面。

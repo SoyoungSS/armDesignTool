@@ -1,11 +1,16 @@
 import http from 'node:http';
-import { spawn } from 'node:child_process';
+import {createReadStream} from 'node:fs';
+import {stat} from 'node:fs/promises';
 import { mkdtemp, writeFile, readFile, rm } from 'node:fs/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { randomUUID, createHash } from 'node:crypto';
 import { exportSimulation, simulationEnvironments } from './simulation-export.mjs';
+import { executeSkill, executionConfiguration, AGENT_PROTOCOL } from './execution-adapter.mjs';
+import {sceneStatus,listSceneModels,createScenePlan,sceneJobSnapshot,runSceneJob,cancelSceneJob,sceneArtifact,sceneArchive,refreshSceneExports} from './scene-simulation.mjs';
+import {generatedModelList,generatedModelViewer,generatedModelReport} from './generated-models.mjs';
+import {selectionStatus,selectConfiguration} from './configuration-selection.mjs';
 import { prepareRequests } from './module-specs.mjs';
 import { combineResults } from '../dist/module-specifications.mjs';
 import { hash } from '../../arm-kinematics-dynamics/scripts/lib/analyze.mjs';
@@ -28,6 +33,7 @@ let motionActive=0;
 let workspaceActive=0;
 let moduleSpecsActive=false;
 let simulationActive=false;
+let selectionActive=false;
 const MAX_INPUT_BYTES = 2 * 1024 * 1024;
 const TIMEOUT_MS = Number(process.env.STATICS_TIMEOUT_MS || 120000);
 const CORS_ORIGIN = process.env.WEB_ORIGIN || ''; // empty: same origin only
@@ -48,35 +54,13 @@ function readBody(req) {
   });
 }
 function execute(skillDir, input, output, reportDir, timeoutMs=TIMEOUT_MS, signal) {
-  return new Promise((resolve, reject) => {
-    signal?.throwIfAborted();
-    // Run fixed CLI arguments without shell interpolation; computation belongs to the selected Skill.
-    const args = ['scripts/run.mjs', '--input', input, '--output', output];
-    if (reportDir) args.push('--report-dir', reportDir);
-    const child = spawn(process.execPath, args, {
-      cwd: skillDir, env: {...process.env}, stdio: ['ignore','pipe','pipe']
-    });
-    let out = '', err = '', timedOut = false;
-    const timer = timeoutMs===null?null:setTimeout(() => { timedOut = true; child.kill('SIGKILL'); }, timeoutMs);
-    const cancel=()=>child.kill('SIGKILL');
-    signal?.addEventListener('abort',cancel,{once:true});
-    const cleanup=()=>{clearTimeout(timer);signal?.removeEventListener('abort',cancel);};
-    child.stdout.on('data', b => { out = (out + b).slice(-8192); });
-    child.stderr.on('data', b => { err = (err + b).slice(-8192); });
-    child.on('error', e => { cleanup(); reject(e); });
-    child.on('close', code => {
-      cleanup();
-      if (signal?.aborted) reject(signal.reason);
-      else if (timedOut) reject(new Error('SKILL_TIMEOUT'));
-      else if (code !== 0) {
-        const failure=new Error(`SKILL_FAILED_${code}: ${err || out}`);
-        try{const detail=JSON.parse(err.trim());if(detail.error?.code==='INVALID_INPUT')failure.inputDetail=detail.error.message;}catch{}
-        reject(failure);
-      }
-      else resolve();
-    });
-  });
+  const args=['scripts/run.mjs','--input',input,'--output',output];
+  if(reportDir)args.push('--report-dir',reportDir);
+  return executeSkill({operation:'analysis',skill:path.basename(skillDir),command:process.execPath,
+    args,cwd:skillDir,inputPath:input,outputPath:output,timeoutMs,signal});
 }
+// Fail at startup for an invalid adapter configuration rather than during a user task.
+executionConfiguration();
 const server = http.createServer(async (req, res) => {
   const requestId = randomUUID(), url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   if (req.method === 'GET' && !url.pathname.startsWith('/api/')) {
@@ -125,6 +109,9 @@ const server = http.createServer(async (req, res) => {
       whitelist.set('/'+file,file);
     }
     whitelist.set('/module-design-page.mjs','module-design-page.mjs');
+    whitelist.set('/configuration-selection-page.mjs','configuration-selection-page.mjs');
+    whitelist.set('/scene-simulation-page.mjs','scene-simulation-page.mjs');
+    whitelist.set('/generated-model-view.mjs','generated-model-view.mjs');
     whitelist.set('/module-specifications.mjs','module-specifications.mjs');
     const filename = whitelist.get(url.pathname);
     if (!filename) { respond(res,404,{ok:false,error:'NOT_FOUND'},requestId); return; }
@@ -134,8 +121,70 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200,{'content-type':type,'cache-control':'no-store','x-content-type-options':'nosniff'});res.end(data);
     } catch { respond(res,500,{ok:false,error:'WEB_ASSET_ERROR'},requestId); }return;
   }
-  if (req.method === 'OPTIONS' && CORS_ORIGIN && ['/api/statics','/api/workspace','/api/motion','/api/module-specs'].includes(url.pathname)) {
+  if (req.method === 'OPTIONS' && CORS_ORIGIN && ['/api/statics','/api/workspace','/api/motion','/api/module-specs','/api/configuration-selection','/api/scene-simulation/plan'].includes(url.pathname)) {
     res.writeHead(204, {'access-control-allow-origin': CORS_ORIGIN, 'access-control-allow-methods': 'POST, OPTIONS', 'access-control-allow-headers': 'content-type', 'vary': 'Origin'}); res.end(); return;
+  }
+  if(req.method==='GET'&&url.pathname==='/api/execution'){
+    respond(res,200,{mode:executionConfiguration().mode,protocol:AGENT_PROTOCOL,operations:['analysis','simulation.generate','configuration.select','scene.plan','scene.prepare']},requestId);return;
+  }
+  if(req.method==='GET'&&(url.pathname==='/api/generated-models'||url.pathname.startsWith('/api/generated-models/'))){
+    try{
+      if(url.pathname==='/api/generated-models'){respond(res,200,{models:await generatedModelList()},requestId);return;}
+      const route=/^\/api\/generated-models\/([a-f0-9-]{36})\/(viewer|validation|manifest)$/.exec(url.pathname);
+      if(!route){respond(res,404,{ok:false,error:'MODEL_NOT_FOUND'},requestId);return;}
+      const result=route[2]==='viewer'?await generatedModelViewer(route[1]):await generatedModelReport(route[1],route[2]);
+      respond(res,200,result,requestId);
+    }catch(error){respond(res,error.code==='ENOENT'?404:500,{ok:false,error:'MODEL_VIEW_FAILED',detail:error.message},requestId);}
+    return;
+  }
+  if(url.pathname.startsWith('/api/scene-simulation/')){
+    try{
+      if(req.method==='GET'&&url.pathname==='/api/scene-simulation/health'){respond(res,200,await sceneStatus(),requestId);return;}
+      if(req.method==='GET'&&url.pathname==='/api/scene-simulation/models'){respond(res,200,{models:await listSceneModels()},requestId);return;}
+      const route=/^\/api\/scene-simulation\/jobs\/([a-f0-9-]{36})(?:\/(run|cancel|artifact|archive|exports))?$/.exec(url.pathname);
+      if(req.method==='GET'&&route){
+        if(!route[2]){respond(res,200,{ok:true,job:await sceneJobSnapshot(route[1])},requestId);return;}
+        if(['artifact','archive'].includes(route[2])){
+          const file=route[2]==='archive'?await sceneArchive(route[1]):await sceneArtifact(route[1],url.searchParams.get('path'));
+          const info=await stat(file);if(!info.isFile())throw Error('Not a file');
+          const extension=path.extname(file),inline=route[2]==='artifact'&&['.json','.png'].includes(extension);
+          res.writeHead(200,{'content-type':inline?(extension==='.png'?'image/png':'application/json; charset=utf-8'):route[2]==='archive'?'application/zip':'application/octet-stream',
+            'content-length':info.size,'cache-control':'no-store','x-content-type-options':'nosniff','content-security-policy':"default-src 'none'; sandbox",
+            ...(!inline?{'content-disposition':`attachment; filename="${path.basename(file).replace(/[^a-zA-Z0-9_.-]/g,'_')}"`}:{})});
+          const stream=createReadStream(file);stream.on('error',()=>res.destroy());res.on('close',()=>stream.destroy());stream.pipe(res);return;
+        }
+      }
+      if(req.method==='POST'&&(url.pathname==='/api/scene-simulation/plan'||route&&['run','cancel','exports'].includes(route[2]))){
+        if((req.headers['content-type']||'').split(';')[0].trim()!=='application/json'){respond(res,415,{ok:false,error:'UNSUPPORTED_MEDIA_TYPE'},requestId);return;}
+        let input;try{input=JSON.parse(await readBody(req));}catch{respond(res,400,{ok:false,error:'INVALID_JSON'},requestId);return;}
+        const job=url.pathname==='/api/scene-simulation/plan'?await createScenePlan(input):route[2]==='run'?await runSceneJob(route[1],input):route[2]==='exports'?await refreshSceneExports(route[1]):await cancelSceneJob(route[1]);
+        respond(res,route?.[2]==='exports'?200:202,{ok:true,job},requestId);return;
+      }
+      respond(res,404,{ok:false,error:'SCENE_ROUTE_NOT_FOUND'},requestId);
+    }catch(error){if(!res.headersSent)respond(res,error.code==='NOT_FOUND'?404:error.code==='BUSY'||error.code==='AGENT_NOT_CONFIGURED'?503:error.code==='INVALID_INPUT'?422:500,{ok:false,error:error.code??'SCENE_REQUEST_FAILED',detail:error.message},requestId);else res.destroy();}
+    return;
+  }
+  if(req.method==='GET'&&url.pathname==='/api/configuration-selection/health'){
+    respond(res,200,await selectionStatus(),requestId);return;
+  }
+  if(req.method==='POST'&&url.pathname==='/api/configuration-selection'){
+    if((req.headers['content-type']||'').split(';')[0].trim()!=='application/json'){
+      respond(res,415,{ok:false,error:'UNSUPPORTED_MEDIA_TYPE'},requestId);return;
+    }
+    if(selectionActive){respond(res,503,{ok:false,error:'SELECTION_BUSY',detail:'已有构型选择任务正在执行，请稍后重试。'},requestId);return;}
+    selectionActive=true;
+    const controller=new AbortController();
+    res.once('close',()=>{if(!res.writableEnded)controller.abort();});
+    try{
+      let input;
+      try{input=JSON.parse(await readBody(req));}catch{respond(res,400,{ok:false,error:'INVALID_JSON',detail:'请输入有效 JSON'},requestId);return;}
+      const data=await selectConfiguration(input,{signal:controller.signal});
+      if(!res.destroyed)respond(res,200,data,requestId);
+    }catch(error){
+      const status=error.code==='INVALID_INPUT'||error.inputDetail?422:error.code==='AGENT_NOT_CONFIGURED'?503:error.message==='SKILL_TIMEOUT'?504:502;
+      if(!res.destroyed)respond(res,status,{ok:false,error:error.code??'SELECTION_FAILED',detail:error.inputDetail??error.message},requestId);
+    }finally{selectionActive=false;}
+    return;
   }
   if(req.method==='GET'&&url.pathname==='/api/simulation-environments'){
     const environments=await simulationEnvironments();
@@ -156,7 +205,9 @@ const server = http.createServer(async (req, res) => {
       if(!input||typeof input!=='object'||Array.isArray(input)){
         respond(res,400,{ok:false,error:'请输入有效的生成请求'},requestId);return;
       }
-      const result=await exportSimulation(input);
+      const controller=new AbortController();
+      res.once('close',()=>{if(!res.writableEnded)controller.abort();});
+      const result=await exportSimulation(input,{signal:controller.signal});
       if(res.destroyed)return;
       res.writeHead(200,{
         'content-type':'application/zip',
@@ -164,6 +215,7 @@ const server = http.createServer(async (req, res) => {
         'content-length':result.archive.length,
         'cache-control':'no-store',
         'x-simulation-targets':JSON.stringify(result.targets),
+        ...(result.sceneModel?{'x-scene-model-id':result.sceneModel.id}:{}),
       });
       res.end(result.archive);
     }catch(error){
@@ -184,6 +236,14 @@ const server = http.createServer(async (req, res) => {
       let input;
       try{input=JSON.parse(await readBody(req));}catch{respond(res,400,{ok:false,error:'请输入有效 JSON'},requestId);return;}
       const requests=prepareRequests(input?.design_model);
+      if(input.motion_request){
+        const motion=input.motion_request;
+        // Keep the canonical shared model; only carry over the active motion conditions.
+        for(const key of ['trajectory','motion_limits','singularity']){
+          if(Object.hasOwn(motion,key))requests.motion[key]=motion[key];
+        }
+        requests.motion.dynamics={...requests.motion.dynamics,...motion.dynamics,enabled:true};
+      }
       const modelHash=hash(requests.motion.design_model);
       if(input.prepare_only===true){respond(res,200,{ok:true,requests,modelHash},requestId);return;}
       workDir=await mkdtemp(path.join(tmpdir(),'arm-module-specs-'));

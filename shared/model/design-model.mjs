@@ -18,6 +18,10 @@ export function validateInertia(I,mass,path){
 export function validateDesignModel(model,{require:required='geometry'}={}){
   validateContract('design-model',model);
   unique(model.joints.map(j=>j.id),'$.joints.id');unique(model.joints.map(j=>j.name),'$.joints.name');
+  const jointIds=new Set(model.joints.map(j=>j.id));
+  const linkIds=new Set(['base_link',...model.joints.map(j=>j.id+'_link')]);
+  for(const key of Object.keys(model.simulation_dimensions?.joints??{}))if(!jointIds.has(key))invalid('$.simulation_dimensions.joints.'+key,'unknown joint ID');
+  for(const key of Object.keys(model.simulation_dimensions?.links??{}))if(!linkIds.has(key))invalid('$.simulation_dimensions.links.'+key,'unknown link ID');
   const baseComponents=model.base_components??[];
   unique(baseComponents.map(component=>component.name),'$.base_components');
   for(const [i,component] of baseComponents.entries()){

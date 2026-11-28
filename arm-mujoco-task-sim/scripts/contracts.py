@@ -37,6 +37,14 @@ def strategy_errors(strategy, policy):
 
 def validate(c, project=None):
     errors = []
+    assumption_policy = c.get('assumption_policy', 'strict')
+    if assumption_policy not in ('strict', 'concept'):
+        errors.append('Unknown assumption_policy')
+    if assumption_policy == 'concept':
+        if not c.get('assumption_authorization'):
+            errors.append('Concept trial requires delegated assumption authorization')
+        if not isinstance(c.get('assumptions'), list) or not all(isinstance(x, str) and x.strip() for x in c['assumptions']):
+            errors.append('Record concept assumptions as a string list')
     policy = c.get('collision_policy')
     if c.get('schema_version') == '1.1' or policy is not None:
         if not isinstance(policy, dict) or not isinstance(policy.get('phases'), dict) or 'initial' not in policy['phases']:

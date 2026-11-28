@@ -36,7 +36,7 @@ origin 相对上游输出刚体；`T_child=T_parent T_origin Rot(axis,q)` 或 `T
 
 组件置于原有 model.joints[i].components 或 `physics.components:{link_or_joint_name:[components]}`。两者相加，同一刚体内重名拒绝；模组固定端/运动端保留真实所属刚体。
 
-对于固定安装且没有基座质量数据的模型，可显式设置 `physics.fixed_base_massless=true`。此时仍生成支座几何，固定基座省略质量参数，所有运动刚体仍需满足原有质量要求。提供基座质量时应省略此选项。
+对于固定安装且没有基座质量数据的模型，可显式设置 `physics.fixed_base_massless=true`。此时仍生成支座几何，固定基座省略质量参数，所有运动刚体仍需满足原有质量要求。提供基座质量时应省略此选项。 网页仿真导出默认固定安装：当公共模型未提供正质量基座部件时，适配器自动写入此选项，保留基座安装位姿与支座几何；即使启用密度估算，也不为该固定基座生成质量属性。已有基座部件属性则继续传入，并省略此选项。
 
 ```json
 {"name":"housing","mass_kg":1.2,"com_m":[0.05,0.01,0],"frame":"J1_link",
@@ -78,3 +78,5 @@ drives 按活动关节名：`{effort,velocity,mode?,kp?,kv?,timeconst?,damping?,
 simple 按原规则：首 origin=base（缺省单位并警告）；后续 origin.xyz 为前段 length×normalized(direction)，origin.rpy 为本段 rpy（缺省0）；末段向量为 tip。默认+X、中点 COM、整模组归当前输出刚体近似均保留。移动/fixed/真实模组拆分需标准输入。旧 gravity_m_s2 在基座系，转为世界重力一次；工作空间 base_in_world 映射 installation。静力学非零 payload 需追加重复计重声明。
 
 源输入快照与归一化结果分开保存。源 Skill 的 normalized_input 不是此处请求格式。
+
+网页导出默认启用概念估算（`export.mode="concept"`，`physics.estimation.method="uniform_density"`）。缺省等效密度为 2000 kg/m³，可在网页高级设置中调整；已有质量属性优先保留，无基座质量数据时仍按上述固定基座规则跳过估算。独立 Skill 调用的严格模式保持不变。

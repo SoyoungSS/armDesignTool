@@ -37,5 +37,8 @@
     "outputs": false,
     "evidence": null
   },
-  "require_goal_tests": false
+  "require_goal_tests": false,
+  "assumption_policy": "strict",
+  "assumptions": [],
+  "assumption_authorization": null
 }

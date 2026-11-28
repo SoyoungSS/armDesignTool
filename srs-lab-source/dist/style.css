@@ -84,3 +84,6 @@ select:disabled { background-color:#eef0f2; color:#687078; cursor:not-allowed; }
 .run-canvas canvas:active{cursor:grabbing}.run-view [data-controls][hidden]{display:none}
 .run-view [data-seek]{flex:1;min-width:100px;accent-color:#863951}
 .run-view .run-status{font-weight:600}.run-view .button{text-decoration:none}.run-view [data-clock]{font-variant-numeric:tabular-nums}
+
+/* Scenario-led configuration selection */
+.selection-form{border:0;padding:0;margin:0;min-width:0}.selection-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:18px 0}.selection-field{display:flex;flex-direction:column;gap:8px;font-size:12px;color:var(--muted)}.selection-field textarea,.selection-field input,.selection-field select{box-sizing:border-box;width:100%;border:1px solid var(--line);border-radius:5px;background:#fff;padding:11px;color:#41474e;font:inherit}.selection-field textarea{resize:vertical;line-height:1.7}.selection-field textarea:focus,.selection-field input:focus,.selection-field select:focus{outline:2px solid var(--light);border-color:var(--accent)}.selection-candidate{padding:16px 0;border-bottom:1px solid var(--line)}.selection-prose{white-space:pre-wrap}.selection-form:disabled{opacity:.7}@media(max-width:850px){.selection-fields{grid-template-columns:1fr}}

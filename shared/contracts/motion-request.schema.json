@@ -443,6 +443,200 @@
             "assumptions"
           ],
           "additionalProperties": false
+        },
+        "simulation_dimensions": {
+          "type": "object",
+          "properties": {
+            "links": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "width_m": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "width_mm": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "thickness_m": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "thickness_mm": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "distal_setback_m": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "distal_setback_mm": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "max_envelope_m": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 3,
+                    "maxItems": 3
+                  },
+                  "max_envelope_mm": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 3,
+                    "maxItems": 3
+                  }
+                },
+                "required": [],
+                "additionalProperties": false
+              }
+            },
+            "joints": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "diameter_m": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "diameter_mm": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "axial_width_m": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "axial_width_mm": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "module_retreat_m": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "module_retreat_mm": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "role": {
+                    "enum": [
+                      "auto",
+                      "axial_twist",
+                      "transverse_bend"
+                    ]
+                  }
+                },
+                "required": [],
+                "additionalProperties": false
+              }
+            },
+            "base": {
+              "type": "object",
+              "properties": {
+                "diameter_m": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "diameter_mm": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "axial_width_m": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "axial_width_mm": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "bearing_mount_side": {
+                  "enum": [
+                    -1,
+                    1
+                  ]
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            },
+            "flange": {
+              "type": "object",
+              "properties": {
+                "diameter_m": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "diameter_mm": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "axial_width_m": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "axial_width_mm": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            },
+            "rules": {
+              "type": "object",
+              "properties": {
+                "width_ratio": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "min_width_m": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "max_width_m": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "module_ratio": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            },
+            "appearance": {
+              "type": "object",
+              "properties": {
+                "detail_level": {
+                  "enum": [
+                    0,
+                    1
+                  ]
+                },
+                "assembly_clearance_m": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "assembly_clearance_mm": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            }
+          },
+          "required": [],
+          "additionalProperties": false
         }
       },
       "required": [

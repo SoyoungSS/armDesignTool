@@ -7,6 +7,9 @@ import {promisify} from 'node:util';
 import {invalid} from '../../shared/contracts/validate.mjs';
 import {validateDesignModel,collectAssumptions} from '../../shared/model/design-model.mjs';
 
+import {registerSceneModel} from './scene-storage.mjs';
+import {executeSkill} from './execution-adapter.mjs';
+
 const execute=promisify(execFile);
 const skillDir=fileURLToPath(new URL('../../arm-sim-model-generator/',import.meta.url));
 const supportedTargets=new Set(['urdf','ros1','mujoco','isaac']);
@@ -29,6 +32,7 @@ export function simulationInput({design_model:model,robot_name,targets,limits,de
     name:component.name,mass_kg:component.mass_kg,com_m:component.com_m,
     ...(component.inertia_kg_m2?{inertia_kg_m2:component.inertia_kg_m2,inertia_frame:'link'}:{}),
   }));
+  const baseComponents=exportComponents(model.base_components);
   const joints=model.joints.map((joint,index)=>{
     let name=joint.name;
     if(!validName.test(name)||reservedNames.has(name)){
@@ -52,14 +56,20 @@ export function simulationInput({design_model:model,robot_name,targets,limits,de
   const payload=model.payload?.mass_kg>0?{
     mass_kg:model.payload.mass_kg,com_in_tip_m:model.payload.com_in_tip_m,separate_mass_confirmed:true,
   }:undefined;
+  const dimensions=model.simulation_dimensions?structuredClone(model.simulation_dimensions):undefined;
+  if(dimensions?.joints)dimensions.joints=Object.fromEntries(Object.entries(dimensions.joints).map(([id,value])=>[mapping[id],value]));
+  if(dimensions?.links)dimensions.links=Object.fromEntries(Object.entries(dimensions.links).map(([id,value])=>[id==='base_link'?id:mapping[id.slice(0,-5)]+'_link',value]));
   return {
     schema_version:'1.0',model:{name:robot_name,joints,tip:model.tip},drives,
+    ...(dimensions?{dimensions}:{}),
     installation:{base_in_world:model.base_in_world,gravity_world_m_s2:model.gravity_world_m_s2},
-    physics:{payload,components:{base_link:exportComponents(model.base_components)},...(density_kg_m3===undefined?{}:{estimation:{method:'uniform_density',density_kg_m3}})},
+    physics:{payload,components:{base_link:baseComponents},...(!baseComponents.length?{fixed_base_massless:true}:{}),...(density_kg_m3===undefined?{}:{estimation:{method:'uniform_density',density_kg_m3}})},
     export:{mode:density_kg_m3===undefined?'strict':'concept',targets},
     metadata:{normalization_assumptions:[
       ...collectAssumptions(model),
       'Source web model: '+model.name,
+      'The base is fixed to world; its installation pose is preserved.',
+      ...(!baseComponents.length?['No base mass properties supplied: fixed base mass is omitted; moving-body mass properties remain required.']:[]),
       'Joint ID to exported name: '+JSON.stringify(mapping),
       ...(payload?['The web model payload is an additional tip mass.']:[]),
     ]},
@@ -136,7 +146,7 @@ async function simulationPython(selection,targets,runtime){
       ??(needsUsd?environments.find(environment=>environment.usd):undefined)??environments[0]
     :environments.find(environment=>environment.id===selection);
   if(!selected){
-    invalid('python_environment','所选环境缺少 Python ≥3.10 或兼容的 NumPy。请按导出页说明安装依赖，再重新检查环境。');
+    invalid('python_environment','所选环境缺少 Python ≥3.10 或兼容的 NumPy。请由服务器管理员配置 ARM_SIM_PYTHON 并安装依赖。');
   }
   if(needsUsd&&!selected.usd&&targets.length===1){
     invalid('python_environment','所选环境无法加载 pxr。请安装 usd-core 或选择支持 USD 的 Python 环境。');
@@ -144,22 +154,26 @@ async function simulationPython(selection,targets,runtime){
   return candidates.get(selected.id);
 }
 
-export async function exportSimulation(request){
+export async function exportSimulation(request,{signal}={}){
   const input=simulationInput(request);
-  const python=await simulationPython(request.python_environment??'auto',input.export.targets,request.runtime===true);
+  const runtime=process.env.ARM_SIM_RUNTIME_CHECKS==='true';
+  const python=await simulationPython(process.env.ARM_SIM_PYTHON?'configured':'auto',input.export.targets,runtime);
   const work=await mkdtemp(path.join(tmpdir(),'arm-sim-web-'));
   try{
     const source=path.join(work,'input.json'),output=path.join(work,'output');
     await writeFile(source,JSON.stringify(input));
     const args=['scripts/generate.py','generate','--input',source,'--output',output];
-    if(request.runtime===true)args.push('--runtime');
+    if(runtime)args.push('--runtime');
     try{
-      await execute(python,args,{cwd:skillDir,timeout:180000,maxBuffer:2*1024*1024});
+      await executeSkill({operation:'simulation.generate',skill:'arm-sim-model-generator',command:python,args,
+        cwd:skillDir,inputPath:source,outputPath:output,timeoutMs:180000,signal});
     }catch(error){
+      if(signal?.aborted)throw signal.reason;
+      if(String(error.message).startsWith('AGENT_'))throw error;
       if(error.code==='ENOENT'||String(error.stderr).includes("No module named 'numpy'")){
         throw Error('仿真服务需要 Python 和 NumPy。请配置 ARM_SIM_PYTHON，并安装 Skill 的 requirements.txt。');
       }
-      if(error.killed)throw Error('生成超时，请减少导出目标或关闭运行时检查后重试。');
+      if(error.killed||error.message==='SKILL_TIMEOUT')throw Error('生成超时，请由服务器管理员调整计算配置。');
       // A failed target can coexist with a successful export in the same run.
       if(!error.stdout)throw Error('仿真生成进程未返回结果。');
     }
@@ -172,8 +186,9 @@ export async function exportSimulation(request){
     const archive=path.join(work,'model.zip');
     const entries=await readdir(run);
     await execute(python,['-m','zipfile','-c',archive,...entries],{cwd:run,timeout:60000});
+    const sceneModel=targets.mujoco?.generated?await registerSceneModel(run,{name:request.design_model.name}):null;
     return {
-      archive:await readFile(archive),
+      sceneModel,archive:await readFile(archive),
       filename:input.model.name.toLowerCase()+'-simulation.zip',
       targets:Object.fromEntries(Object.entries(targets).map(([key,item])=>[key,item.status])),
     };

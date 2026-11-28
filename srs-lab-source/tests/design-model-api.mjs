@@ -43,6 +43,31 @@ try{
       }
     }
   });
+  await test('module analysis uses the active dynamics trajectory and the shared model',async()=>{
+    const design_model=await (await fetch(url+'/model-examples/worksheet.json')).json();
+    const post=input=>fetch(url+'/api/module-specs',{
+      method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(input),
+    });
+    const prepared=await (await post({design_model,prepare_only:true})).json();
+    const motion_request=structuredClone(prepared.requests.motion);
+    motion_request.trajectory.segments[0].id='current-task';
+    motion_request.trajectory.segments[0].duration_s=4;
+    motion_request.trajectory.sample_dt_s=.05;
+    motion_request.dynamics.enabled=false;
+    // A motion request cannot replace the shared geometry or payload.
+    motion_request.design_model.payload.mass_kg=99;
+    const response=await post({design_model,motion_request});
+    const body=await response.json();
+    assert.equal(response.status,200,JSON.stringify(body));
+    assert.deepEqual(body.requests.motion.trajectory,motion_request.trajectory);
+    assert.equal(body.requests.motion.design_model.payload.mass_kg,design_model.payload.mass_kg);
+    assert.equal(body.results.motion.scope.dynamics_computed,true);
+    assert.equal(body.specifications.cycle.duration_s,body.results.motion.summary.duration_s);
+    assert.equal(body.specifications.joints[0].dynamic_peak_abs,body.results.motion.summary.dynamic_joints[0].effort_peak_abs);
+    assert.ok(!body.specifications.assumptions.some(text=>text.startsWith('默认工况')));
+    motion_request.trajectory={kind:'invalid'};
+    assert.notEqual((await post({design_model,motion_request})).status,200);
+  });
   await test('edited common model flows through all three CLIs into the module table',async()=>{
     const template=JSON.parse(await readFile(new URL('../../arm-kinematics-dynamics/assets/examples/worksheet-dynamics.json',import.meta.url)));
     const model=template.design_model;

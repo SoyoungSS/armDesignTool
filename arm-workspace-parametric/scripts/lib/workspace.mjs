@@ -4,7 +4,7 @@ import {add,sub,scale,dot,norm,cross,eye,mv,mm,rpy,forward,jacobian,orientationE
 import {analyzeDexterity} from './dexterity.mjs';
 import {conservativeReachBound,voxelPlan} from './voxel-grid.mjs';
 export {conservativeReachBound};
-export const ENGINE_VERSION='1.2.0';
+export const ENGINE_VERSION='1.3.0';
 export class InputError extends Error{constructor(path,message){super(`${path}: ${message}`);this.code='INVALID_INPUT';this.path=path;}}
 const fail=(p,m)=>{throw new InputError(p,m);};
 function object(v,p,keys,required=[]){if(!v||typeof v!=='object'||Array.isArray(v))fail(p,'expected object');for(const k of Object.keys(v))if(!keys.includes(k))fail(`${p}.${k}`,'unknown field');for(const k of required)if(!Object.hasOwn(v,k))fail(`${p}.${k}`,'required');return v;}
@@ -186,9 +186,9 @@ export function analyze(input){
   const voxels=new Set(positions.map(p=>p.map(x=>Math.floor(x/size)).join(',')));
   const sections=Object.fromEntries([['xy',2],['xz',1],['yz',0]].map(([plane,k])=>[plane,points.filter(p=>Math.abs(p.position_base_m[k]-n.sections.center_m[k])<=n.sections.thickness_m/2).map(p=>p.id)]));
   const successCount=n.mode==='joint_sampling'?null:points.reduce((s,p)=>s+p.orientation_successes,0);
-  const total=dexterityDetail?numericalIKCalls:n.mode==='pose_reachability'?points.reduce((s,p)=>s+p.orientation_total,0):null;
+  const total=n.mode==='joint_sampling'?null:points.reduce((s,p)=>s+p.orientation_total,0);
   const summary={point_count:points.length,reachable_point_count:reachable.length,ik_query_count:total,ik_success_count:successCount,sampled_orientation_success_rate:total?successCount/total:null,bounds_base_m:bounds(positions),bounds_world_m:bounds(worldPositions),occupied_voxels:voxels.size,sampled_voxel_volume_m3:voxels.size*size**3};
-  summary.position_check_count=n.mode==='pose_reachability'?points.length:null;
+  summary.position_check_count=n.mode==='joint_sampling'?null:points.length;
   summary.numerical_ik_solve_count=n.mode==='joint_sampling'?null:numericalIKCalls;
   summary.workspace_counts=Object.fromEntries(['spatial_reachable','sampled_dexterous','partially_dexterous','unreachable','unresolved'].map(category=>[category,points.filter(p=>p.category===category).length]));
   if(dexterityDetail)summary.workspace_counts.untested=dexterityDetail.incomplete_voxels;

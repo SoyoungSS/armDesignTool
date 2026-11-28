@@ -112,17 +112,17 @@ def apply_layout(n,g,make_part):
         for j,p,r,l in [(a,sa,ra,la),(b,sb,rb,lb)]:
             result['motor_envelopes'].append({'joint':j['name'],'owner':j['parent'],'part':p['name'],'T':serializable(p['T']),'radius_m':r,'length_m':l})
         # Long hollow output sleeve, with an annular gap to the fixed stator.
+        plate_at=side-lb/2-clearance*.5 if not coaxial else lb/2+clearance
         stop=lb/2+clearance if coaxial else rb*.47+abs(dot)*(side+lb/2)+clearance
+        if not coaxial:
+            # The opposite output disk is wider than its shaft. Keep the
+            # upstream sleeve clear of that disk too, including oblique axes.
+            plate_front=float(direction@B)*plate_at+abs(dot)*clearance/2+math.sqrt(max(0.,1-dot*dot))*rb*.95
+            stop=max(stop,plate_front+clearance)
         shaft_length=retreat+la/2-stop
         if shaft_length<=clearance: raise InputError(a['name']+': insufficient length between output shafts')
         add(a['child'],a['name']+'_output_shaft',ra*.47,shaft_length,tf(R=align_z(A),p=direction*(stop+shaft_length/2)),'body','rotor')
-        plate_at=side-lb/2-clearance*.5 if not coaxial else lb/2+clearance
         fairing_start=stop
-        if not coaxial:
-            # Reserve the swept disk of the opposite output plate. The narrow
-            # shaft and the larger outer fairing need distinct end positions.
-            plate_front=float(direction@B)*plate_at+abs(dot)*clearance/2+math.sqrt(max(0.,1-dot*dot))*rb*.95
-            fairing_start=max(stop,plate_front+clearance)
         exposed=retreat-la/2-clearance*2-fairing_start
         if exposed>clearance:
             p=make_part(a['name']+'_output_fairing','cylinder',[ra*.84,exposed],tf(R=align_z(-direction),p=direction*(fairing_start+exposed/2)),'body',True,

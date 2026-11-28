@@ -78,6 +78,9 @@ class JointLayoutTests(unittest.TestCase):
             vb=next(p['vertices'] for p in g[b['child']]['parts'] if p['name']==b['name']+'_output_shaft')
             O=tf(b['origin']); vb=vb@O[:3,:3].T+O[:3,3]; along=-np.array(pair['direction_local'])
             self.assertGreaterEqual(float(np.min(vb@along)-np.max(va@along)),.002-1e-10)
+            disk=next(p['vertices'] for p in g[b['child']]['parts'] if p['name']==b['name']+'_output_plate')
+            disk=disk@O[:3,:3].T+O[:3,3]
+            self.assertGreaterEqual(float(np.min(disk@along)-np.max(va@along)),.002-1e-10)
         self.raw['model']['joints'][0]['axis']=[0,0,-1]
         reversed_n,reversed_g=make(self.raw)
         # Reversing the input axis must not move the physical stator center.

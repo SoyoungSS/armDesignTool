@@ -3,7 +3,7 @@ name: arm-workspace-parametric
 description: >-
   分析参数化串联机械臂的FK采样点云、目标位置/姿态IK和离散朝向灵巧空间体素，输出成功解与可复现报告。用于工作范围和任务位姿覆盖分析；区分几何不可达与预算内未找到解，不检查碰撞或带载能力。
 metadata:
-  version: "1.2.0"
+  version: "1.3.0"
 ---
 
 # 机械臂可达工作空间分析
@@ -24,7 +24,7 @@ metadata:
 | --- | --- | --- |
 | 看限位内采到的末端位置 | joint_sampling | 随机/网格、数量及种子/固定轴 |
 | 检查目标点及可选朝向 | pose_reachability | 目标点/球壳、可选朝向、IK预算与容差 |
-| 按离散朝向成功率看体素 | dexterity_voxels | 分辨率、朝向数、任务区域与IK预算 |
+| 按离散朝向成功率看体素（每点先检查位置） | dexterity_voxels | 分辨率、朝向数、任务区域与IK预算 |
 
 原生请求使用契约；内嵌公共模型请求先读[公共输入](references/design-model.md)。URDF串联路径转换按输入契约末节执行，不能直接把静力学请求交给本CLI。
 
@@ -50,7 +50,7 @@ node scripts/run.mjs --input "REQUEST.json" --output "RUN/result.json" --report-
 
 ### Step 4 分类并核对证据
 
-读取本次summary、scope、warnings及成功解。位置IK与姿态IK分开；按关节名、限位和模型版本重放成功解。使用以下结论范围：
+读取本次summary、scope、warnings及成功解。两种 IK 模式均先检查位置，再检查朝向；位置IK与姿态IK分开；按关节名、限位和模型版本重放成功解。使用以下结论范围：
 
 | 证据/分类 | 可以说什么 |
 | --- | --- |

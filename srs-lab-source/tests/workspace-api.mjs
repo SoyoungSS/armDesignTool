@@ -7,6 +7,7 @@ import {pathToFileURL,fileURLToPath} from 'node:url';
 import {spawn} from 'node:child_process';
 import {once} from 'node:events';
 import {createRequire} from 'node:module';
+import vm from 'node:vm';
 import {analyze} from '../../arm-workspace-parametric/scripts/lib/workspace.mjs';
 import {forward} from '../../arm-workspace-parametric/scripts/lib/kinematics.mjs';
 const E=createRequire(import.meta.url)('../dist/engine.js');
@@ -18,6 +19,48 @@ await writeFile(join(dir,'workspace-client.mjs'),await readFile(new URL('../dist
 const client=await import(pathToFileURL(join(dir,'workspace-client.mjs')));
 
 try{
+  await test('unified workspace controls expose two entries and accept region or task inputs without changing the model',async()=>{
+    const html=client.workspaceModeControls('dexterity_voxels');
+    const main=html.match(/<select id="workspaceMode"[^>]*>(.*?)<\/select>/s)[1];
+    assert.equal((main.match(/<option /g)??[]).length,2);
+    assert.match(main,/空间可达与灵巧分析/);assert.match(html,/区域扫描（默认）/);assert.match(html,/指定任务点/);
+    const c=E.defaults('WORKSHEET-7R'),source=client.fromWebConfig(c,E.model(c),E.installationInfo(c));
+    const region=client.applyWorkspaceIKControls(client.asWorkspaceMode(source,'dexterity_voxels',{voxel_size_m:.2,orientations_per_voxel:2}),{min:'-0.2, -0.2, 0',max:'0.2, 0.2, 0.4',seed:'12',ik:'{"attempts":1}'});
+    assert.deepEqual(region.dexterity.bounds_base_m,{min:[-.2,-.2,0],max:[.2,.2,.4]});assert.equal(region.dexterity.seed,12);assert.deepEqual(region.model,source.model);
+    const task=client.applyWorkspaceIKControls(client.asWorkspaceMode(region,'pose_reachability'),{points:'0.3, 0, 0.5\n0.4, 0, 0.5',orientations:'0, 90, 0',seed:'42',ik:'{}'});
+    assert.deepEqual(task.reachability.points_m,[[.3,0,.5],[.4,0,.5]]);assert.deepEqual(task.reachability.orientations_rpy_rad,[[0,Math.PI/2,0]]);assert.equal(task.reachability.sphere,undefined);
+    assert.match(client.workspaceIKControls(task,'pose_reachability'),/末端朝向 RPY/);
+    const positionOnly=client.applyWorkspaceIKControls(task,{points:'0.3, 0, 0.5',orientations:''});assert.equal(positionOnly.reachability.orientations_rpy_rad,undefined);
+    assert.throws(()=>client.applyWorkspaceIKControls(region,{min:'0,0,0',max:''}),/同时填写/);
+    assert.throws(()=>client.applyWorkspaceIKControls(region,{min:'1,0,0',max:'0,1,1'}),/最小值/);
+    assert.throws(()=>client.applyWorkspaceIKControls(task,{points:'0,0',orientations:''}),/三个有限数值/);
+  });
+  await test('workspace page handlers switch from FK to default region IK and submit task points on the same model',async()=>{
+    const nodes={},submitted=[];
+    const c=E.defaults('WORKSHEET-7R'),input=client.fromWebConfig(c,E.model(c),E.installationInfo(c));
+    const context=vm.createContext({SRS:E,structuredClone,console,AbortController,setInterval,clearInterval,
+      localStorage:{getItem:()=>null,setItem(){}},document:{querySelector:id=>nodes[id]??null,querySelectorAll:()=>[]},
+      window:{ModuleDesignPage:{record(){}},WorkspaceClient:{...client,runWorkspaceSkill:async raw=>{const request=JSON.parse(raw);submitted.push(request);return {result:analyze(request),execution:{elapsed_ms:1}};}}},fixture:JSON.stringify(input)});
+    const source=await readFile(new URL('../dist/app.js',import.meta.url),'utf8');
+    vm.runInContext(source.slice(0,source.indexOf("$('#nav').onclick="))+"\nrender=()=>{};message=text=>{globalThis.lastError=text;};workspaceInput=fixture;",context);
+    nodes['#workspaceMode']={};nodes['#workspaceIKMode']={};nodes['#workspaceRun']={};
+    vm.runInContext('bindWorkspacePage()',context);
+    nodes['#workspaceMode'].onchange({target:{value:'ik'}});
+    assert.equal(vm.runInContext('workspaceMode',context),'dexterity_voxels');
+    nodes['#workspaceSource']={value:vm.runInContext('workspaceInput',context)};
+    nodes['#workspaceBoundsMin']={value:'-0.1,-0.1,0'};nodes['#workspaceBoundsMax']={value:'0.1,0.1,0.2'};
+    nodes['#workspaceIKOptions']={value:'{"attempts":1,"max_iterations":2}'};nodes['#workspaceIKSeed']={value:'42'};
+    vm.runInContext('voxelSettings={voxel_size_m:.2,orientations_per_voxel:2};',context);
+    await nodes['#workspaceRun'].onclick();
+    assert.equal(submitted.length,1,context.lastError);assert.equal(submitted[0].mode,'dexterity_voxels');assert.deepEqual(submitted[0].model,input.model);
+    nodes['#workspaceIKMode'].onchange({target:{value:'pose_reachability'}});
+    nodes['#workspaceSource'].value=vm.runInContext('workspaceInput',context);
+    nodes['#workspaceTaskPoints']={value:'0.3,0,0.5'};nodes['#workspaceTaskOrientations']={value:''};
+    await nodes['#workspaceRun'].onclick();
+    assert.equal(submitted.length,2,context.lastError);assert.deepEqual(submitted[1].reachability.points_m,[[.3,0,.5]]);assert.equal(submitted[1].reachability.orientations_rpy_rad,undefined);
+    assert.deepEqual(submitted[1].model,input.model);
+    assert.match(vm.runInContext('workspaceView()',context),/空间可达与朝向覆盖/);
+  });
   await test('common requests retain model and provenance when switching voxel mode',async()=>{
     const input=JSON.parse(await readFile(new URL('../../arm-workspace-parametric/scripts/tests/fixtures/design-single-link.json',import.meta.url),'utf8'));
     const next=client.asDexterityInput(input,{voxel_size_m:.5,orientations_per_voxel:2});
@@ -29,7 +72,7 @@ try{
     for(const mode of ['joint_sampling','pose_reachability','dexterity_voxels']){
       const request=client.asWorkspaceMode(input,mode,{voxel_size_m:.2,orientations_per_voxel:2});
       assert.deepEqual(request.model,input.model);assert.deepEqual(request.metadata,input.metadata);assert.equal(request.mode,mode);
-      if(mode==='pose_reachability'){assert.equal(request.sampling,undefined);assert.ok(request.reachability.sphere.radius_m>0);}
+      if(mode==='pose_reachability'){assert.equal(request.sampling,undefined);assert.equal(request.reachability.points_m.length,1);}
       if(mode==='dexterity_voxels'){assert.equal(request.sampling,undefined);assert.equal(request.dexterity.orientations_per_voxel,2);}
     }
   });

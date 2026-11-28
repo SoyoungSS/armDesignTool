@@ -215,30 +215,8 @@ def analyze(run, png=None):
             writer = csv.writer(f)
             writer.writerow(columns.split())
             writer.writerows(rows)
-    c = json.loads((run/"input/task_contract.json").read_text(encoding="utf-8"))
-    result = json.loads((reports/"result.json").read_text(encoding="utf-8"))
-    html = ('<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>仿真曲线与数据</title>'
-            '<style>body{font:16px/1.6 system-ui;max-width:1080px;margin:36px auto;padding:0 18px}'
-            'img{display:block;width:100%;height:auto}details{margin:.55rem 0}summary{cursor:pointer}'
-            '.alert{color:#a32222;font-weight:bold}a{color:#1457a3}</style><h1>仿真曲线与数据</h1>'
-            f'<p>{escape(c["task_description"])} · {escape(result["status"])}</p>'
-            f'<p>碰撞规则验收 · {escape(result.get("collision", {}).get("status", "not_evaluated"))}　'
-            f'已检查轨迹段 · {result.get("collision_path", {}).get("segments_checked", result.get("collision", {}).get("path_segments", 0))}</p>'
-            '<p><a href="result.json">逐轮结果</a> · <a href="statistics.csv">峰值与 RMS</a> · '
-            '<a href="load_spectrum.json">载荷谱范围与来源</a> · <a href="load_spectrum.csv">全关节载荷谱</a> · '
-            '<a href="effort_speed_spectrum.csv">力矩/力—速度联合谱</a> · '
-            '<a href="../data/joint_loads.csv">接口六维载荷时序</a> · '
-            '<a href="limit_exceedances.csv">越限明细</a> · <a href="../data/joints.csv">关节 CSV</a> · '
-            '<a href="../data/end_effectors.csv">末端 CSV</a></p>'
-            '<p>橙色虚线表示已知限值，红色表示越限区间和峰值。灰色虚线为复位边界。</p>')
-    for title, stem, count in sorted(links, key=lambda item: not item[2]):
-        alert = f' <span class="alert">越限 {count} 段</span>' if count else ""
-        file = stem+(".png" if png else ".svg")
-        download = f'<a href="../figures/{stem}.svg">SVG</a>'
-        if png:
-            download += f' · <a href="../figures/{file}">PNG</a>'
-        html += f'<details><summary>{escape(title)}{alert}</summary><img loading="lazy" src="../figures/{file}" alt="{escape(title)}">{download}</details>'
-    (reports/"report.html").write_text(html+"</html>", encoding="utf-8")
+    from joint_exports import export as export_joint_modules
+    export_joint_modules(run)
     return stats
 
 

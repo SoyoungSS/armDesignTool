@@ -51,3 +51,5 @@ node /tmp/statics-bundle/arm-statics-parametric/scripts/run.mjs --input /tmp/sta
 工作空间将名称替换为 arm-workspace-parametric；轨迹 Skill 使用 arm-kinematics-dynamics（示例路径改为 assets/examples/franka-fr3-motion.json）。目标 bundle 目录必须尚不存在。分发时保留 `<bundle>/<skill>/` 与 `<bundle>/shared/` 的相对位置；整体可放到任意目录，不需要网页、Node 依赖安装或原仓库。打包时包含共享契约和模型/几何模块。
 
 轨迹第一阶段请求为 `arm-motion-request` 1.0，Schema 见 contracts/motion-request.schema.json。其轨迹生成与状态分析已实现，和原 P0 仅定义的未来载荷契约区分。
+
+可选 `simulation_dimensions` 保存仿真生成器使用的概念外壳尺寸（links/joints/base/flange/rules/appearance）。joints 以公共关节 ID 为键，links 以 `base_link` 或 `<关节ID>_link` 为键；网页导出适配器映射到实际导出名称。该字段不改变 FK、质量或惯量，不参与空间计算。几何尺寸仍由模型生成 Skill 检查，不能当作额定电机尺寸。
